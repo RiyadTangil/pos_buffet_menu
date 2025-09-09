@@ -185,10 +185,13 @@ export default function ItemsPage() {
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Menu</h1>
-            <p className="text-gray-600 text-sm">Choose your items</p>
-          </div>
+         <div className=" bg-whit">
+        <img
+          src="/images/logo.png"
+          alt="KALA Systems Logo"
+          className="h-12 w-auto ms-5"
+        />
+      </div>
 
           <div className="flex items-center gap-4">
             <Button variant="outline" onClick={handleEndSession}>
@@ -205,7 +208,7 @@ export default function ItemsPage() {
                 <SheetTrigger asChild>
                   <Button className="relative bg-orange-600 hover:bg-orange-700" size="lg">
                     <ShoppingCart className="w-5 h-5 mr-2" />
-                    Cart
+                   Item in Cart
                     {getTotalItems() > 0 && (
                       <Badge className="absolute -top-2 -right-2 bg-red-500 text-white">{getTotalItems()}</Badge>
                     )}
@@ -341,14 +344,14 @@ export default function ItemsPage() {
 
             return (
               <div>
-                <div className="mb-6">
+                {/* <div className="mb-6">
                   <h2 className="text-2xl font-bold text-gray-900">{selectedCategoryData?.name}</h2>
                   {selectedCategoryData?.description && (
                     <p className="text-gray-600 mt-1">{selectedCategoryData.description}</p>
                   )}
-                </div>
+                </div> */}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
                   {categoryItems.map((item) => {
                     const quantity = getItemQuantity(item.id)
                     const isInCart = quantity > 0
@@ -356,7 +359,7 @@ export default function ItemsPage() {
                     return (
                       <Card
                          key={item.id}
-                         className={`transition-all duration-300 overflow-hidden group cursor-pointer transform hover:-translate-y-1 ${
+                         className={`transition-all pt-0 duration-300 overflow-hidden group cursor-pointer transform hover:-translate-y-1 ${
                            isInCart
                              ? 'ring-2 ring-orange-500 shadow-xl bg-gradient-to-br from-orange-50 to-white scale-[1.02]'
                              : 'hover:shadow-xl border-gray-200 hover:border-orange-200'
@@ -396,14 +399,14 @@ export default function ItemsPage() {
                           )}
                         </div>
 
-                        <CardHeader className="pb-3 relative">
-                           <CardTitle className={`text-xl font-bold leading-tight ${
+                        <CardHeader className=" relative">
+                           <CardTitle className={`text-lg font-bold leading-tight ${
                              isInCart ? 'text-orange-900' : 'text-gray-900 group-hover:text-orange-700'
                            } transition-colors`}>
                              {item.name}
                            </CardTitle>
                            {item.description && (
-                             <CardDescription className="text-gray-600 text-sm mt-2 line-clamp-2">
+                             <CardDescription className="text-gray-600 text-[12px]  line-clamp-2">
                                {item.description}
                              </CardDescription>
                            )}
@@ -411,7 +414,7 @@ export default function ItemsPage() {
 
                         <CardContent className="pt-0">
                            <div className="flex items-center justify-between">
-                             <div className="flex items-center gap-2">
+                             {/* <div className="flex items-center gap-2">
                                {item.isVegetarian && (
                                  <Badge className="text-xs bg-green-100 text-green-800 border-green-200 hover:bg-green-200">
                                    <Leaf className="w-3 h-3 mr-1" />
@@ -424,10 +427,10 @@ export default function ItemsPage() {
                                    Spicy
                                  </Badge>
                                )}
-                             </div>
+                             </div> */}
 
                             {orderPlaced ? (
-                              <div className="text-sm text-gray-500 bg-gray-100 px-3 py-2 rounded-md">
+                              <div className="text-sm text-gray-500 bg-gray-100 px-3 rounded-md">
                                 Orders disabled
                               </div>
                             ) : quantity > 0 ? (
