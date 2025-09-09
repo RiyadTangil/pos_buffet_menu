@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { ShoppingCart, Plus, Minus, Leaf, Flame, X, Clock, Users } from "lucide-react"
+import { ShoppingCart, Plus, Minus, Leaf, Flame, X, Clock, Users, Utensils, ChefHat, Coffee, Cake } from "lucide-react"
 import { menuCategories, getMenuItemsByCategory, type MenuItem } from "@/lib/mockData"
 import Confetti from "react-confetti"
 
@@ -15,36 +15,65 @@ interface CartItem {
   quantity: number
 }
 
-const getCategoryImage = (categoryId: string, itemName: string) => {
+const getCategoryIcon = (categoryId: string) => {
+  const icons = {
+    "category-starters": Utensils,
+    "category-main": ChefHat,
+    "category-desserts": Cake,
+    "category-drinks": Coffee,
+  }
+  return icons[categoryId as keyof typeof icons] || Utensils
+}
+
+const getItemImage = (itemName: string) => {
   const foodImages: Record<string, string> = {
     // Starters
     "Caesar Salad": "photo-1512621776951-a57141f2eefd",
-    "Chicken Wings": "photo-1567620905732-2d1ec7ab7445",
-    "Garlic Bread": "photo-1549931319-a545dcf3bc73",
-    "Soup of the Day": "photo-1547592180-85f173990554",
+    "Buffalo Wings": "photo-1567620905732-2d1ec7ab7445",
+    "Bruschetta": "photo-1572441713132-51c75654db73",
+    "Shrimp Cocktail": "photo-1565299624946-b28f40a0ca4b",
 
     // Main Course
-    "Grilled Chicken": "photo-1598103442097-8b74394b95c6",
-    "Beef Steak": "photo-1546833999-b9f581a1996d",
-    "Fish & Chips": "photo-1544982503-9f984c14501a",
-    "Pasta Carbonara": "photo-1621996346565-e3dbc353d2e5",
-    "Vegetable Curry": "photo-1571877227200-a0d98ea607e9",
+    "Grilled Salmon": "photo-1467003909585-2f8a72700288",
+    "Beef Tenderloin": "photo-1546833999-b9f581a1996d",
+    "Chicken Tikka Masala": "photo-1565557623262-b51c2513a641",
+    "Vegetable Stir Fry": "photo-1512058564366-18510be2db19",
+    "Lobster Thermidor": "photo-1559847844-d9f0550a5d24",
 
     // Desserts
-    "Chocolate Cake": "photo-1578985545062-69928b1d9587",
-    "Ice Cream": "photo-1551024506-0bccd828d307",
-    "Fruit Salad": "photo-1571091718767-18b5b1457add",
-    Tiramisu: "photo-1571877227200-a0d98ea607e9",
+    "Chocolate Lava Cake": "photo-1578985545062-69928b1d9587",
+    "Tiramisu": "photo-1571877227200-a0d98ea607e9",
+    "Fresh Fruit Tart": "photo-1571091718767-18b5b1457add",
+    "Ice Cream Sundae": "photo-1551024506-0bccd828d307",
 
     // Drinks
-    Coffee: "photo-1495474472287-4d71bcdd2085",
-    Tea: "photo-1544787219-7f47ccb76574",
-    "Fresh Juice": "photo-1622597467836-f3285f2131b8",
-    "Soft Drinks": "photo-1544145945-f90425340c7e",
+    "Fresh Orange Juice": "photo-1622597467836-f3285f2131b8",
+    "Coffee": "photo-1495474472287-4d71bcdd2085",
+    "Sparkling Water": "photo-1544145945-f90425340c7e",
+    "House Wine": "photo-1506377247377-2a5b3b417ebb",
   }
 
-  const imageId = foodImages[itemName] || foodImages[Object.keys(foodImages)[0]]
-  return `https://images.unsplash.com/${imageId}?w=400&h=300&fit=crop&crop=food`
+  const imageId = foodImages[itemName]
+  if (imageId) {
+    return `https://images.unsplash.com/${imageId}?w=400&h=300&fit=crop&crop=food`
+  }
+  
+  // Fallback images based on item type
+  const fallbackImages = [
+    "photo-1565299624946-b28f40a0ca4b", // food 1
+    "photo-1567620905732-2d1ec7ab7445", // food 2
+    "photo-1512621776951-a57141f2eefd", // food 3
+    "photo-1546833999-b9f581a1996d", // food 4
+    "photo-1571877227200-a0d98ea607e9", // food 5
+  ]
+  
+  const hash = itemName.split('').reduce((a, b) => {
+    a = ((a << 5) - a) + b.charCodeAt(0)
+    return a & a
+  }, 0)
+  
+  const imageIndex = Math.abs(hash) % fallbackImages.length
+  return `https://images.unsplash.com/${fallbackImages[imageIndex]}?w=400&h=300&fit=crop&crop=food`
 }
 
 export default function ItemsPage() {
@@ -54,6 +83,7 @@ export default function ItemsPage() {
   const [showConfetti, setShowConfetti] = useState(false)
   const [orderPlaced, setOrderPlaced] = useState(false)
   const [timeRemaining, setTimeRemaining] = useState(0)
+  const [selectedCategory, setSelectedCategory] = useState(menuCategories[0]?.id || '')
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -147,17 +177,17 @@ export default function ItemsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-50 p-4">
+    <div className="min-h-screen bg-gray-50">
       {showConfetti && (
         <Confetti width={window.innerWidth} height={window.innerHeight} recycle={false} numberOfPieces={200} />
       )}
 
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Buffet Menu</h1>
-            <p className="text-gray-600">Unlimited servings • Take as much as you want</p>
+            <h1 className="text-2xl font-bold text-gray-900">Menu</h1>
+            <p className="text-gray-600 text-sm">Choose your items</p>
           </div>
 
           <div className="flex items-center gap-4">
@@ -194,7 +224,7 @@ export default function ItemsPage() {
                       <div className="text-center py-12">
                         <ShoppingCart className="w-16 h-16 mx-auto text-orange-300 mb-4" />
                         <p className="text-orange-600 text-lg">Your cart is empty</p>
-                        <p className="text-orange-500 text-sm">Add items from the buffet menu</p>
+                        <p className="text-orange-500 text-sm">Add items from the menu</p>
                       </div>
                     ) : (
                       <div className="space-y-4 px-1">
@@ -270,39 +300,79 @@ export default function ItemsPage() {
             )}
           </div>
         </div>
+      </div>
 
-        {/* Menu Categories */}
-        <div className="space-y-8">
-          {menuCategories.map((category) => {
-            const categoryItems = getMenuItemsByCategory(category.id)
+      {/* Main Content */}
+      <div className="flex h-[calc(100vh-80px)]">
+        {/* Left Sidebar - Categories */}
+         <div className="w-64 bg-white border-r border-gray-200 overflow-y-auto">
+           <div className="p-4">
+             <h2 className="text-lg font-semibold text-gray-900 mb-4">Categories</h2>
+             <div className="space-y-2">
+               {menuCategories.map((category) => {
+                 const isSelected = selectedCategory === category.id
+                 const IconComponent = getCategoryIcon(category.id)
+                 return (
+                   <button
+                     key={category.id}
+                     onClick={() => setSelectedCategory(category.id)}
+                     className={`w-full text-left p-3 rounded-lg transition-all duration-200 flex items-center gap-3 ${
+                       isSelected
+                         ? 'bg-gradient-to-r from-orange-100 to-orange-50 text-orange-900 border border-orange-200 shadow-sm'
+                         : 'hover:bg-gray-50 text-gray-700 hover:shadow-sm'
+                     }`}
+                   >
+                     <IconComponent className={`w-5 h-5 ${
+                       isSelected ? 'text-orange-600' : 'text-gray-500'
+                     }`} />
+                     <div className="font-medium">{category.name}</div>
+                   </button>
+                 )
+               })}
+             </div>
+           </div>
+         </div>
+
+        {/* Right Content - Items */}
+        <div className="flex-1 overflow-y-auto p-6">
+          {(() => {
+            const selectedCategoryData = menuCategories.find(cat => cat.id === selectedCategory)
+            const categoryItems = getMenuItemsByCategory(selectedCategory)
 
             return (
-              <div key={category.id}>
+              <div>
                 <div className="mb-6">
-                  <h2 className="text-2xl font-semibold text-gray-900">{category.name}</h2>
-                  {category.description && <p className="text-gray-600 mt-1">{category.description}</p>}
+                  <h2 className="text-2xl font-bold text-gray-900">{selectedCategoryData?.name}</h2>
+                  {selectedCategoryData?.description && (
+                    <p className="text-gray-600 mt-1">{selectedCategoryData.description}</p>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {categoryItems.map((item) => {
                     const quantity = getItemQuantity(item.id)
+                    const isInCart = quantity > 0
 
                     return (
                       <Card
-                        key={item.id}
-                        className="hover:shadow-xl transition-all duration-300 border-orange-100 overflow-hidden group"
-                      >
-                        <div className="h-48 bg-gradient-to-br from-orange-200 to-amber-200 relative overflow-hidden">
-                          <img
-                            src={getCategoryImage(category.id, item.name) || "/placeholder.svg"}
-                            alt={item.name}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement
-                              target.src = `/placeholder.svg?height=300&width=400&text=${encodeURIComponent(item.name)}`
-                            }}
-                          />
-                          <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors duration-300" />
+                         key={item.id}
+                         className={`transition-all duration-300 overflow-hidden group cursor-pointer transform hover:-translate-y-1 ${
+                           isInCart
+                             ? 'ring-2 ring-orange-500 shadow-xl bg-gradient-to-br from-orange-50 to-white scale-[1.02]'
+                             : 'hover:shadow-xl border-gray-200 hover:border-orange-200'
+                         }`}
+                       >
+                        <div className="h-52 bg-gradient-to-br from-gray-100 to-gray-200 relative overflow-hidden rounded-t-lg">
+                           <img
+                             src={getItemImage(item.name)}
+                             alt={item.name}
+                             className="w-full h-full object-cover group-hover:scale-110 transition-all duration-500 ease-out"
+                             onError={(e) => {
+                               const target = e.target as HTMLImageElement
+                               target.src = `/placeholder.svg?height=300&width=400&text=${encodeURIComponent(item.name)}`
+                             }}
+                           />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent group-hover:from-black/20 transition-all duration-500" />
                           <div className="absolute top-3 right-3 flex flex-col gap-1">
                             {item.isVegetarian && (
                               <Badge className="bg-green-500/90 text-white shadow-lg backdrop-blur-sm">
@@ -317,72 +387,79 @@ export default function ItemsPage() {
                               </Badge>
                             )}
                           </div>
-                          <div className="absolute bottom-3 left-3">
-                            <Badge className="bg-white/90 text-gray-700 shadow-md backdrop-blur-sm">
-                              <Clock className="w-3 h-3 mr-1" />
-                              Fresh & Hot
-                            </Badge>
-                          </div>
+                          {isInCart && (
+                            <div className="absolute top-3 left-3">
+                              <Badge className="bg-orange-500 text-white shadow-lg">
+                                {quantity} in cart
+                              </Badge>
+                            </div>
+                          )}
                         </div>
 
-                        <CardHeader className="pb-3">
-                          <CardTitle className="text-xl text-gray-900 group-hover:text-orange-700 transition-colors leading-tight">
-                            {item.name}
-                          </CardTitle>
-                          {item.description && (
-                            <CardDescription className="text-gray-600 leading-relaxed text-sm mt-2">
-                              {item.description}
-                            </CardDescription>
-                          )}
-                        </CardHeader>
+                        <CardHeader className="pb-3 relative">
+                           <CardTitle className={`text-xl font-bold leading-tight ${
+                             isInCart ? 'text-orange-900' : 'text-gray-900 group-hover:text-orange-700'
+                           } transition-colors`}>
+                             {item.name}
+                           </CardTitle>
+                           {item.description && (
+                             <CardDescription className="text-gray-600 text-sm mt-2 line-clamp-2">
+                               {item.description}
+                             </CardDescription>
+                           )}
+                         </CardHeader>
 
                         <CardContent className="pt-0">
-                          <div className="flex items-center justify-between">
-                            <div className="flex flex-col gap-2">
-                              <Badge variant="outline" className="border-orange-200 text-orange-700 w-fit text-xs">
-                                <Users className="w-3 h-3 mr-1" />
-                                Unlimited servings
-                              </Badge>
-                              <div className="flex items-center gap-2 text-xs text-gray-500">
-                                <span className="bg-gray-100 px-2 py-1 rounded-full">Buffet style</span>
-                                <span className="bg-gray-100 px-2 py-1 rounded-full">Self service</span>
-                              </div>
-                            </div>
+                           <div className="flex items-center justify-between">
+                             <div className="flex items-center gap-2">
+                               {item.isVegetarian && (
+                                 <Badge className="text-xs bg-green-100 text-green-800 border-green-200 hover:bg-green-200">
+                                   <Leaf className="w-3 h-3 mr-1" />
+                                   Veg
+                                 </Badge>
+                               )}
+                               {item.isSpicy && (
+                                 <Badge className="text-xs bg-red-100 text-red-800 border-red-200 hover:bg-red-200">
+                                   <Flame className="w-3 h-3 mr-1" />
+                                   Spicy
+                                 </Badge>
+                               )}
+                             </div>
 
                             {orderPlaced ? (
                               <div className="text-sm text-gray-500 bg-gray-100 px-3 py-2 rounded-md">
                                 Orders disabled
                               </div>
                             ) : quantity > 0 ? (
-                              <div className="flex items-center gap-3">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => removeFromCart(item.id)}
-                                  className="border-orange-200 hover:bg-orange-50"
-                                >
-                                  <Minus className="w-4 h-4" />
-                                </Button>
-                                <span className="w-8 text-center font-semibold text-lg">{quantity}</span>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => addToCart(item)}
-                                  className="border-orange-200 hover:bg-orange-50"
-                                >
-                                  <Plus className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            ) : (
-                              <Button
-                                onClick={() => addToCart(item)}
-                                size="sm"
-                                className="bg-orange-600 hover:bg-orange-700 text-white shadow-md hover:shadow-lg transition-all"
-                              >
-                                <Plus className="w-4 h-4 mr-1" />
-                                Add
-                              </Button>
-                            )}
+                               <div className="flex items-center gap-2 bg-orange-100 rounded-full p-1">
+                                 <Button
+                                   variant="ghost"
+                                   size="sm"
+                                   onClick={() => removeFromCart(item.id)}
+                                   className="w-8 h-8 p-0 rounded-full hover:bg-orange-200 text-orange-700"
+                                 >
+                                   <Minus className="w-4 h-4" />
+                                 </Button>
+                                 <span className="w-8 text-center font-bold text-orange-900 text-lg">{quantity}</span>
+                                 <Button
+                                   variant="ghost"
+                                   size="sm"
+                                   onClick={() => addToCart(item)}
+                                   className="w-8 h-8 p-0 rounded-full hover:bg-orange-200 text-orange-700"
+                                 >
+                                   <Plus className="w-4 h-4" />
+                                 </Button>
+                               </div>
+                             ) : (
+                               <Button
+                                 onClick={() => addToCart(item)}
+                                 size="sm"
+                                 className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                               >
+                                 <Plus className="w-4 h-4 mr-1" />
+                                 Add to Cart
+                               </Button>
+                             )}
                           </div>
                         </CardContent>
                       </Card>
@@ -391,7 +468,7 @@ export default function ItemsPage() {
                 </div>
               </div>
             )
-          })}
+          })()}
         </div>
       </div>
     </div>
