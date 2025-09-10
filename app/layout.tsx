@@ -7,6 +7,7 @@ import "./globals.css"
 import { SessionTimer } from "@/components/SessionTimer"
 import { Toaster } from "@/components/ui/toaster"
 import { Suspense } from "react"
+import AuthProvider from "@/components/providers/auth-provider"
 
 export const metadata: Metadata = {
   title: "v0 App",
@@ -22,11 +23,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
-        <Suspense fallback={null}>
-          {children}
-          <SessionTimer />
-          <Toaster />
-        </Suspense>
+        <AuthProvider>
+          <Suspense fallback={null}>
+            {children}
+            <SessionTimer />
+            <Toaster />
+          </Suspense>
+        </AuthProvider>
         <Analytics />
       </body>
     </html>

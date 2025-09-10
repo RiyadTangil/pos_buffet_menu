@@ -1,18 +1,12 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { signIn, getSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-
-// Mock admin credentials
-const MOCK_ADMIN_CREDENTIALS = {
-  email: "admin@kala.com",
-  password: "admin123",
-}
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState("")
@@ -26,14 +20,27 @@ export default function AdminLoginPage() {
     setError("")
     setIsLoading(true)
 
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 500))
+    try {
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
+      })
 
-    // Validate credentials
-    if (email === MOCK_ADMIN_CREDENTIALS.email && password === MOCK_ADMIN_CREDENTIALS.password) {
-      router.push("/admin/dashboard")
-    } else {
-      setError("Invalid email or password. Please try again.")
+      if (result?.error) {
+        setError("Invalid email or password. Please check your credentials.")
+      } else if (result?.ok) {
+        // Verify session and redirect
+        const session = await getSession()
+        if (session?.user?.role === 'admin') {
+          router.push("/admin/dashboard")
+        } else {
+          setError("Access denied. Admin privileges required.")
+        }
+      }
+    } catch (error) {
+      console.error('Login error:', error)
+      setError("An error occurred during login. Please try again.")
     }
 
     setIsLoading(false)
@@ -114,9 +121,9 @@ export default function AdminLoginPage() {
           </form>
 
           <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <p className="text-xs text-gray-600 font-medium mb-1">Demo Credentials:</p>
-            <p className="text-xs text-gray-500">Email: admin@kala.com</p>
-            <p className="text-xs text-gray-500">Password: admin123</p>
+            <p className="text-xs text-gray-600 font-medium mb-1">Admin Access:</p>
+            <p className="text-xs text-gray-500">Only registered admin users can access this portal.</p>
+            <p className="text-xs text-gray-500">Contact your system administrator for account creation.</p>
           </div>
         </div>
       </div>

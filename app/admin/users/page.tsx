@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useSession } from "next-auth/react"
 import { User, CreateUserRequest, validateUserData, getRoleDisplayName, getStatusDisplayName } from "@/lib/userTypes"
 import { fetchUsers, createUser, updateUser, toggleUserStatus, deleteUser } from "@/lib/api/users"
 import { Button } from "@/components/ui/button"
@@ -10,6 +11,7 @@ import { ConfirmationModal } from "@/components/ui/confirmation-modal"
 import { Loader2, Trash2, Edit } from "lucide-react"
 
 export default function UsersPage() {
+  const { data: session } = useSession()
   const [showAddUser, setShowAddUser] = useState(false)
   const [users, setUsers] = useState<User[]>([])
   const [newUser, setNewUser] = useState<CreateUserRequest>({ name: '', email: '', role: 'waiter', password: '' })
@@ -24,6 +26,11 @@ export default function UsersPage() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [actionLoading, setActionLoading] = useState(false)
+
+  // Check if user is the current logged-in user
+  const isCurrentUser = (user: User) => {
+    return session?.user?.id === user.id
+  }
 
   // Load users on component mount
   useEffect(() => {
@@ -304,6 +311,8 @@ export default function UsersPage() {
                              size="sm"
                              variant="outline"
                              onClick={() => openStatusModal(user)}
+                             disabled={isCurrentUser(user)}
+                             title={isCurrentUser(user) ? "Cannot deactivate your own account" : ""}
                            >
                              {user.status === 'active' ? 'Deactivate' : 'Activate'}
                            </Button>
@@ -311,6 +320,8 @@ export default function UsersPage() {
                              size="sm" 
                              variant="outline"
                              onClick={() => openDeleteModal(user)}
+                             disabled={isCurrentUser(user)}
+                             title={isCurrentUser(user) ? "Cannot delete your own account" : ""}
                            >
                              <Trash2 className="h-4 w-4" />
                            </Button>

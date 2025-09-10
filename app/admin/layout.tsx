@@ -47,6 +47,11 @@ export default function AdminLayout({
     window.location.href = "/menu/login"
   }
 
+  // If on login page, render without admin layout
+  if (pathname === '/admin/login') {
+    return <>{children}</>
+  }
+
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}
