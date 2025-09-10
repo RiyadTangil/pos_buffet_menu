@@ -72,7 +72,7 @@ export default function TablesPage() {
       localStorage.setItem("selectedTableId", selectedTable.id);
 
       setIsModalOpen(false);
-      router.push("/items");
+      router.push("/menu/items");
     }
   };
 

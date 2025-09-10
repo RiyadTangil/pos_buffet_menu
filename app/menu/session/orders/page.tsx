@@ -113,7 +113,7 @@ export default function SessionOrdersPage() {
 
       // Redirect to tables page after 2 seconds
       setTimeout(() => {
-        router.push("/tables")
+        router.push("/menu/tables")
       }, 2000)
     }, 2000)
   }

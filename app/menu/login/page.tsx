@@ -32,7 +32,7 @@ export default function LoginPage() {
 
     // Validate credentials
     if (number === MOCK_CREDENTIALS.number && password === MOCK_CREDENTIALS.password) {
-      router.push("/tables")
+      router.push("/menu/tables")
     } else {
       setError("Invalid number or password. Please try again.")
     }

@@ -94,7 +94,7 @@ export default function ItemsPage() {
     const handlePopState = (e: PopStateEvent) => {
       e.preventDefault()
       if (confirm("Are you sure you want to end your session?")) {
-        router.push("/session/orders")
+        router.push("/menu/session/orders")
       } else {
         window.history.pushState(null, "", window.location.href)
       }
@@ -173,7 +173,7 @@ export default function ItemsPage() {
   }
 
   const handleEndSession = () => {
-    router.push("/session/orders")
+    router.push("/menu/session/orders")
   }
 
   return (

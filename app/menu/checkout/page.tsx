@@ -74,7 +74,7 @@ export default function CheckoutPage() {
 
       // Redirect to tables after 3 seconds
       setTimeout(() => {
-        router.push("/tables")
+        router.push("/mtables")
       }, 3000)
     }, 2000)
   }
