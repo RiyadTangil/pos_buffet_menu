@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { tables, type Table } from "@/lib/mockData";
+import { fetchTables, updateTableStatus, updateTableGuests, type Table } from "@/lib/api/tables";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -25,15 +26,34 @@ interface GuestCounts {
 
 export default function TablesPage() {
   const router = useRouter();
-  const [tableStates, setTableStates] = useState<Table[]>(tables);
+  const [tableStates, setTableStates] = useState<Table[]>([]);
   const [selectedTable, setSelectedTable] = useState<Table | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [guestCounts, setGuestCounts] = useState<GuestCounts>({
     adults: 1,
     children: 0,
     infants: 0,
     includeDrinks: false,
   });
+
+  // Fetch tables data on component mount
+  useEffect(() => {
+    const loadTables = async () => {
+      try {
+        setIsLoading(true);
+        const tablesData = await fetchTables();
+        setTableStates(tablesData);
+      } catch (error) {
+        console.error('Failed to fetch tables:', error);
+        toast.error('Failed to load tables. Please try again.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadTables();
+  }, []);
 
   const getStatusColor = (status: Table["status"]) => {
     switch (status) {
@@ -57,22 +77,35 @@ export default function TablesPage() {
     }
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (selectedTable) {
-      setTableStates((prev) =>
-        prev.map((table) =>
-          table.id === selectedTable.id
-            ? { ...table, status: "selected" as const }
-            : table
-        )
-      );
+      try {
+        const totalGuests = guestCounts.adults + guestCounts.children + guestCounts.infants;
+        
+        // Update table status to selected and set guest count
+        await updateTableStatus(selectedTable.id, "selected");
+        await updateTableGuests(selectedTable.id, totalGuests);
 
-      // Store guest counts in localStorage for the items page
-      localStorage.setItem("guestCounts", JSON.stringify(guestCounts));
-      localStorage.setItem("selectedTableId", selectedTable.id);
+        // Update local state
+        setTableStates((prev) =>
+          prev.map((table) =>
+            table.id === selectedTable.id
+              ? { ...table, status: "selected" as const, currentGuests: totalGuests }
+              : table
+          )
+        );
 
-      setIsModalOpen(false);
-      router.push("/menu/items");
+        // Store guest counts in localStorage for the items page
+        localStorage.setItem("guestCounts", JSON.stringify(guestCounts));
+        localStorage.setItem("selectedTableId", selectedTable.id);
+
+        setIsModalOpen(false);
+        toast.success(`Table ${selectedTable.number} selected successfully!`);
+        router.push("/menu/items");
+      } catch (error) {
+        console.error('Failed to select table:', error);
+        toast.error('Failed to select table. Please try again.');
+      }
     }
   };
 
@@ -110,33 +143,43 @@ export default function TablesPage() {
         <div className="w-full ">
           {/* Table Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 mb-16">
-            {tableStates.slice(0, 12).map((table, index) => {
-              const tableNumber = index + 1;
-              return (
-                <div key={table.id}>
-                  <div
-                    onClick={() => handleTableClick(table)}
-                    // disabled={table.status !== "available"}
-                    className={`
-                    bg-white text-[#4d4d4d] w-full h-20 sm:h-24 text-base sm:text-lg rounded-xl mb-2 p-2 sm:p-3 
-                    flex flex-col justify-between transition-transform duration-200 ease-in-out
-                    hover:shadow-md
-                    `}
-                    //     ${getStatusColor(table.status)}
-                    // ${table.status === "available" ? "transform hover:scale-105 active:scale-95" : ""}
-                  >
-                    <div className="text-base sm:text-lg font-bold">Table {tableNumber}</div>
-                    <div className="text-xs sm:text-sm text-gray-500">
-                      {table.status === "available"
-                        ? ""
-                        : `Served / ${
-                            table.status === "occupied" ? "1" : "0"
-                          } Items`}
+            {isLoading ? (
+              // Loading skeleton
+              Array.from({ length: 12 }).map((_, index) => (
+                <div key={index} className="bg-white w-full h-20 sm:h-24 rounded-xl mb-2 p-2 sm:p-3 animate-pulse">
+                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                  <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                </div>
+              ))
+            ) : (
+              tableStates.map((table) => {
+                const isAvailable = table.status === "available";
+                return (
+                  <div key={table.id}>
+                    <div
+                      onClick={() => handleTableClick(table)}
+                      className={`
+                        w-full h-20 sm:h-24 text-base sm:text-lg rounded-xl mb-2 p-2 sm:p-3 
+                        flex flex-col justify-between transition-transform duration-200 ease-in-out
+                        cursor-pointer
+                        ${
+                          isAvailable
+                            ? "bg-white text-[#4d4d4d] hover:shadow-md transform hover:scale-105 active:scale-95"
+                            : "bg-gray-100 text-gray-500 cursor-not-allowed"
+                        }
+                      `}
+                    >
+                      <div className="text-base sm:text-lg font-bold">Table {table.number}</div>
+                      <div className="text-xs sm:text-sm text-gray-500">
+                        {isAvailable
+                          ? `Capacity: ${table.capacity}`
+                          : `${table.status.charAt(0).toUpperCase() + table.status.slice(1)} - ${table.currentGuests}/${table.capacity} guests`}
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
         </div>
       </div>

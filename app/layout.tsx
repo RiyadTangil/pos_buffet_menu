@@ -6,6 +6,7 @@ import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 import { SessionTimer } from "@/components/SessionTimer"
 import { Toaster } from "@/components/ui/toaster"
+import { Toaster as Sonner } from "sonner"
 import { Suspense } from "react"
 import AuthProvider from "@/components/providers/auth-provider"
 
@@ -28,6 +29,7 @@ export default function RootLayout({
             {children}
             <SessionTimer />
             <Toaster />
+            <Sonner />
           </Suspense>
         </AuthProvider>
         <Analytics />

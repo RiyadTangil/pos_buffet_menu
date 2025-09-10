@@ -4,6 +4,12 @@ export interface Table {
   id: string
   number: number
   status: "available" | "occupied" | "cleaning" | "selected"
+  capacity: number
+  currentGuests: number
+  createdAt?: string
+  updatedAt?: string
+  currentOrders?: number
+  totalItems?: number
 }
 
 export interface BuffetSession {
@@ -53,16 +59,16 @@ export interface Order {
 
 // Tables data
 export const tables: Table[] = [
-  { id: "table-1", number: 1, status: "available" },
-  { id: "table-2", number: 2, status: "occupied" },
-  { id: "table-3", number: 3, status: "available" },
-  { id: "table-4", number: 4, status: "cleaning" },
-  { id: "table-5", number: 5, status: "selected" },
-  { id: "table-6", number: 6, status: "occupied" },
-  { id: "table-7", number: 7, status: "available" },
-  { id: "table-8", number: 8, status: "available" },
-  { id: "table-9", number: 9, status: "occupied" },
-  { id: "table-10", number: 10, status: "available" },
+  { id: "table-1", number: 1, status: "available", capacity: 4, currentGuests: 0 },
+  { id: "table-2", number: 2, status: "occupied", capacity: 6, currentGuests: 4 },
+  { id: "table-3", number: 3, status: "available", capacity: 2, currentGuests: 0 },
+  { id: "table-4", number: 4, status: "cleaning", capacity: 8, currentGuests: 0 },
+  { id: "table-5", number: 5, status: "selected", capacity: 4, currentGuests: 3 },
+  { id: "table-6", number: 6, status: "occupied", capacity: 6, currentGuests: 5 },
+  { id: "table-7", number: 7, status: "available", capacity: 4, currentGuests: 0 },
+  { id: "table-8", number: 8, status: "available", capacity: 2, currentGuests: 0 },
+  { id: "table-9", number: 9, status: "occupied", capacity: 8, currentGuests: 6 },
+  { id: "table-10", number: 10, status: "available", capacity: 4, currentGuests: 0 },
 ]
 
 // Buffet sessions data

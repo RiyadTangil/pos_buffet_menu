@@ -6,12 +6,16 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
-import { ShoppingCart, Plus, Minus, Leaf, Flame, X, Clock, Users, Utensils, ChefHat, Coffee, Cake } from "lucide-react"
-import { menuCategories, getMenuItemsByCategory, type MenuItem } from "@/lib/mockData"
+import { ShoppingCart, Plus, Minus, Leaf, Flame, X, Clock, Users, Utensils, ChefHat, Coffee, Cake, DollarSign } from "lucide-react"
+import { type MenuCategory } from "@/lib/mockData"
+import { fetchCategories } from "@/lib/api/categories"
+import { fetchProducts, type Product } from "@/lib/api/products"
+import { getBuffetSettings, type BuffetSettings } from "@/lib/api/settings"
+import { saveOrder, type OrderData } from "@/lib/api/orders"
 import Confetti from "react-confetti"
 
 interface CartItem {
-  menuItem: MenuItem
+  menuItem: Product
   quantity: number
 }
 
@@ -83,7 +87,39 @@ export default function ItemsPage() {
   const [showConfetti, setShowConfetti] = useState(false)
   const [orderPlaced, setOrderPlaced] = useState(false)
   const [timeRemaining, setTimeRemaining] = useState(0)
-  const [selectedCategory, setSelectedCategory] = useState(menuCategories[0]?.id || '')
+  const [selectedCategory, setSelectedCategory] = useState<string>("")
+  const [categories, setCategories] = useState<MenuCategory[]>([])
+  const [products, setProducts] = useState<Product[]>([])
+  const [loading, setLoading] = useState(true)
+  const [buffetSettings, setBuffetSettings] = useState<BuffetSettings | null>(null)
+
+  // Fetch categories, products, and buffet settings on component mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true)
+        const [categoriesData, productsData, settingsResponse] = await Promise.all([
+          fetchCategories(),
+          fetchProducts(),
+          getBuffetSettings()
+        ])
+        setCategories(categoriesData)
+        setProducts(productsData)
+        if (settingsResponse.success && settingsResponse.data) {
+          setBuffetSettings(settingsResponse.data)
+        }
+        // Set first category as selected by default
+        if (categoriesData.length > 0) {
+          setSelectedCategory(categoriesData[0].id)
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchData()
+  }, [])
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -126,13 +162,13 @@ export default function ItemsPage() {
     return () => clearInterval(interval)
   }, [timeRemaining])
 
-  const addToCart = (menuItem: MenuItem) => {
+  const addToCart = (product: Product) => {
     setCart((prev) => {
-      const existingItem = prev.find((item) => item.menuItem.id === menuItem.id)
+      const existingItem = prev.find((item) => item.menuItem.id === product.id)
       if (existingItem) {
-        return prev.map((item) => (item.menuItem.id === menuItem.id ? { ...item, quantity: item.quantity + 1 } : item))
+        return prev.map((item) => (item.menuItem.id === product.id ? { ...item, quantity: item.quantity + 1 } : item))
       }
-      return [...prev, { menuItem, quantity: 1 }]
+      return [...prev, { menuItem: product, quantity: 1 }]
     })
   }
 
@@ -153,20 +189,76 @@ export default function ItemsPage() {
     return cart.reduce((total, item) => total + item.quantity, 0)
   }
 
-  const handleConfirmOrder = () => {
-    setShowConfetti(true)
-    setOrderPlaced(true)
-    setTimeRemaining(60) // 1 minute in seconds
-    setCart([])
-    setIsCartOpen(false)
+  const getProductsByCategory = (categoryId: string) => {
+    return products.filter(product => product.categoryId === categoryId)
+  }
 
-    // Hide confetti after 3 seconds but stay on items page
-    setTimeout(() => {
-      setShowConfetti(false)
-    }, 3000)
+  const handleConfirmOrder = async () => {
+    try {
+      // Prepare order data
+      const orderData: OrderData = {
+        orderId: `ORDER_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        timestamp: new Date().toISOString(),
+        items: cart.map(item => ({
+          id: item.menuItem.id,
+          name: item.menuItem.name,
+          price: item.menuItem.price,
+          quantity: item.quantity,
+          categoryId: item.menuItem.categoryId
+        })),
+        totalItems: getTotalItems(),
+        totalAmount: cart.reduce((total, item) => total + (item.menuItem.price * item.quantity), 0),
+        sessionInfo: buffetSettings ? {
+           adultPrice: buffetSettings.sessionAdultPrice,
+           childPrice: buffetSettings.sessionChildPrice,
+           extraDrinksPrice: buffetSettings.extraDrinksPrice,
+           nextOrderTiming: buffetSettings.nextOrderTimingDuration
+         } : undefined
+      }
+
+      // Save order to JSON file
+      const saveResult = await saveOrder(orderData)
+      if (saveResult.success) {
+        console.log('Order saved successfully:', saveResult.filename)
+      } else {
+        console.error('Failed to save order:', saveResult.error)
+      }
+
+      setShowConfetti(true)
+      setOrderPlaced(true)
+      // Use buffet settings timing or default to 60 seconds
+      const timingMinutes = buffetSettings?.nextOrderTimingDuration || 1
+      const timingInSeconds = Math.max(timingMinutes * 60, 60) // Ensure at least 60 seconds
+      setTimeRemaining(timingInSeconds)
+      setCart([])
+      setIsCartOpen(false)
+
+      // Hide confetti after 3 seconds but stay on items page
+      setTimeout(() => {
+        setShowConfetti(false)
+      }, 3000)
+    } catch (error) {
+      console.error('Error processing order:', error)
+      // Still proceed with the UI updates even if saving fails
+      setShowConfetti(true)
+      setOrderPlaced(true)
+      const timingMinutes = buffetSettings?.nextOrderTimingDuration || 1
+      const timingInSeconds = Math.max(timingMinutes * 60, 60) // Ensure at least 60 seconds
+      setTimeRemaining(timingInSeconds)
+      setCart([])
+      setIsCartOpen(false)
+
+      setTimeout(() => {
+        setShowConfetti(false)
+      }, 3000)
+    }
   }
 
   const formatTime = (seconds: number) => {
+    // Handle invalid or NaN values
+    if (!seconds || isNaN(seconds) || seconds < 0) {
+      return "0:00"
+    }
     const minutes = Math.floor(seconds / 60)
     const remainingSeconds = seconds % 60
     return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`
@@ -185,15 +277,49 @@ export default function ItemsPage() {
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
-         <div className=" bg-whit">
-        <img
-          src="/images/logo.png"
-          alt="KALA Systems Logo"
-          className="h-12 w-auto ms-5"
-        />
-      </div>
+          <div className="flex items-center gap-6">
+            <div className="bg-white">
+              <img
+                src="/images/logo.png"
+                alt="KALA Systems Logo"
+                className="h-12 w-auto ms-5"
+              />
+            </div>
+            
+            {/* Buffet Pricing Display */}
+            {/* {buffetSettings && (
+              <div className="flex items-center gap-4 bg-orange-50 rounded-lg px-4 py-2 border border-orange-200">
+                <DollarSign className="h-5 w-5 text-orange-600" />
+                <div className="flex gap-4 text-sm">
+                  <div className="text-center">
+                    <div className="font-semibold text-orange-900">Adult</div>
+                    <div className="text-orange-700">${buffetSettings.sessionAdultPrice.toFixed(2)}</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="font-semibold text-orange-900">Child</div>
+                    <div className="text-orange-700">${buffetSettings.sessionChildPrice.toFixed(2)}</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="font-semibold text-orange-900">Extra Drinks</div>
+                    <div className="text-orange-700">${buffetSettings.extraDrinksPrice.toFixed(2)}</div>
+                  </div>
+                </div>
+              </div>
+            )} */}
+          </div>
 
           <div className="flex items-center gap-4">
+          
+            {/* {buffetSettings && (
+              <div className="flex items-center gap-2 bg-blue-50 rounded-lg px-3 py-2 border border-blue-200">
+                <Clock className="h-4 w-4 text-blue-600" />
+                <div className="text-sm">
+                  <div className="font-semibold text-blue-900">Next Order</div>
+                  <div className="text-blue-700">{buffetSettings?.nextOrderAvailableInMinutes} min</div>
+                </div>
+              </div>
+            )} */}
+            
             <Button variant="outline" onClick={handleEndSession}>
               End Session
             </Button>
@@ -312,7 +438,7 @@ export default function ItemsPage() {
            <div className="p-4">
              <h2 className="text-lg font-semibold text-gray-900 mb-4">Categories</h2>
              <div className="space-y-2">
-               {menuCategories.map((category) => {
+               {categories.map((category) => {
                  const isSelected = selectedCategory === category.id
                  const IconComponent = getCategoryIcon(category.id)
                  return (
@@ -338,9 +464,13 @@ export default function ItemsPage() {
 
         {/* Right Content - Items */}
         <div className="flex-1 overflow-y-auto p-6">
-          {(() => {
-            const selectedCategoryData = menuCategories.find(cat => cat.id === selectedCategory)
-            const categoryItems = getMenuItemsByCategory(selectedCategory)
+          {loading ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="text-lg text-gray-600">Loading menu items...</div>
+            </div>
+          ) : (() => {
+            const selectedCategoryData = categories.find(cat => cat.id === selectedCategory)
+            const categoryItems = getProductsByCategory(selectedCategory)
 
             return (
               <div>
@@ -367,7 +497,7 @@ export default function ItemsPage() {
                        >
                         <div className="h-52 bg-gradient-to-br from-gray-100 to-gray-200 relative overflow-hidden rounded-t-lg">
                            <img
-                             src={getItemImage(item.name)}
+                             src={item.image}
                              alt={item.name}
                              className="w-full h-full object-cover group-hover:scale-110 transition-all duration-500 ease-out"
                              onError={(e) => {
@@ -378,12 +508,12 @@ export default function ItemsPage() {
                           <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent group-hover:from-black/20 transition-all duration-500" />
                           <div className="absolute top-3 right-3 flex flex-col gap-1">
                             {item.isVegetarian && (
-                              <Badge className="bg-green-500/90 text-white shadow-lg backdrop-blur-sm">
-                                <Leaf className="w-3 h-3 mr-1" />
-                                Veg
-                              </Badge>
-                            )}
-                            {item.isSpicy && (
+                               <Badge className="bg-green-500/90 text-white shadow-lg backdrop-blur-sm">
+                                 <Leaf className="w-3 h-3 mr-1" />
+                                 Veg
+                               </Badge>
+                             )}
+                             {item.isSpicy && (
                               <Badge className="bg-red-500/90 text-white shadow-lg backdrop-blur-sm">
                                 <Flame className="w-3 h-3 mr-1" />
                                 Spicy

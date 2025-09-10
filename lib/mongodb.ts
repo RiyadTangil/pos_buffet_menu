@@ -47,7 +47,8 @@ export const COLLECTIONS = {
   BOOKINGS: 'bookings',
   BANNERS: 'banners',
   COUPONS: 'coupons',
-  TABLES: 'tables'
+  TABLES: 'tables',
+  SETTINGS: 'settings'
 } as const
 
 // Helper function to get a specific collection

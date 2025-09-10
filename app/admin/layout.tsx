@@ -18,12 +18,14 @@ import {
   LayoutDashboard,
   LogOut,
   ChevronDown,
-  User 
+  User,
+  Table
 } from "lucide-react"
 
 const sidebarItems = [
   { id: 'dashboard', name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard, hasDropdown: false },
   { id: 'users', name: "Users", href: "/admin/users", icon: Users, hasDropdown: true },
+  { id: 'tables', name: "Tables", href: "/admin/tables", icon: Table, hasDropdown: true },
   { id: 'categories', name: "Categories", href: "/admin/categories", icon: Package, hasDropdown: true },
   { id: 'products', name: "Products", href: "/admin/products", icon: ShoppingCart, hasDropdown: true },
   { id: 'orders', name: "Orders", href: "/admin/orders", icon: ShoppingCart, hasDropdown: true },
@@ -44,7 +46,7 @@ export default function AdminLayout({
 
   const handleLogout = () => {
     // Implement logout logic here
-    window.location.href = "/menu/login"
+    window.location.href = "/admin/login"
   }
 
   // If on login page, render without admin layout
@@ -143,16 +145,7 @@ export default function AdminLayout({
           })}
         </nav>
         
-        <div className="absolute bottom-4 left-4 right-4">
-          <Button 
-            onClick={handleLogout}
-            variant="outline" 
-            className="w-full flex items-center justify-center"
-          >
-            <LogOut className="w-4 h-4" />
-            {sidebarOpen && <span className="ml-2">Logout</span>}
-          </Button>
-        </div>
+      
       </div>
 
       {/* Main Content */}

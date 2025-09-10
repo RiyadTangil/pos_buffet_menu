@@ -1,0 +1,86 @@
+// Types for buffet settings
+export interface BuffetSettings {
+  id?: string
+  sessionPrice: number
+  sessionAmount: number
+  sessionAdultPrice: number
+  sessionChildPrice: number
+  extraDrinksPrice: number
+  nextOrderAvailableInMinutes: number
+  createdAt?: Date
+  updatedAt?: Date
+}
+
+export interface CreateBuffetSettingsData {
+  sessionPrice: number
+  sessionAmount: number
+  sessionAdultPrice: number
+  sessionChildPrice: number
+  extraDrinksPrice: number
+  nextOrderAvailableInMinutes: number
+}
+
+export interface UpdateBuffetSettingsData extends Partial<CreateBuffetSettingsData> {}
+
+export interface ApiResponse<T> {
+  success: boolean
+  data?: T
+  error?: string
+  message?: string
+}
+
+// API functions for buffet settings
+const API_BASE_URL = '/api/settings'
+
+export async function getBuffetSettings(): Promise<ApiResponse<BuffetSettings>> {
+  try {
+    const response = await fetch(API_BASE_URL, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    const data = await response.json()
+    return data
+  } catch (error) {
+    console.error('Error fetching buffet settings:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to fetch buffet settings'
+    }
+  }
+}
+
+export async function updateBuffetSettings(settingsData: UpdateBuffetSettingsData): Promise<ApiResponse<BuffetSettings>> {
+  try {
+    const response = await fetch(API_BASE_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(settingsData),
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    const data = await response.json()
+    return data
+  } catch (error) {
+    console.error('Error updating buffet settings:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to update buffet settings'
+    }
+  }
+}
+
+export async function createBuffetSettings(settingsData: CreateBuffetSettingsData): Promise<ApiResponse<BuffetSettings>> {
+  return updateBuffetSettings(settingsData)
+}
