@@ -1,7 +1,7 @@
 // User Management Types and Interfaces
 
 export interface User {
-  id: number;
+  id: string;
   name: string;
   email: string;
   role: UserRole;
@@ -101,7 +101,7 @@ const isValidEmail = (email: string): boolean => {
 // Mock user data for development
 export const MOCK_USERS: User[] = [
   {
-    id: 1,
+    id: '1',
     name: 'John Admin',
     email: 'admin@restaurant.com',
     role: 'admin',
@@ -110,7 +110,7 @@ export const MOCK_USERS: User[] = [
     lastLogin: '2024-01-25T10:30:00Z'
   },
   {
-    id: 2,
+    id: '2',
     name: 'Sarah Wilson',
     email: 'sarah@restaurant.com',
     role: 'waiter',
@@ -119,7 +119,7 @@ export const MOCK_USERS: User[] = [
     lastLogin: '2024-01-25T09:15:00Z'
   },
   {
-    id: 3,
+    id: '3',
     name: 'Mike Johnson',
     email: 'mike@restaurant.com',
     role: 'waiter',

@@ -1,61 +1,175 @@
 "use client"
 
-import { useState } from "react"
-import { User, CreateUserRequest, validateUserData, getRoleDisplayName, getStatusDisplayName, MOCK_USERS } from "@/lib/userTypes"
+import { useState, useEffect } from "react"
+import { User, CreateUserRequest, validateUserData, getRoleDisplayName, getStatusDisplayName } from "@/lib/userTypes"
+import { fetchUsers, createUser, updateUser, toggleUserStatus, deleteUser } from "@/lib/api/users"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { ConfirmationModal } from "@/components/ui/confirmation-modal"
+import { Loader2, Trash2, Edit } from "lucide-react"
 
 export default function UsersPage() {
   const [showAddUser, setShowAddUser] = useState(false)
-  const [users, setUsers] = useState<User[]>(MOCK_USERS)
+  const [users, setUsers] = useState<User[]>([])
   const [newUser, setNewUser] = useState<CreateUserRequest>({ name: '', email: '', role: 'waiter', password: '' })
   const [formErrors, setFormErrors] = useState<string[]>([])
+  const [loading, setLoading] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [editingUser, setEditingUser] = useState<User | null>(null)
+  
+  // Confirmation modal states
+  const [statusModalOpen, setStatusModalOpen] = useState(false)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const [actionLoading, setActionLoading] = useState(false)
 
-  const handleAddUser = () => {
+  // Load users on component mount
+  useEffect(() => {
+    loadUsers()
+  }, [])
+
+  const loadUsers = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const response = await fetchUsers()
+      if (response.success && response.data) {
+        setUsers(response.data)
+      } else {
+        setError(response.error || 'Failed to load users')
+      }
+    } catch (err) {
+      setError('Failed to load users')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleAddUser = async () => {
     const errors = validateUserData(newUser)
     setFormErrors(errors)
     
     if (errors.length === 0) {
-      const user: User = {
-        id: Math.max(...users.map(u => u.id)) + 1,
-        name: newUser.name,
-        email: newUser.email,
-        role: newUser.role,
-        status: 'active',
-        createdAt: new Date().toISOString().split('T')[0]
+      try {
+        setSubmitting(true)
+        const response = await createUser(newUser)
+        
+        if (response.success && response.data) {
+          setUsers([...users, response.data])
+          setNewUser({ name: '', email: '', role: 'waiter', password: '' })
+          setFormErrors([])
+          setShowAddUser(false)
+        } else {
+          setFormErrors([response.error || 'Failed to create user'])
+        }
+      } catch (err) {
+        setFormErrors(['Failed to create user'])
+      } finally {
+        setSubmitting(false)
       }
-      setUsers([...users, user])
-      setNewUser({ name: '', email: '', role: 'waiter', password: '' })
-      setFormErrors([])
-      setShowAddUser(false)
     }
   }
 
-  const toggleUserStatus = (userId: number) => {
-    setUsers(users.map(user => 
-      user.id === userId 
-        ? { ...user, status: user.status === 'active' ? 'inactive' : 'active' }
-        : user
-    ))
+  const openStatusModal = (user: User) => {
+    setSelectedUser(user)
+    setStatusModalOpen(true)
+  }
+
+  const openDeleteModal = (user: User) => {
+    setSelectedUser(user)
+    setDeleteModalOpen(true)
+  }
+
+  const handleConfirmStatusToggle = async () => {
+    if (!selectedUser) return
+    
+    try {
+      setActionLoading(true)
+      const response = await toggleUserStatus(selectedUser.id, selectedUser.status)
+      if (response.success && response.data) {
+        setUsers(users.map(user => 
+          user.id === selectedUser.id ? response.data! : user
+        ))
+        setStatusModalOpen(false)
+        setSelectedUser(null)
+      } else {
+        setError(response.error || 'Failed to update user status')
+      }
+    } catch (err) {
+      setError('Failed to update user status')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  const handleConfirmDelete = async () => {
+    if (!selectedUser) return
+    
+    try {
+      setActionLoading(true)
+      const response = await deleteUser(selectedUser.id)
+      if (response.success) {
+        setUsers(users.filter(user => user.id !== selectedUser.id))
+        setDeleteModalOpen(false)
+        setSelectedUser(null)
+      } else {
+        setError(response.error || 'Failed to delete user')
+      }
+    } catch (err) {
+      setError('Failed to delete user')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="container mx-auto p-6">
+        <Card>
+          <CardContent className="flex items-center justify-center py-12">
+            <div className="flex items-center space-x-2">
+              <Loader2 className="h-6 w-6 animate-spin" />
+              <span>Loading users...</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   return (
     <div className="container mx-auto p-6">
       <Card>
-        {/* <CardHeader>
-          <CardTitle>User Management</CardTitle>
-          <CardDescription>Manage restaurant staff and administrators</CardDescription>
-        </CardHeader> */}
         <CardContent>
           <div className="space-y-6">
+            {/* Error Display */}
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-md p-4">
+                <div className="flex items-center space-x-2">
+                  <span className="text-red-500">⚠️</span>
+                  <span className="text-sm font-medium text-red-800">Error</span>
+                </div>
+                <p className="text-sm text-red-700 mt-1">{error}</p>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="mt-2"
+                  onClick={() => setError(null)}
+                >
+                  Dismiss
+                </Button>
+              </div>
+            )}
+
             {/* Add User Section */}
             <div className="flex justify-between items-center">
               <div>
                 <h3 className="text-lg font-semibold">User Management</h3>
                 <p className="text-sm text-gray-600">Manage admin and waiter accounts</p>
               </div>
-              <Button onClick={() => setShowAddUser(!showAddUser)}>
+              <Button onClick={() => setShowAddUser(!showAddUser)} disabled={submitting}>
                 {showAddUser ? 'Cancel' : 'Add New User'}
               </Button>
             </div>
@@ -127,7 +241,16 @@ export default function UsersPage() {
                   </div>
                   <div className="flex justify-end space-x-2 mt-4">
                     <Button variant="outline" onClick={() => setShowAddUser(false)}>Cancel</Button>
-                    <Button onClick={handleAddUser}>Add User</Button>
+                    <Button onClick={handleAddUser} disabled={submitting}>
+                      {submitting ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Adding User...
+                        </>
+                      ) : (
+                        'Add User'
+                      )}
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -177,16 +300,20 @@ export default function UsersPage() {
                       </div>
                       <div className="col-span-2">
                         <div className="flex space-x-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => toggleUserStatus(user.id)}
-                          >
-                            {user.status === 'active' ? 'Deactivate' : 'Activate'}
-                          </Button>
-                          <Button size="sm" variant="outline">
-                            Edit
-                          </Button>
+                          <Button 
+                             size="sm"
+                             variant="outline"
+                             onClick={() => openStatusModal(user)}
+                           >
+                             {user.status === 'active' ? 'Deactivate' : 'Activate'}
+                           </Button>
+                           <Button 
+                             size="sm" 
+                             variant="outline"
+                             onClick={() => openDeleteModal(user)}
+                           >
+                             <Trash2 className="h-4 w-4" />
+                           </Button>
                         </div>
                       </div>
                     </div>
@@ -223,6 +350,46 @@ export default function UsersPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Status Toggle Confirmation Modal */}
+      <ConfirmationModal
+        open={statusModalOpen}
+        onOpenChange={setStatusModalOpen}
+        title={`${selectedUser?.status === 'active' ? 'Deactivate' : 'Activate'} User`}
+        description={
+          <div>
+            <p>Are you sure you want to {selectedUser?.status === 'active' ? 'deactivate' : 'activate'} <strong>{selectedUser?.name}</strong>?</p>
+            <p className="text-sm text-gray-600 mt-2">
+              {selectedUser?.status === 'active' 
+                ? 'This user will no longer be able to access the system.' 
+                : 'This user will regain access to the system.'}
+            </p>
+          </div>
+        }
+        confirmText={selectedUser?.status === 'active' ? 'Deactivate' : 'Activate'}
+        onConfirm={handleConfirmStatusToggle}
+        loading={actionLoading}
+        variant={selectedUser?.status === 'active' ? 'destructive' : 'default'}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        open={deleteModalOpen}
+        onOpenChange={setDeleteModalOpen}
+        title="Delete User"
+        description={
+          <div>
+            <p>Are you sure you want to delete <strong>{selectedUser?.name}</strong>?</p>
+            <p className="text-sm text-red-600 mt-2">
+              This action cannot be undone. All data associated with this user will be permanently removed.
+            </p>
+          </div>
+        }
+        confirmText="Delete"
+        onConfirm={handleConfirmDelete}
+        loading={actionLoading}
+        variant="destructive"
+      />
     </div>
   )
 }
