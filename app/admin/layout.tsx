@@ -26,16 +26,16 @@ import {
 
 const sidebarItems = [
   { id: 'dashboard', name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard, hasDropdown: false },
-  { id: 'users', name: "Users", href: "/admin/users", icon: Users, hasDropdown: true },
-  { id: 'tables', name: "Tables", href: "/admin/tables", icon: Table, hasDropdown: true },
-  { id: 'categories', name: "Categories", href: "/admin/categories", icon: Package, hasDropdown: true },
-  { id: 'products', name: "Products", href: "/admin/products", icon: ShoppingCart, hasDropdown: true },
-  { id: 'orders', name: "Orders", href: "/admin/orders", icon: ShoppingCart, hasDropdown: true },
+  { id: 'users', name: "Users", href: "/admin/users", icon: Users, hasDropdown: false },
+  { id: 'tables', name: "Tables", href: "/admin/tables", icon: Table, hasDropdown: false },
+  { id: 'categories', name: "Categories", href: "/admin/categories", icon: Package, hasDropdown: false },
+  { id: 'products', name: "Products", href: "/admin/products", icon: ShoppingCart, hasDropdown: false },
+  // { id: 'orders', name: "Orders", href: "/admin/orders", icon: ShoppingCart, hasDropdown: false },
   { id: 'order-management', name: "Order Management", href: "/admin/order-management", icon: ClipboardList, hasDropdown: false },
   { id: 'payments', name: "Payments", href: "/admin/payments", icon: CreditCard, hasDropdown: false },
-  { id: 'bookings', name: "Bookings", href: "/admin/bookings", icon: Calendar, hasDropdown: true },
-  { id: 'banners', name: "Banners", href: "/admin/banners", icon: Image, hasDropdown: true },
-  { id: 'coupons', name: "Coupons", href: "/admin/coupons", icon: Tag, hasDropdown: true },
+  // { id: 'bookings', name: "Bookings", href: "/admin/bookings", icon: Calendar, hasDropdown: false },
+  // { id: 'banners', name: "Banners", href: "/admin/banners", icon: Image, hasDropdown: false },
+  // { id: 'coupons', name: "Coupons", href: "/admin/coupons", icon: Tag, hasDropdown: false },
   { id: 'settings', name: "Settings", href: "/admin/settings", icon: Settings, hasDropdown: false },
 ]
 
