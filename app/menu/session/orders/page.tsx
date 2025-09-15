@@ -37,7 +37,7 @@ export default function SessionOrdersPage() {
   const [orders, setOrders] = useState<any[]>([])
   const [waiters, setWaiters] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [tableNumber, setTableNumber] = useState<number>(1)
+  const [tableNumber, setTableNumber] = useState<any>()
   const [guestCounts, setGuestCounts] = useState({ adults: 2, children: 0, infants: 0 })
   const [buffetSettings, setBuffetSettings] = useState<any>(null)
 
@@ -80,7 +80,7 @@ export default function SessionOrdersPage() {
     adults: guestCounts.adults,
     children: guestCounts.children,
     infants: guestCounts.infants,
-    extraDrinks: true,
+    extraDrinks: guestCounts.includeDrinks || false,
     adultPrice: currentSession?.data?.adultPrice || 25,
     childPrice: currentSession?.data?.childPrice || 15,
     infantPrice: currentSession?.data?.infantPrice || 0,
@@ -91,19 +91,19 @@ export default function SessionOrdersPage() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Get table number from localStorage
+        // Get table ID from localStorage and fetch table data
         const storedTableId = localStorage.getItem('selectedTableId')
         if (storedTableId) {
           // Extract table number from table ID (assuming format like 'table-1', 'table-2', etc.)
    
-          setTableNumber(+storedTableId)
+          setTableNumber(storedTableId)
         }
 
         // Get guest counts from localStorage
       
-        const guestCounts = JSON.parse(localStorage.getItem('guestCounts') || '{}')
+        const storedGuestCounts = JSON.parse(localStorage.getItem('guestCounts') || '{}')
        
-        setGuestCounts(guestCounts)
+        setGuestCounts(storedGuestCounts)
 
         // Fetch buffet settings
         const settings = await getBuffetSettings()
@@ -187,19 +187,70 @@ export default function SessionOrdersPage() {
 
     setIsProcessing(true)
 
-    // Simulate payment processing
-    setTimeout(() => {
+    try {
+      // Prepare payment data
+      const selectedTableId = localStorage.getItem('selectedTableId')
+      const paymentData = {
+        tableId: selectedTableId || `table-${tableNumber}`,
+        tableNumber: tableNumber,
+        waiterId: waiter.id,
+        waiterName: waiter.name,
+        totalAmount: grandTotal,
+        sessionType: currentSession?.key || 'lunch',
+        sessionData: {
+          adults: sessionData.adults,
+          children: sessionData.children,
+          infants: sessionData.infants,
+          extraDrinks: sessionData.extraDrinks,
+          adultPrice: sessionData.adultPrice,
+          childPrice: sessionData.childPrice,
+          infantPrice: sessionData.infantPrice,
+          drinkPrice: sessionData.drinkPrice
+        }
+      }
+
+      // Call payment API
+      const response = await fetch('/api/payments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(paymentData)
+      })
+
+      const result = await response.json()
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Payment failed')
+      }
+
       setIsProcessing(false)
       setPaymentComplete(true)
 
-      // Record payment under waiter's name (in real app, this would be saved to database)
-      console.log(`Payment of £${grandTotal} recorded under waiter: ${waiter.name} (${waiter.id})`)
+      console.log(`Payment of £${grandTotal} successfully recorded:`, result.data)
+
+      // Clear all localStorage data after successful payment
+      localStorage.removeItem('tableId')
+      localStorage.removeItem('guestCounts')
+      localStorage.removeItem('sessionData')
+      localStorage.removeItem('buffetSettings')
+      localStorage.removeItem('waiters')
+      localStorage.removeItem('orders')
+      localStorage.removeItem('currentSession')
+      localStorage.removeItem('selectedWaiterId')
+      
+      // Clear any other session-related data
+      localStorage.clear()
 
       // Redirect to tables page after 2 seconds
       setTimeout(() => {
         router.push("/menu/tables")
       }, 2000)
-    }, 2000)
+    } catch (error) {
+      console.error('Payment error:', error)
+      setIsProcessing(false)
+      alert(`Payment failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
   }
 
   return (
@@ -385,7 +436,7 @@ export default function SessionOrdersPage() {
                             <SelectContent>
                               {waiters.length > 0 ? waiters.map((waiter) => (
                                 <SelectItem key={waiter.id} value={waiter.id}>
-                                  {waiter.name} ({waiter.id})
+                                  {waiter.name} 
                                 </SelectItem>
                               )) : (
                                 <SelectItem value="" disabled>

@@ -253,8 +253,9 @@ export default function ItemsPage() {
         
         setShowConfetti(true)
         setOrderPlaced(true)
-        // Use buffet settings timing or default to 60 seconds
-        const timingMinutes = buffetSettings?.nextOrderTimingDuration || 1
+        // Use current session timing or default to 1 minute
+        const currentSessionData = getCurrentSession()
+        const timingMinutes = currentSessionData?.data.nextOrderAvailableInMinutes || 1
         const timingInSeconds = Math.max(timingMinutes * 60, 60) // Ensure at least 60 seconds
         setTimeRemaining(timingInSeconds)
         setCart([])
@@ -363,15 +364,15 @@ export default function ItemsPage() {
 
           <div className="flex items-center gap-4">
           
-            {/* {buffetSettings && (
+            {currentSession && (
               <div className="flex items-center gap-2 bg-blue-50 rounded-lg px-3 py-2 border border-blue-200">
                 <Clock className="h-4 w-4 text-blue-600" />
                 <div className="text-sm">
-                  <div className="font-semibold text-blue-900">Next Order</div>
-                  <div className="text-blue-700">{buffetSettings?.nextOrderAvailableInMinutes} min</div>
+                  <div className="font-semibold text-blue-900">Order Intervel</div>
+                  <div className="text-blue-700">{currentSession.data.nextOrderAvailableInMinutes} min</div>
                 </div>
               </div>
-            )} */}
+            )}
             
             <Button variant="outline" onClick={handleEndSession}>
               End Session

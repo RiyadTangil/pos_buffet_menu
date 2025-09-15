@@ -94,7 +94,7 @@ export default function CheckoutPage() {
     adults: guestCounts.adults,
     children: guestCounts.children,
     infants: guestCounts.infants,
-    extraDrinks: true,
+    extraDrinks: guestCounts.includeDrinks || false,
     adultPrice: currentSession?.adultPrice || 25,
     childPrice: currentSession?.childPrice || 15,
     infantPrice: currentSession?.infantPrice || 0,

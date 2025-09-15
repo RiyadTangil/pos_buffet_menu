@@ -20,7 +20,8 @@ import {
   ChevronDown,
   User,
   Table,
-  ClipboardList
+  ClipboardList,
+  CreditCard
 } from "lucide-react"
 
 const sidebarItems = [
@@ -31,6 +32,7 @@ const sidebarItems = [
   { id: 'products', name: "Products", href: "/admin/products", icon: ShoppingCart, hasDropdown: true },
   { id: 'orders', name: "Orders", href: "/admin/orders", icon: ShoppingCart, hasDropdown: true },
   { id: 'order-management', name: "Order Management", href: "/admin/order-management", icon: ClipboardList, hasDropdown: false },
+  { id: 'payments', name: "Payments", href: "/admin/payments", icon: CreditCard, hasDropdown: false },
   { id: 'bookings', name: "Bookings", href: "/admin/bookings", icon: Calendar, hasDropdown: true },
   { id: 'banners', name: "Banners", href: "/admin/banners", icon: Image, hasDropdown: true },
   { id: 'coupons', name: "Coupons", href: "/admin/coupons", icon: Tag, hasDropdown: true },
