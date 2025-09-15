@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -10,14 +10,9 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { CheckCircle, CreditCard, User, Users, Coffee, AlertTriangle } from "lucide-react"
-import { exampleOrders } from "@/lib/mockData"
-
-const mockWaiters = [
-  { id: "W001", name: "Alice Johnson", shift: "morning" },
-  { id: "W002", name: "Bob Smith", shift: "afternoon" },
-  { id: "W003", name: "Carol Davis", shift: "evening" },
-  { id: "W004", name: "David Wilson", shift: "night" },
-]
+import { saveOrder, getOrders, type CheckoutOrder, type SessionOrder } from "@/lib/api/orders-client"
+import { getBuffetSettings, type BuffetSettings } from "@/lib/api/settings"
+import { fetchUsers, type User as WaiterUser } from "@/lib/api/users"
 
 export default function CheckoutPage() {
   const router = useRouter()
@@ -25,16 +20,85 @@ export default function CheckoutPage() {
   const [paymentProcessed, setPaymentProcessed] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
   const [waiterError, setWaiterError] = useState("")
+  const [buffetSettings, setBuffetSettings] = useState<BuffetSettings | null>(null)
+  const [sessionOrders, setSessionOrders] = useState<SessionOrder[]>([])
+  const [waiters, setWaiters] = useState<WaiterUser[]>([])
+  const [loading, setLoading] = useState(true)
+  const [tableId, setTableId] = useState<string>('')
+  const [tableNumber, setTableNumber] = useState<number>(0)
+  const [guestCounts, setGuestCounts] = useState({ adults: 2, children: 1, infants: 0 })
 
+  // Load real data from localStorage and APIs
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        // Get table number and guest counts from localStorage
+        const selectedTableId = localStorage.getItem('selectedTableId')
+        const storedGuestCounts = localStorage.getItem('guestCounts')
+        
+        if (selectedTableId) {
+          // Extract table number from table ID (assuming format like 'table-1', 'table-2', etc.)
+          const tableNum = parseInt(selectedTableId.split('-')[1]) || 1
+          setTableId(selectedTableId)
+          setTableNumber(tableNum)
+        }
+        
+        if (storedGuestCounts) {
+          const parsedGuestCounts = JSON.parse(storedGuestCounts)
+          setGuestCounts(parsedGuestCounts)
+        }
+        
+        // Load settings, orders, and waiters
+        const [settingsData, ordersData, waitersData] = await Promise.all([
+          getBuffetSettings(),
+          getOrders({ type: 'session', tableNumber: selectedTableId ? parseInt(selectedTableId.split('-')[1]) || 1 : 1 }),
+          fetchUsers()
+        ])
+        
+        setBuffetSettings(settingsData.settings)
+        setSessionOrders(ordersData.orders as SessionOrder[])
+        
+        // Filter only active waiters
+        if (waitersData.success && waitersData.data) {
+          const activeWaiters = waitersData.data.filter(user => 
+            user.role === 'waiter' && user.status === 'active'
+          )
+          setWaiters(activeWaiters)
+        }
+      } catch (error) {
+        console.error('Error loading checkout data:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadData()
+  }, [])
+
+  // Get current session based on time (simplified - you may want to add session selection)
+  const getCurrentSession = () => {
+    const now = new Date()
+    const currentHour = now.getHours()
+    
+    if (currentHour >= 7 && currentHour < 12) {
+      return buffetSettings?.sessions?.breakfast
+    } else if (currentHour >= 12 && currentHour < 18) {
+      return buffetSettings?.sessions?.lunch
+    } else {
+      return buffetSettings?.sessions?.dinner
+    }
+  }
+
+  const currentSession = getCurrentSession()
+  
   const sessionData = {
-    adults: 2,
-    children: 1,
-    infants: 0,
+    adults: guestCounts.adults,
+    children: guestCounts.children,
+    infants: guestCounts.infants,
     extraDrinks: true,
-    adultPrice: 25, // £25 per adult
-    childPrice: 15, // £15 per child
-    infantPrice: 0, // Free for infants
-    drinkPrice: 5, // £5 for extra drinks
+    adultPrice: currentSession?.adultPrice || 25,
+    childPrice: currentSession?.childPrice || 15,
+    infantPrice: currentSession?.infantPrice || 0,
+    drinkPrice: buffetSettings?.extraDrinksPrice || 5,
   }
 
   const calculateTotal = () => {
@@ -50,7 +114,6 @@ export default function CheckoutPage() {
 
   const sessionPrice = calculateTotal()
   const sessionDuration = "2 hours"
-  const tableNumber = 5 // This would come from selected table
 
   const handlePayment = async () => {
     if (!waiterId.trim()) {
@@ -58,7 +121,7 @@ export default function CheckoutPage() {
       return
     }
 
-    const waiter = mockWaiters.find((w) => w.id.toLowerCase() === waiterId.toLowerCase())
+    const waiter = waiters.find((w) => w.id.toLowerCase() === waiterId.toLowerCase())
     if (!waiter) {
       setWaiterError("Invalid waiter ID. Please check and try again.")
       return
@@ -67,20 +130,45 @@ export default function CheckoutPage() {
     setWaiterError("")
     setIsProcessing(true)
 
-    // Simulate payment processing
-    setTimeout(() => {
-      setPaymentProcessed(true)
-      setIsProcessing(false)
+    try {
+      // Create checkout order
+      const checkoutOrder: CheckoutOrder = {
+        orderId: `CHECKOUT_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        tableId: tableId,
+        tableNumber: tableNumber,
+        sessionData: sessionData,
+        totalAmount: sessionPrice,
+        waiterId: waiterId,
+        waiterName: waiter.name,
+        paymentStatus: 'completed',
+        timestamp: new Date().toISOString(),
+        sessionDuration: sessionDuration,
+        type: 'checkout'
+      }
 
-      // Redirect to tables after 3 seconds
-      setTimeout(() => {
-        router.push("/mtables")
-      }, 3000)
-    }, 2000)
+      // Save checkout order
+      const result = await saveOrder(checkoutOrder)
+      
+      if (result.success) {
+        setPaymentProcessed(true)
+        setIsProcessing(false)
+
+        // Redirect to tables after 3 seconds
+        setTimeout(() => {
+          router.push("/tables")
+        }, 3000)
+      } else {
+        throw new Error(result.message)
+      }
+    } catch (error) {
+      console.error('Error processing payment:', error)
+      setWaiterError('Failed to process payment. Please try again.')
+      setIsProcessing(false)
+    }
   }
 
   if (paymentProcessed) {
-    const waiter = mockWaiters.find((w) => w.id.toLowerCase() === waiterId.toLowerCase())
+    const waiter = waiters.find((w) => w.id.toLowerCase() === waiterId.toLowerCase())
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center p-4">
         <Card className="w-full max-w-md text-center">
@@ -177,23 +265,45 @@ export default function CheckoutPage() {
               <CardTitle>Orders This Session</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3 max-h-64 overflow-y-auto">
-                {exampleOrders.slice(0, 3).map((order) => (
-                  <div key={order.id} className="border border-gray-200 rounded-lg p-3">
-                    <div className="flex justify-between items-start mb-2">
-                      <span className="font-medium">Order #{order.id}</span>
-                      <Badge variant="outline">{order.status}</Badge>
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      {order.items.map((item, index) => (
-                        <div key={index}>
-                          {item.quantity}x {item.name}
+              {loading ? (
+                <div className="text-center text-gray-500 py-4">Loading orders...</div>
+              ) : (
+                <div className="space-y-3 max-h-64 overflow-y-auto">
+                  {sessionOrders.length > 0 ? (
+                    sessionOrders.slice(0, 5).map((order) => (
+                      <div key={order.orderId} className="border border-gray-200 rounded-lg p-3">
+                        <div className="flex justify-between items-start mb-2">
+                          <span className="font-medium">Order #{order.orderId.split('_')[1]}</span>
+                          <Badge 
+                            variant={order.status === 'completed' ? 'default' : 'outline'}
+                            className={order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 
+                                     order.status === 'preparing' ? 'bg-blue-100 text-blue-800' :
+                                     order.status === 'ready' ? 'bg-green-100 text-green-800' :
+                                     order.status === 'served' ? 'bg-purple-100 text-purple-800' : ''}
+                          >
+                            {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                          </Badge>
                         </div>
-                      ))}
+                        <div className="text-sm text-gray-600">
+                          {order.items.map((item, index) => (
+                            <div key={index} className="flex justify-between">
+                              <span>{item.quantity}x {item.name}</span>
+                              <span>£{(item.price * item.quantity).toFixed(2)}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="text-xs text-gray-500 mt-2">
+                          Total: £{order.totalAmount.toFixed(2)} • {new Date(order.timestamp).toLocaleTimeString()}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center text-gray-500 py-4">
+                      No orders found for this table
                     </div>
-                  </div>
-                ))}
-              </div>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -248,7 +358,7 @@ export default function CheckoutPage() {
                 <li>• Customer receipt will be generated</li>
               </ul>
               <div className="text-xs text-blue-700">
-                <strong>Valid Waiter IDs:</strong> W001, W002, W003, W004
+                <strong>Valid Waiter IDs:</strong> {waiters.length > 0 ? waiters.map(w => w.id).join(', ') : 'Loading...'}
               </div>
             </div>
           </CardContent>

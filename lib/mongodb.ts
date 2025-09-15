@@ -57,7 +57,27 @@ export async function getCollection(collectionName: string) {
   return db.collection(collectionName)
 }
 
-// User-specific database operations
+// Collection-specific database operations
 export async function getUsersCollection() {
   return await getCollection(COLLECTIONS.USERS)
+}
+
+export async function getOrdersCollection() {
+  return await getCollection(COLLECTIONS.ORDERS)
+}
+
+export async function getCategoriesCollection() {
+  return await getCollection(COLLECTIONS.CATEGORIES)
+}
+
+export async function getProductsCollection() {
+  return await getCollection(COLLECTIONS.PRODUCTS)
+}
+
+export async function getTablesCollection() {
+  return await getCollection(COLLECTIONS.TABLES)
+}
+
+export async function getSettingsCollection() {
+  return await getCollection(COLLECTIONS.SETTINGS)
 }

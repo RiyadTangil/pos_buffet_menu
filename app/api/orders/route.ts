@@ -1,61 +1,162 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { writeFile, mkdir } from 'fs/promises'
-import { join } from 'path'
-import { existsSync } from 'fs'
+import fs from 'fs'
+import path from 'path'
 
+// Order interfaces matching our order management page
 interface OrderItem {
   id: string
   name: string
-  price: number
   quantity: number
-  categoryId: string
+  category: string
 }
 
-interface OrderData {
-  orderId: string
-  timestamp: string
+interface Order {
+  id: string
+  tableId: string
+  tableNumber: number
+  session: 'breakfast' | 'lunch' | 'dinner'
+  date: string
+  time: string
   items: OrderItem[]
-  totalItems: number
-  totalAmount: number
-  sessionInfo?: {
-    adultPrice: number
-    childPrice: number
-    extraDrinksPrice: number
-    nextOrderTiming: number
+  status: 'pending' | 'preparing' | 'ready' | 'served'
+  guestCount: {
+    adults: number
+    children: number
+    infants: number
   }
 }
 
-export async function POST(request: NextRequest) {
+// File path for storing orders
+const ordersFilePath = path.join(process.cwd(), 'data', 'orders.json')
+
+// Ensure data directory exists
+function ensureDataDirectory() {
+  const dataDir = path.join(process.cwd(), 'data')
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true })
+  }
+}
+
+// Load orders from file
+function loadOrders(): Order[] {
   try {
-    const orderData: OrderData = await request.json()
+    ensureDataDirectory()
+    if (fs.existsSync(ordersFilePath)) {
+      const data = fs.readFileSync(ordersFilePath, 'utf8')
+      return JSON.parse(data)
+    }
+    return []
+  } catch (error) {
+    console.error('Error loading orders:', error)
+    return []
+  }
+}
+
+// Save orders to file
+function saveOrders(orders: Order[]) {
+  try {
+    ensureDataDirectory()
+    fs.writeFileSync(ordersFilePath, JSON.stringify(orders, null, 2))
+  } catch (error) {
+    console.error('Error saving orders:', error)
+    throw error
+  }
+}
+
+// Get all orders with optional filters
+export async function GET(request: NextRequest) {
+  try {
+    console.log("fetching local orders")
+    const { searchParams } = new URL(request.url)
+    const status = searchParams.get('status')
+    const tableNumber = searchParams.get('tableNumber')
+    const tableId = searchParams.get('tableId')
+    const session = searchParams.get('session')
+    const date = searchParams.get('date')
     
-    // Create order directory if it doesn't exist
-    const orderDir = join(process.cwd(), 'order')
-    if (!existsSync(orderDir)) {
-      await mkdir(orderDir, { recursive: true })
+    let orders = loadOrders()
+    
+    // Apply filters
+    if (status) {
+      orders = orders.filter(order => order.status === status)
+    }
+    if (tableNumber) {
+      orders = orders.filter(order => order.tableNumber === parseInt(tableNumber))
+    }
+    if (tableId) {
+      orders = orders.filter(order => order.tableId === tableId)
+    }
+    if (session) {
+      orders = orders.filter(order => order.session === session)
+    }
+    if (date) {
+      orders = orders.filter(order => order.date === date)
     }
     
-    // Generate filename with timestamp
-    const filename = `order_${orderData.orderId}_${Date.now()}.json`
-    const filepath = join(orderDir, filename)
+    // Sort by date and time (newest first)
+    orders.sort((a, b) => {
+      const dateTimeA = new Date(`${a.date} ${a.time}`)
+      const dateTimeB = new Date(`${b.date} ${b.time}`)
+      return dateTimeB.getTime() - dateTimeA.getTime()
+    })
     
-    // Write order data to JSON file
-    await writeFile(filepath, JSON.stringify(orderData, null, 2), 'utf8')
+    return NextResponse.json({ orders })
+  } catch (error) {
+    console.error('Error fetching orders:', error)
+    return NextResponse.json(
+      { success: false, message: 'Failed to fetch orders' },
+      { status: 500 }
+    )
+  }
+}
+
+// Create new order
+export async function POST(request: NextRequest) {
+  try {
+    const orderData = await request.json()
     
-    return NextResponse.json({
-      success: true,
-      message: 'Order saved successfully',
-      filename,
-      filepath
+    // Generate unique order ID
+    const orderId = `order-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+    
+    // Get current date and time
+    const now = new Date()
+    const date = now.toISOString().split('T')[0] // YYYY-MM-DD
+    const time = now.toTimeString().split(' ')[0].substring(0, 5) // HH:MM
+    
+    // Create new order
+    const newOrder: Order = {
+      id: orderId,
+      tableId: orderData.tableId || `table-${orderData.tableNumber}`,
+      tableNumber: orderData.tableNumber,
+      session: orderData.session,
+      date,
+      time,
+      items: orderData.items.map((item: any) => ({
+        id: item.id,
+        name: item.name,
+        quantity: item.quantity,
+        category: item.category
+      })),
+      status: 'pending',
+      guestCount: orderData.guestCount
+    }
+    
+    // Load existing orders and add new one
+    const orders = loadOrders()
+    orders.push(newOrder)
+    
+    // Save to file
+    saveOrders(orders)
+    
+    return NextResponse.json({ 
+      success: true, 
+      orderId: newOrder.id,
+      order: newOrder
     })
   } catch (error) {
-    console.error('Error saving order:', error)
+    console.error('Error creating order:', error)
     return NextResponse.json(
-      {
-        success: false,
-        message: 'Failed to save order',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      },
+      { success: false, error: 'Failed to create order' },
       { status: 500 }
     )
   }

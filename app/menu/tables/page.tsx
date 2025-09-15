@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { fetchTables, updateTableStatus, updateTableGuests, type Table } from "@/lib/api/tables";
+import { getBuffetSettings, type BuffetSettings } from "@/lib/api/settings";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
@@ -30,6 +31,7 @@ export default function TablesPage() {
   const [selectedTable, setSelectedTable] = useState<Table | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [buffetSettings, setBuffetSettings] = useState<BuffetSettings | null>(null);
   const [guestCounts, setGuestCounts] = useState<GuestCounts>({
     adults: 1,
     children: 0,
@@ -37,22 +39,26 @@ export default function TablesPage() {
     includeDrinks: false,
   });
 
-  // Fetch tables data on component mount
+  // Fetch tables and settings data on component mount
   useEffect(() => {
-    const loadTables = async () => {
+    const loadData = async () => {
       try {
         setIsLoading(true);
-        const tablesData = await fetchTables();
+        const [tablesData, settingsData] = await Promise.all([
+          fetchTables(),
+          getBuffetSettings()
+        ]);
         setTableStates(tablesData);
+        setBuffetSettings(settingsData);
       } catch (error) {
-        console.error('Failed to fetch tables:', error);
-        toast.error('Failed to load tables. Please try again.');
+        console.error('Failed to fetch data:', error);
+        toast.error('Failed to load data. Please try again.');
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadTables();
+    loadData();
   }, []);
 
   const getStatusColor = (status: Table["status"]) => {
@@ -69,6 +75,39 @@ export default function TablesPage() {
         return "bg-gray-500 text-white";
     }
   };
+
+  // Get current session based on time
+  const getCurrentSession = () => {
+    if (!buffetSettings || !buffetSettings.sessions) return null;
+    
+    const now = new Date();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
+    const currentTimeInMinutes = currentHour * 60 + currentMinute;
+    
+    const sessions = [
+      { key: 'breakfast', data: buffetSettings.sessions.breakfast },
+      { key: 'lunch', data: buffetSettings.sessions.lunch },
+      { key: 'dinner', data: buffetSettings.sessions.dinner }
+    ];
+    
+    for (const session of sessions) {
+      if (!session.data.isActive) continue;
+      
+      const [startHour, startMin] = session.data.startTime.split(':').map(Number);
+      const [endHour, endMin] = session.data.endTime.split(':').map(Number);
+      const startTime = startHour * 60 + startMin;
+      const endTime = endHour * 60 + endMin;
+      
+      if (currentTimeInMinutes >= startTime && currentTimeInMinutes < endTime) {
+        return session;
+      }
+    }
+    
+    return null;
+  };
+
+  const currentSession = getCurrentSession();
 
   const handleTableClick = (table: Table) => {
     if (table.status === "available") {
@@ -208,6 +247,70 @@ export default function TablesPage() {
               Please specify the number of guests for your dining experience.
             </DialogDescription>
           </DialogHeader>
+
+          {/* Session Pricing */}
+          {buffetSettings && buffetSettings.sessions && (
+            <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+              {currentSession ? (
+                <>
+                  <h3 className="font-semibold text-blue-900 capitalize mb-2">
+                    Current: {currentSession.key} Session ({currentSession.data.startTime} - {currentSession.data.endTime})
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="text-center">
+                      <div className="font-medium text-blue-900">Adult</div>
+                      <div className="text-blue-700">£{currentSession.data.adultPrice.toFixed(2)}</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="font-medium text-blue-900">Child</div>
+                      <div className="text-blue-700">£{currentSession.data.childPrice.toFixed(2)}</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="font-medium text-blue-900">Infant</div>
+                      <div className="text-blue-700">£{currentSession.data.infantPrice.toFixed(2)}</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="font-medium text-blue-900">Extra Drinks</div>
+                      <div className="text-blue-700">£{buffetSettings.extraDrinksPrice.toFixed(2)}</div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <h3 className="font-semibold text-blue-900 mb-3">Session Pricing</h3>
+                  <div className="space-y-3">
+                    {Object.entries(buffetSettings.sessions).map(([sessionKey, sessionData]) => (
+                      sessionData.isActive && (
+                        <div key={sessionKey} className="border-b border-blue-200 pb-2 last:border-b-0">
+                          <div className="font-medium text-blue-800 capitalize mb-1">
+                            {sessionKey} ({sessionData.startTime} - {sessionData.endTime})
+                          </div>
+                          <div className="grid grid-cols-4 gap-2 text-xs">
+                            <div className="text-center">
+                              <div className="text-blue-700">Adult</div>
+                              <div className="font-medium">£{sessionData.adultPrice.toFixed(2)}</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-blue-700">Child</div>
+                              <div className="font-medium">£{sessionData.childPrice.toFixed(2)}</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-blue-700">Infant</div>
+                              <div className="font-medium">£{sessionData.infantPrice.toFixed(2)}</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-blue-700">Drinks</div>
+                              <div className="font-medium">£{buffetSettings.extraDrinksPrice.toFixed(2)}</div>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">

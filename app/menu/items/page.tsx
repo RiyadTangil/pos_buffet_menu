@@ -11,7 +11,7 @@ import { type MenuCategory } from "@/lib/mockData"
 import { fetchCategories } from "@/lib/api/categories"
 import { fetchProducts, type Product } from "@/lib/api/products"
 import { getBuffetSettings, type BuffetSettings } from "@/lib/api/settings"
-import { saveOrder, type OrderData } from "@/lib/api/orders"
+import { saveOrder, type SessionOrder } from "@/lib/api/orders-client"
 import Confetti from "react-confetti"
 
 interface CartItem {
@@ -92,6 +92,7 @@ export default function ItemsPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [buffetSettings, setBuffetSettings] = useState<BuffetSettings | null>(null)
+  const [currentTime, setCurrentTime] = useState(new Date())
 
   // Fetch categories, products, and buffet settings on component mount
   useEffect(() => {
@@ -146,6 +147,15 @@ export default function ItemsPage() {
     }
   }, [router])
 
+  // Update current time every minute to refresh session display
+  useEffect(() => {
+    const timeInterval = setInterval(() => {
+      setCurrentTime(new Date())
+    }, 60000) // Update every minute
+
+    return () => clearInterval(timeInterval)
+  }, [])
+
   useEffect(() => {
     let interval: NodeJS.Timeout
     if (timeRemaining > 0) {
@@ -195,62 +205,72 @@ export default function ItemsPage() {
 
   const handleConfirmOrder = async () => {
     try {
-      // Prepare order data
-      const orderData: OrderData = {
-        orderId: `ORDER_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        timestamp: new Date().toISOString(),
+      // Get current session
+      const currentSession = getCurrentSession()
+      if (!currentSession) {
+        alert('No active session found. Please try again during buffet hours.')
+        return
+      }
+
+      // Get table ID and number from localStorage
+      const selectedTableId = localStorage.getItem('selectedTableId') || 'table-1'
+      const tableNumber = parseInt(selectedTableId.split('-')[1]) || 1
+      
+      // Get guest count from localStorage or use defaults
+      const guestCount = {
+        adults: parseInt(localStorage.getItem('adultCount') || '2'),
+        children: parseInt(localStorage.getItem('childCount') || '0'),
+        infants: parseInt(localStorage.getItem('infantCount') || '0')
+      }
+
+      // Prepare order data for new API
+      const orderData = {
+        tableId: selectedTableId,
+        tableNumber,
+        session: currentSession.key as 'breakfast' | 'lunch' | 'dinner',
         items: cart.map(item => ({
           id: item.menuItem.id,
           name: item.menuItem.name,
-          price: item.menuItem.price,
           quantity: item.quantity,
-          categoryId: item.menuItem.categoryId
+          category: item.menuItem.categoryId
         })),
-        totalItems: getTotalItems(),
-        totalAmount: cart.reduce((total, item) => total + (item.menuItem.price * item.quantity), 0),
-        sessionInfo: buffetSettings ? {
-           adultPrice: buffetSettings.sessionAdultPrice,
-           childPrice: buffetSettings.sessionChildPrice,
-           extraDrinksPrice: buffetSettings.extraDrinksPrice,
-           nextOrderTiming: buffetSettings.nextOrderTimingDuration
-         } : undefined
+        guestCount
       }
 
-      // Save order to JSON file
-      const saveResult = await saveOrder(orderData)
-      if (saveResult.success) {
-        console.log('Order saved successfully:', saveResult.filename)
+      // Send order to new API
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(orderData)
+      })
+
+      const result = await response.json()
+      
+      if (result.success) {
+        console.log('Order created successfully:', result.orderId)
+        
+        setShowConfetti(true)
+        setOrderPlaced(true)
+        // Use buffet settings timing or default to 60 seconds
+        const timingMinutes = buffetSettings?.nextOrderTimingDuration || 1
+        const timingInSeconds = Math.max(timingMinutes * 60, 60) // Ensure at least 60 seconds
+        setTimeRemaining(timingInSeconds)
+        setCart([])
+        setIsCartOpen(false)
+
+        // Hide confetti after 3 seconds but stay on items page
+        setTimeout(() => {
+          setShowConfetti(false)
+        }, 3000)
       } else {
-        console.error('Failed to save order:', saveResult.error)
+        console.error('Failed to create order:', result.error)
+        alert('Failed to place order. Please try again.')
       }
-
-      setShowConfetti(true)
-      setOrderPlaced(true)
-      // Use buffet settings timing or default to 60 seconds
-      const timingMinutes = buffetSettings?.nextOrderTimingDuration || 1
-      const timingInSeconds = Math.max(timingMinutes * 60, 60) // Ensure at least 60 seconds
-      setTimeRemaining(timingInSeconds)
-      setCart([])
-      setIsCartOpen(false)
-
-      // Hide confetti after 3 seconds but stay on items page
-      setTimeout(() => {
-        setShowConfetti(false)
-      }, 3000)
     } catch (error) {
       console.error('Error processing order:', error)
-      // Still proceed with the UI updates even if saving fails
-      setShowConfetti(true)
-      setOrderPlaced(true)
-      const timingMinutes = buffetSettings?.nextOrderTimingDuration || 1
-      const timingInSeconds = Math.max(timingMinutes * 60, 60) // Ensure at least 60 seconds
-      setTimeRemaining(timingInSeconds)
-      setCart([])
-      setIsCartOpen(false)
-
-      setTimeout(() => {
-        setShowConfetti(false)
-      }, 3000)
+      alert('Error placing order. Please try again.')
     }
   }
 
@@ -263,6 +283,38 @@ export default function ItemsPage() {
     const remainingSeconds = seconds % 60
     return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`
   }
+
+  // Get current session based on time
+  const getCurrentSession = () => {
+    if (!buffetSettings?.sessions) return null
+    
+    const currentHour = currentTime.getHours()
+    const currentMinute = currentTime.getMinutes()
+    const currentTimeInMinutes = currentHour * 60 + currentMinute // Convert to minutes since midnight
+    
+    const sessions = [
+      { key: 'breakfast', data: buffetSettings.sessions.breakfast },
+      { key: 'lunch', data: buffetSettings.sessions.lunch },
+      { key: 'dinner', data: buffetSettings.sessions.dinner }
+    ]
+    
+    for (const session of sessions) {
+      if (!session.data.isActive) continue
+      
+      const [startHour, startMin] = session.data.startTime.split(':').map(Number)
+      const [endHour, endMin] = session.data.endTime.split(':').map(Number)
+      const startTime = startHour * 60 + startMin
+      const endTime = endHour * 60 + endMin
+      
+      if (currentTimeInMinutes >= startTime && currentTimeInMinutes < endTime) {
+        return session
+      }
+    }
+    
+    return null
+  }
+
+  const currentSession = getCurrentSession()
 
   const handleEndSession = () => {
     router.push("/menu/session/orders")
@@ -286,26 +338,27 @@ export default function ItemsPage() {
               />
             </div>
             
-            {/* Buffet Pricing Display */}
-            {/* {buffetSettings && (
-              <div className="flex items-center gap-4 bg-orange-50 rounded-lg px-4 py-2 border border-orange-200">
-                <DollarSign className="h-5 w-5 text-orange-600" />
-                <div className="flex gap-4 text-sm">
-                  <div className="text-center">
-                    <div className="font-semibold text-orange-900">Adult</div>
-                    <div className="text-orange-700">${buffetSettings.sessionAdultPrice.toFixed(2)}</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="font-semibold text-orange-900">Child</div>
-                    <div className="text-orange-700">${buffetSettings.sessionChildPrice.toFixed(2)}</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="font-semibold text-orange-900">Extra Drinks</div>
-                    <div className="text-orange-700">${buffetSettings.extraDrinksPrice.toFixed(2)}</div>
-                  </div>
+            {/* Current Session Display */}
+            {currentSession && (
+              <div className="flex items-center gap-4 bg-blue-50 rounded-lg px-4 py-2 border border-blue-200">
+                <Clock className="h-5 w-5 text-blue-600" />
+                <div className="text-sm">
+                  <div className="font-semibold text-blue-900 capitalize">{currentSession.key}</div>
+                  <div className="text-blue-700">{currentSession.data.startTime} - {currentSession.data.endTime}</div>
                 </div>
               </div>
-            )} */}
+            )}
+            
+            {/* Fallback when no active session */}
+            {!currentSession && buffetSettings && (
+              <div className="flex items-center gap-4 bg-gray-50 rounded-lg px-4 py-2 border border-gray-200">
+                <Clock className="h-5 w-5 text-gray-600" />
+                <div className="text-sm text-gray-700">
+                  <div className="font-semibold">No Active Session</div>
+                  <div className="text-xs">Please check session timings</div>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center gap-4">

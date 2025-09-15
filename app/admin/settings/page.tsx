@@ -6,19 +6,48 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "@/hooks/use-toast"
 import { Loader2, Save, DollarSign, Clock, Users } from "lucide-react"
 import { getBuffetSettings, updateBuffetSettings, BuffetSettings } from '@/lib/api/settings'
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<BuffetSettings>({
-    sessionPrice: 0,
-    sessionAmount: 0,
-    sessionAdultPrice: 25,
-    sessionChildPrice: 15,
-    extraDrinksPrice: 5,
-    nextOrderAvailableInMinutes: 30
+    sessions: {
+      breakfast: {
+        name: 'Breakfast',
+        startTime: '07:00',
+        endTime: '11:00',
+        adultPrice: 20,
+        childPrice: 12,
+        infantPrice: 0,
+        isActive: true,
+        nextOrderAvailableInMinutes: 30
+      },
+      lunch: {
+        name: 'Lunch',
+        startTime: '12:00',
+        endTime: '16:00',
+        adultPrice: 25,
+        childPrice: 15,
+        infantPrice: 0,
+        isActive: true,
+        nextOrderAvailableInMinutes: 30
+      },
+      dinner: {
+        name: 'Dinner',
+        startTime: '18:00',
+        endTime: '22:00',
+        adultPrice: 30,
+        childPrice: 18,
+        infantPrice: 0,
+        isActive: true,
+        nextOrderAvailableInMinutes: 30
+      }
+    },
+    extraDrinksPrice: 5
   })
+  const [selectedSession, setSelectedSession] = useState<'breakfast' | 'lunch' | 'dinner'>('breakfast')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
@@ -31,7 +60,46 @@ export default function SettingsPage() {
       setLoading(true)
       const response = await getBuffetSettings()
       if (response.success && response.data) {
-        setSettings(response.data)
+        // Ensure all sessions have complete data with defaults
+        const completeSettings = {
+          ...response.data,
+          sessions: {
+            breakfast: {
+              name: 'Breakfast',
+              startTime: '07:00',
+              endTime: '11:00',
+              adultPrice: 20,
+              childPrice: 12,
+              infantPrice: 0,
+              isActive: true,
+              nextOrderAvailableInMinutes: 30,
+              ...response.data.sessions?.breakfast
+            },
+            lunch: {
+              name: 'Lunch',
+              startTime: '12:00',
+              endTime: '16:00',
+              adultPrice: 25,
+              childPrice: 15,
+              infantPrice: 0,
+              isActive: true,
+              nextOrderAvailableInMinutes: 30,
+              ...response.data.sessions?.lunch
+            },
+            dinner: {
+              name: 'Dinner',
+              startTime: '18:00',
+              endTime: '22:00',
+              adultPrice: 30,
+              childPrice: 18,
+              infantPrice: 0,
+              isActive: true,
+              nextOrderAvailableInMinutes: 30,
+              ...response.data.sessions?.dinner
+            }
+          }
+        }
+        setSettings(completeSettings)
       } else {
         toast({
           title: "Error",
@@ -51,11 +119,27 @@ export default function SettingsPage() {
     }
   }
 
-  const handleInputChange = (field: keyof BuffetSettings, value: string) => {
-    const numericValue = parseFloat(value) || 0
+  const handleInputChange = (field: keyof BuffetSettings, value: string | number) => {
+    if (field === 'extraDrinksPrice') {
+      setSettings(prev => ({
+        ...prev,
+        [field]: typeof value === 'string' ? parseFloat(value) || 0 : value
+      }))
+    }
+  }
+
+  const handleSessionChange = (sessionType: 'breakfast' | 'lunch' | 'dinner', field: string, value: string | number | boolean) => {
     setSettings(prev => ({
       ...prev,
-      [field]: numericValue
+      sessions: {
+        ...prev.sessions,
+        [sessionType]: {
+          ...prev.sessions[sessionType],
+          [field]: field.includes('Price') || field === 'nextOrderAvailableInMinutes' 
+            ? (typeof value === 'string' ? parseFloat(value) || 0 : value)
+            : value
+        }
+      }
     }))
   }
 
@@ -120,115 +204,133 @@ export default function SettingsPage() {
         </Button>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Session Pricing */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5" />
-              Session Pricing
-            </CardTitle>
-            <CardDescription>
-              Configure pricing for buffet sessions
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-2">
-              <Label htmlFor="sessionPrice">Base Session Price ($)</Label>
-              <Input
-                id="sessionPrice"
-                type="number"
-                min="0"
-                step="0.01"
-                value={settings.sessionPrice}
-                onChange={(e) => handleInputChange('sessionPrice', e.target.value)}
-                placeholder="0.00"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="sessionAmount">Session Amount ($)</Label>
-              <Input
-                id="sessionAmount"
-                type="number"
-                min="0"
-                step="0.01"
-                value={settings.sessionAmount}
-                onChange={(e) => handleInputChange('sessionAmount', e.target.value)}
-                placeholder="0.00"
-              />
-            </div>
-            <Separator />
-            <div className="grid gap-2">
-              <Label htmlFor="sessionAdultPrice">Adult Price ($)</Label>
-              <Input
-                id="sessionAdultPrice"
-                type="number"
-                min="0"
-                step="0.01"
-                value={settings.sessionAdultPrice}
-                onChange={(e) => handleInputChange('sessionAdultPrice', e.target.value)}
-                placeholder="25.00"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="sessionChildPrice">Child Price ($)</Label>
-              <Input
-                id="sessionChildPrice"
-                type="number"
-                min="0"
-                step="0.01"
-                value={settings.sessionChildPrice}
-                onChange={(e) => handleInputChange('sessionChildPrice', e.target.value)}
-                placeholder="15.00"
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Additional Services & Timing */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Additional Services & Timing
-            </CardTitle>
-            <CardDescription>
-              Configure extra services and order timing
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-2">
-              <Label htmlFor="extraDrinksPrice">Extra Drinks Price ($)</Label>
-              <Input
-                id="extraDrinksPrice"
-                type="number"
-                min="0"
-                step="0.01"
-                value={settings.extraDrinksPrice}
-                onChange={(e) => handleInputChange('extraDrinksPrice', e.target.value)}
-                placeholder="5.00"
-              />
-            </div>
-            <Separator />
-            <div className="grid gap-2">
-              <Label htmlFor="nextOrderAvailableInMinutes" className="flex items-center gap-2">
-                <Clock className="h-4 w-4" />
-                Next Order Available (Minutes)
-              </Label>
-              <Input
-                id="nextOrderAvailableInMinutes"
-                type="number"
-                min="1"
-                value={settings.nextOrderAvailableInMinutes}
-                onChange={(e) => handleInputChange('nextOrderAvailableInMinutes', e.target.value)}
-                placeholder="30"
-              />
-              <p className="text-sm text-gray-500">
-                Time customers must wait before placing their next order
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Session Settings */}
+        <div className="grid gap-6">
+          <Card>
+           <CardHeader>
+             <CardTitle className="flex items-center gap-2">
+               <Clock className="h-5 w-5" />
+               Session Configuration
+             </CardTitle>
+             <CardDescription>
+               Configure session timing and pricing
+             </CardDescription>
+           </CardHeader>
+           <CardContent className="space-y-4">
+             <div className="grid gap-2">
+               <Label htmlFor="session-select">Select Session</Label>
+               <Select value={selectedSession} onValueChange={(value: 'breakfast' | 'lunch' | 'dinner') => setSelectedSession(value)}>
+                 <SelectTrigger>
+                   <SelectValue placeholder="Select a session" />
+                 </SelectTrigger>
+                 <SelectContent>
+                   <SelectItem value="breakfast">🌅 Breakfast </SelectItem>
+                   <SelectItem value="lunch">☀️ Lunch </SelectItem>
+                   <SelectItem value="dinner">🌙 Dinner </SelectItem>
+                 </SelectContent>
+               </Select>
+             </div>
+             
+             <div className="flex items-center space-x-2">
+               <input
+                 id="session-active"
+                 type="checkbox"
+                 checked={settings.sessions[selectedSession]?.isActive}
+                 onChange={(e) => handleSessionChange(selectedSession, 'isActive', e.target.checked)}
+                 className="rounded"
+               />
+               <Label htmlFor="session-active">Session Active</Label>
+             </div>
+             
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+               <div className="grid gap-2">
+                 <Label htmlFor="startTime">Start Time</Label>
+                 <Input
+                   id="startTime"
+                   type="time"
+                   value={settings.sessions[selectedSession]?.startTime}
+                   onChange={(e) => handleSessionChange(selectedSession, 'startTime', e.target.value)}
+                 />
+               </div>
+               
+               <div className="grid gap-2">
+                 <Label htmlFor="endTime">End Time</Label>
+                 <Input
+                   id="endTime"
+                   type="time"
+                   value={settings.sessions[selectedSession]?.endTime}
+                   onChange={(e) => handleSessionChange(selectedSession, 'endTime', e.target.value)}
+                 />
+               </div>
+               
+               <div className="grid gap-2">
+                 <Label htmlFor="nextOrder">Next Order Available (minutes)</Label>
+                 <Input
+                   id="nextOrder"
+                   type="number"
+                   min="1"
+                   value={settings.sessions[selectedSession]?.nextOrderAvailableInMinutes}
+                   onChange={(e) => handleSessionChange(selectedSession, 'nextOrderAvailableInMinutes', e.target.value)}
+                   placeholder="30"
+                 />
+               </div>
+               
+               <div className="grid gap-2">
+                 <Label htmlFor="adultPrice">Adult Price ($)</Label>
+                 <Input
+                   id="adultPrice"
+                   type="number"
+                   min="0"
+                   step="0.01"
+                   value={settings.sessions[selectedSession]?.adultPrice}
+                   onChange={(e) => handleSessionChange(selectedSession, 'adultPrice', e.target.value)}
+                   placeholder="25.00"
+                 />
+               </div>
+               
+               <div className="grid gap-2">
+                 <Label htmlFor="childPrice">Child Price ($)</Label>
+                 <Input
+                   id="childPrice"
+                   type="number"
+                   min="0"
+                   step="0.01"
+                   value={settings.sessions[selectedSession]?.childPrice}
+                   onChange={(e) => handleSessionChange(selectedSession, 'childPrice', e.target.value)}
+                   placeholder="15.00"
+                 />
+               </div>
+               
+               <div className="grid gap-2">
+                 <Label htmlFor="infantPrice">Infant Price ($)</Label>
+                 <Input
+                   id="infantPrice"
+                   type="number"
+                   min="0"
+                   step="0.01"
+                   value={settings.sessions[selectedSession]?.infantPrice}
+                   onChange={(e) => handleSessionChange(selectedSession, 'infantPrice', e.target.value)}
+                   placeholder="0.00"
+                 />
+               </div>
+             </div>
+              
+              <Separator />
+              
+              <div className="grid gap-2">
+                <Label htmlFor="extraDrinksPrice">Extra Drinks Price ($)</Label>
+                <Input
+                  id="extraDrinksPrice"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={settings.extraDrinksPrice}
+                  onChange={handleInputChange}
+                  placeholder="5.00"
+                />
+              </div>
+            </CardContent>
+          </Card>
       </div>
 
       {/* Settings Preview */}
@@ -236,27 +338,39 @@ export default function SettingsPage() {
         <CardHeader>
           <CardTitle>Settings Preview</CardTitle>
           <CardDescription>
-            Preview of how these settings will appear to customers
+            Current {settings.sessions[selectedSession]?.name?.toLowerCase()} session configuration
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="bg-gray-50 rounded-lg p-4 space-y-2">
-            <div className="flex justify-between">
-              <span>Adult Buffet Session:</span>
-              <span className="font-semibold">${settings.sessionAdultPrice.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Child Buffet Session:</span>
-              <span className="font-semibold">${settings.sessionChildPrice.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Extra Drinks:</span>
-              <span className="font-semibold">${settings.extraDrinksPrice.toFixed(2)}</span>
+          <div className="space-y-4">
+            <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+              <h4 className="font-semibold text-lg">{settings.sessions[selectedSession]?.name}</h4>
+              <div className="text-sm text-gray-600">
+                {settings.sessions[selectedSession]?.startTime} - {settings.sessions[selectedSession]?.endTime} {settings.sessions[selectedSession]?.isActive ? '(Active)' : '(Inactive)'}
+              </div>
+              <div className="flex justify-between">
+                <span>Adult:</span>
+                <span className="font-semibold">${settings.sessions[selectedSession]?.adultPrice?.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Child:</span>
+                <span className="font-semibold">${settings.sessions[selectedSession]?.childPrice?.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Infant:</span>
+                <span className="font-semibold">${settings.sessions[selectedSession]?.infantPrice?.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-sm text-gray-600">
+                <span>Next order available in:</span>
+                <span>{settings.sessions[selectedSession]?.nextOrderAvailableInMinutes} minutes</span>
+              </div>
             </div>
             <Separator className="my-2" />
-            <div className="flex justify-between text-sm text-gray-600">
-              <span>Next order available in:</span>
-              <span>{settings.nextOrderAvailableInMinutes} minutes</span>
+            <div className="bg-gray-50 rounded-lg p-4">
+              <div className="flex justify-between">
+                <span>Extra Drinks:</span>
+                <span className="font-semibold">${settings.extraDrinksPrice?.toFixed(2)}</span>
+              </div>
             </div>
           </div>
         </CardContent>

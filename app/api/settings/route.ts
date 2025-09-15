@@ -2,15 +2,27 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getDatabase, COLLECTIONS } from '@/lib/mongodb'
 import { ObjectId } from 'mongodb'
 
+// Interface for session configuration
+interface SessionConfig {
+  name: string
+  startTime: string
+  endTime: string
+  adultPrice: number
+  childPrice: number
+  infantPrice: number
+  isActive: boolean
+  nextOrderAvailableInMinutes: number
+}
+
 // Interface for buffet settings
 interface BuffetSettings {
   _id?: ObjectId
-  sessionPrice: number
-  sessionAmount: number
-  sessionAdultPrice: number
-  sessionChildPrice: number
+  sessions: {
+    breakfast: SessionConfig
+    lunch: SessionConfig
+    dinner: SessionConfig
+  }
   extraDrinksPrice: number
-  nextOrderAvailableInMinutes: number
   createdAt?: Date
   updatedAt?: Date
 }
@@ -24,12 +36,39 @@ export async function GET() {
     if (!settings) {
       // Return default settings if none exist
       const defaultSettings = {
-        sessionPrice: 0,
-        sessionAmount: 0,
-        sessionAdultPrice: 25,
-        sessionChildPrice: 15,
-        extraDrinksPrice: 5,
-        nextOrderAvailableInMinutes: 30
+        sessions: {
+          breakfast: {
+            name: 'Breakfast',
+            startTime: '07:00',
+            endTime: '11:00',
+            adultPrice: 20,
+            childPrice: 12,
+            infantPrice: 0,
+            isActive: true,
+            nextOrderAvailableInMinutes: 30
+          },
+          lunch: {
+            name: 'Lunch',
+            startTime: '12:00',
+            endTime: '16:00',
+            adultPrice: 25,
+            childPrice: 15,
+            infantPrice: 0,
+            isActive: true,
+            nextOrderAvailableInMinutes: 30
+          },
+          dinner: {
+            name: 'Dinner',
+            startTime: '18:00',
+            endTime: '22:00',
+            adultPrice: 30,
+            childPrice: 18,
+            infantPrice: 0,
+            isActive: true,
+            nextOrderAvailableInMinutes: 30
+          }
+        },
+        extraDrinksPrice: 5
       }
       
       return NextResponse.json({
@@ -41,12 +80,39 @@ export async function GET() {
     // Format response
     const formattedSettings = {
       id: settings._id.toString(),
-      sessionPrice: settings.sessionPrice || 0,
-      sessionAmount: settings.sessionAmount || 0,
-      sessionAdultPrice: settings.sessionAdultPrice || 25,
-      sessionChildPrice: settings.sessionChildPrice || 15,
+      sessions: settings.sessions || {
+        breakfast: {
+          name: 'Breakfast',
+          startTime: '07:00',
+          endTime: '11:00',
+          adultPrice: 20,
+          childPrice: 12,
+          infantPrice: 0,
+          isActive: true,
+          nextOrderAvailableInMinutes: 30
+        },
+        lunch: {
+          name: 'Lunch',
+          startTime: '12:00',
+          endTime: '16:00',
+          adultPrice: 25,
+          childPrice: 15,
+          infantPrice: 0,
+          isActive: true,
+          nextOrderAvailableInMinutes: 30
+        },
+        dinner: {
+          name: 'Dinner',
+          startTime: '18:00',
+          endTime: '22:00',
+          adultPrice: 30,
+          childPrice: 18,
+          infantPrice: 0,
+          isActive: true,
+          nextOrderAvailableInMinutes: 30
+        }
+      },
       extraDrinksPrice: settings.extraDrinksPrice || 5,
-      nextOrderAvailableInMinutes: settings.nextOrderAvailableInMinutes || 30,
       createdAt: settings.createdAt,
       updatedAt: settings.updatedAt
     }
@@ -68,32 +134,49 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const {
-      sessionPrice,
-      sessionAmount,
-      sessionAdultPrice,
-      sessionChildPrice,
-      extraDrinksPrice,
-      nextOrderAvailableInMinutes
-    } = body
+    const { sessions, extraDrinksPrice } = body
 
-    // Validation
-    const numericFields = {
-      sessionPrice,
-      sessionAmount,
-      sessionAdultPrice,
-      sessionChildPrice,
-      extraDrinksPrice,
-      nextOrderAvailableInMinutes
+    // Validation for sessions
+    if (sessions) {
+      for (const [sessionKey, session] of Object.entries(sessions)) {
+        const sessionData = session as SessionConfig
+        
+        // Validate required fields
+        if (!sessionData.name || !sessionData.startTime || !sessionData.endTime) {
+          return NextResponse.json(
+            { success: false, error: `Session ${sessionKey} is missing required fields` },
+            { status: 400 }
+          )
+        }
+        
+        // Validate numeric fields
+        const numericFields = ['adultPrice', 'childPrice', 'infantPrice', 'nextOrderAvailableInMinutes']
+        for (const field of numericFields) {
+          const value = sessionData[field as keyof SessionConfig]
+          if (typeof value !== 'number' || value < 0) {
+            return NextResponse.json(
+              { success: false, error: `${sessionKey}.${field} must be a non-negative number` },
+              { status: 400 }
+            )
+          }
+        }
+        
+        // Validate boolean field
+        if (typeof sessionData.isActive !== 'boolean') {
+          return NextResponse.json(
+            { success: false, error: `${sessionKey}.isActive must be a boolean` },
+            { status: 400 }
+          )
+        }
+      }
     }
 
-    for (const [field, value] of Object.entries(numericFields)) {
-      if (value !== undefined && (typeof value !== 'number' || value < 0)) {
-        return NextResponse.json(
-          { success: false, error: `${field} must be a non-negative number` },
-          { status: 400 }
-        )
-      }
+    // Validate extraDrinksPrice
+    if (extraDrinksPrice !== undefined && (typeof extraDrinksPrice !== 'number' || extraDrinksPrice < 0)) {
+      return NextResponse.json(
+        { success: false, error: 'extraDrinksPrice must be a non-negative number' },
+        { status: 400 }
+      )
     }
 
     const db = await getDatabase()
@@ -104,12 +187,39 @@ export async function POST(request: NextRequest) {
     const existingSettings = await settingsCollection.findOne({ type: 'buffet' })
 
     const settingsData: BuffetSettings = {
-      sessionPrice: sessionPrice ?? 0,
-      sessionAmount: sessionAmount ?? 0,
-      sessionAdultPrice: sessionAdultPrice ?? 25,
-      sessionChildPrice: sessionChildPrice ?? 15,
+      sessions: sessions || {
+        breakfast: {
+          name: 'Breakfast',
+          startTime: '07:00',
+          endTime: '11:00',
+          adultPrice: 20,
+          childPrice: 12,
+          infantPrice: 0,
+          isActive: true,
+          nextOrderAvailableInMinutes: 30
+        },
+        lunch: {
+          name: 'Lunch',
+          startTime: '12:00',
+          endTime: '16:00',
+          adultPrice: 25,
+          childPrice: 15,
+          infantPrice: 0,
+          isActive: true,
+          nextOrderAvailableInMinutes: 30
+        },
+        dinner: {
+          name: 'Dinner',
+          startTime: '18:00',
+          endTime: '22:00',
+          adultPrice: 30,
+          childPrice: 18,
+          infantPrice: 0,
+          isActive: true,
+          nextOrderAvailableInMinutes: 30
+        }
+      },
       extraDrinksPrice: extraDrinksPrice ?? 5,
-      nextOrderAvailableInMinutes: nextOrderAvailableInMinutes ?? 30,
       updatedAt: now
     }
 

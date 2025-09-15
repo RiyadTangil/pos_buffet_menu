@@ -1,23 +1,34 @@
 // Types for buffet settings
+export interface SessionConfig {
+  name: string
+  startTime: string // HH:MM format
+  endTime: string // HH:MM format
+  adultPrice: number
+  childPrice: number
+  infantPrice: number
+  isActive: boolean
+  nextOrderAvailableInMinutes: number
+}
+
 export interface BuffetSettings {
   id?: string
-  sessionPrice: number
-  sessionAmount: number
-  sessionAdultPrice: number
-  sessionChildPrice: number
+  sessions: {
+    breakfast: SessionConfig
+    lunch: SessionConfig
+    dinner: SessionConfig
+  }
   extraDrinksPrice: number
-  nextOrderAvailableInMinutes: number
   createdAt?: Date
   updatedAt?: Date
 }
 
 export interface CreateBuffetSettingsData {
-  sessionPrice: number
-  sessionAmount: number
-  sessionAdultPrice: number
-  sessionChildPrice: number
+  sessions: {
+    breakfast: SessionConfig
+    lunch: SessionConfig
+    dinner: SessionConfig
+  }
   extraDrinksPrice: number
-  nextOrderAvailableInMinutes: number
 }
 
 export interface UpdateBuffetSettingsData extends Partial<CreateBuffetSettingsData> {}
