@@ -6,12 +6,13 @@ export interface User {
   email: string;
   role: UserRole;
   status: UserStatus;
+  pin?: string; // 4-digit PIN for waiters
   createdAt: string;
   updatedAt?: string;
   lastLogin?: string;
 }
 
-export type UserRole = 'admin' | 'waiter';
+export type UserRole = 'admin' | 'waiter' | 'stall_manager';
 export type UserStatus = 'active' | 'inactive';
 
 export interface CreateUserRequest {
@@ -58,6 +59,15 @@ export const USER_PERMISSIONS = {
     canManageBookings: true,
     canManageCoupons: false,
     canViewReports: false,
+    canManageSettings: false,
+  },
+  stall_manager: {
+    canManageUsers: false,
+    canManageMenu: true,
+    canViewOrders: true,
+    canManageBookings: true,
+    canManageCoupons: true,
+    canViewReports: true,
     canManageSettings: false,
   },
 } as const;
@@ -115,6 +125,7 @@ export const MOCK_USERS: User[] = [
     email: 'sarah@restaurant.com',
     role: 'waiter',
     status: 'active',
+    pin: '1234',
     createdAt: '2024-01-20',
     lastLogin: '2024-01-25T09:15:00Z'
   },
@@ -124,15 +135,36 @@ export const MOCK_USERS: User[] = [
     email: 'mike@restaurant.com',
     role: 'waiter',
     status: 'inactive',
+    pin: '5678',
     createdAt: '2024-02-01'
   },
+  {
+    id: '4',
+    name: 'Alex Manager',
+    email: 'alex@restaurant.com',
+    role: 'stall_manager',
+    status: 'active',
+    createdAt: '2024-01-18',
+    lastLogin: '2024-01-25T08:45:00Z'
+  },
 ];
+
+// Generate a random 4-digit PIN
+export const generateWaiterPIN = (): string => {
+  return Math.floor(1000 + Math.random() * 9000).toString();
+};
+
+// Validate PIN format
+export const isValidPIN = (pin: string): boolean => {
+  return /^\d{4}$/.test(pin);
+};
 
 // User role display helpers
 export const getRoleDisplayName = (role: UserRole): string => {
   const roleNames = {
     admin: '👑 Administrator',
-    waiter: '👤 Waiter'
+    waiter: '👤 Waiter',
+    stall_manager: '🏪 Stall Manager'
   };
   return roleNames[role];
 };

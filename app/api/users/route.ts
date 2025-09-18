@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getDatabase, COLLECTIONS } from '@/lib/mongodb'
 import bcrypt from 'bcryptjs'
 import { ObjectId } from 'mongodb'
+import { generateWaiterPIN } from '@/lib/userTypes'
 
 // GET - Fetch all users
 export async function GET() {
@@ -19,6 +20,7 @@ export async function GET() {
       email: user.email,
       role: user.role,
       status: user.status,
+      pin: user.pin,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
       lastLogin: user.lastLogin
@@ -58,7 +60,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (!['admin', 'waiter'].includes(role)) {
+    if (!['admin', 'waiter', 'stall_manager'].includes(role)) {
       return NextResponse.json(
         { success: false, error: 'Invalid role' },
         { status: 400 }
@@ -80,6 +82,9 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12)
 
+    // Generate PIN for waiters
+    const pin = role === 'waiter' ? generateWaiterPIN() : undefined
+
     // Create user document
     const newUser = {
       name,
@@ -87,6 +92,7 @@ export async function POST(request: NextRequest) {
       password: hashedPassword,
       role,
       status: 'active',
+      ...(pin && { pin }),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
@@ -100,6 +106,7 @@ export async function POST(request: NextRequest) {
       email,
       role,
       status: 'active',
+      ...(pin && { pin }),
       createdAt: newUser.createdAt,
       updatedAt: newUser.updatedAt
     }

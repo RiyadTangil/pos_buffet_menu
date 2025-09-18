@@ -12,17 +12,17 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { CheckCircle, CreditCard, User, Users, Coffee, AlertTriangle } from "lucide-react"
 import { saveOrder, getOrders, type CheckoutOrder, type SessionOrder } from "@/lib/api/orders-client"
 import { getBuffetSettings, type BuffetSettings } from "@/lib/api/settings"
-import { fetchUsers, type User as WaiterUser } from "@/lib/api/users"
+import { type User as WaiterUser } from "@/lib/api/users"
 
 export default function CheckoutPage() {
   const router = useRouter()
-  const [waiterId, setWaiterId] = useState("")
+  const [waiterPin, setWaiterPin] = useState("")
   const [paymentProcessed, setPaymentProcessed] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
   const [waiterError, setWaiterError] = useState("")
+  const [validatedWaiter, setValidatedWaiter] = useState<WaiterUser | null>(null)
   const [buffetSettings, setBuffetSettings] = useState<BuffetSettings | null>(null)
   const [sessionOrders, setSessionOrders] = useState<SessionOrder[]>([])
-  const [waiters, setWaiters] = useState<WaiterUser[]>([])
   const [loading, setLoading] = useState(true)
   const [tableId, setTableId] = useState<string>('')
   const [tableNumber, setTableNumber] = useState<number>(0)
@@ -48,23 +48,16 @@ export default function CheckoutPage() {
           setGuestCounts(parsedGuestCounts)
         }
         
-        // Load settings, orders, and waiters
-        const [settingsData, ordersData, waitersData] = await Promise.all([
+        // Load settings and orders
+        const [settingsData, ordersData] = await Promise.all([
           getBuffetSettings(),
-          getOrders({ type: 'session', tableNumber: selectedTableId ? parseInt(selectedTableId.split('-')[1]) || 1 : 1 }),
-          fetchUsers()
+          getOrders({ type: 'session', tableNumber: selectedTableId ? parseInt(selectedTableId.split('-')[1]) || 1 : 1 })
         ])
         
         setBuffetSettings(settingsData.settings)
         setSessionOrders(ordersData.orders as SessionOrder[])
         
-        // Filter only active waiters
-        if (waitersData.success && waitersData.data) {
-          const activeWaiters = waitersData.data.filter(user => 
-            user.role === 'waiter' && user.status === 'active'
-          )
-          setWaiters(activeWaiters)
-        }
+        // No need to fetch waiters since we use PIN validation
       } catch (error) {
         console.error('Error loading checkout data:', error)
       } finally {
@@ -124,14 +117,13 @@ export default function CheckoutPage() {
   const sessionDuration = "2 hours"
 
   const handlePayment = async () => {
-    if (!waiterId.trim()) {
-      setWaiterError("Please enter waiter ID")
+    if (!waiterPin.trim()) {
+      setWaiterError("Please enter your 4-digit PIN")
       return
     }
 
-    const waiter = waiters.find((w) => w.id.toLowerCase() === waiterId.toLowerCase())
-    if (!waiter) {
-      setWaiterError("Invalid waiter ID. Please check and try again.")
+    if (waiterPin.length !== 4 || !/^\d{4}$/.test(waiterPin)) {
+      setWaiterError("PIN must be exactly 4 digits")
       return
     }
 
@@ -139,6 +131,26 @@ export default function CheckoutPage() {
     setIsProcessing(true)
 
     try {
+      // Validate PIN
+      const response = await fetch('/api/users/validate-pin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ pin: waiterPin }),
+      })
+
+      const result = await response.json()
+      
+      if (!result.success) {
+        setWaiterError(result.message || 'Invalid PIN')
+        setIsProcessing(false)
+        return
+      }
+
+      const waiter = result.user
+      setValidatedWaiter(waiter)
+
       // Create checkout order
       const checkoutOrder: CheckoutOrder = {
         orderId: `CHECKOUT_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -146,7 +158,7 @@ export default function CheckoutPage() {
         tableNumber: tableNumber,
         sessionData: sessionData,
         totalAmount: sessionPrice,
-        waiterId: waiterId,
+        waiterId: waiter.id,
         waiterName: waiter.name,
         paymentStatus: 'completed',
         timestamp: new Date().toISOString(),
@@ -176,7 +188,6 @@ export default function CheckoutPage() {
   }
 
   if (paymentProcessed) {
-    const waiter = waiters.find((w) => w.id.toLowerCase() === waiterId.toLowerCase())
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-50 flex items-center justify-center p-4">
         <Card className="w-full max-w-md text-center">
@@ -184,7 +195,7 @@ export default function CheckoutPage() {
             <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-green-700 mb-2">Payment Successful!</h2>
             <p className="text-gray-600 mb-2">
-              £{sessionPrice} processed by {waiter?.name}
+              £{sessionPrice} processed by {validatedWaiter?.name}
             </p>
             <p className="text-gray-600 mb-4">Table {tableNumber} is now available</p>
             <p className="text-sm text-gray-500">Redirecting to tables...</p>
@@ -344,16 +355,19 @@ export default function CheckoutPage() {
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="waiterId">Waiter ID / Register Number</Label>
+                <Label htmlFor="waiterPin">Waiter PIN</Label>
                 <Input
-                  id="waiterId"
-                  placeholder="Enter waiter ID (e.g., W001)"
-                  value={waiterId}
+                  id="waiterPin"
+                  type="password"
+                  placeholder="Enter your 4-digit PIN"
+                  value={waiterPin}
                   onChange={(e) => {
-                    setWaiterId(e.target.value)
+                    const value = e.target.value.replace(/\D/g, '').slice(0, 4)
+                    setWaiterPin(value)
                     setWaiterError("")
                   }}
                   className={`mt-1 ${waiterError ? "border-red-500" : ""}`}
+                  maxLength={4}
                 />
                 {waiterError && (
                   <Alert className="mt-2 border-red-200 bg-red-50">
@@ -365,7 +379,7 @@ export default function CheckoutPage() {
               <div className="flex items-end">
                 <Button
                   onClick={handlePayment}
-                  disabled={isProcessing || !waiterId.trim()}
+                  disabled={isProcessing || !waiterPin.trim() || waiterPin.length !== 4}
                   className="w-full bg-orange-600 hover:bg-orange-700"
                   size="lg"
                 >
@@ -378,13 +392,15 @@ export default function CheckoutPage() {
               <h4 className="font-semibold text-blue-900 mb-2">Payment Instructions:</h4>
               <ul className="text-sm text-blue-800 space-y-1 mb-3">
                 <li>• Collect £{sessionPrice} from the customer</li>
-                <li>• Enter your waiter ID to process the payment</li>
+                <li>• Enter your 4-digit PIN to process the payment</li>
                 <li>• Table will be automatically freed after payment</li>
                 <li>• Customer receipt will be generated</li>
               </ul>
-              <div className="text-xs text-blue-700">
-                <strong>Valid Waiter IDs:</strong> {waiters.length > 0 ? waiters.map(w => w.id).join(', ') : 'Loading...'}
-              </div>
+              {validatedWaiter && (
+                <div className="text-xs text-blue-700">
+                  <strong>Validated Waiter:</strong> {validatedWaiter.name}
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>

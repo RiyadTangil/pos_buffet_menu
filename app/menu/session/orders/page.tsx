@@ -31,11 +31,12 @@ import { Label } from "@/components/ui/label"
 export default function SessionOrdersPage() {
   const router = useRouter()
   const [isPaymentOpen, setIsPaymentOpen] = useState(false)
-  const [waiterId, setWaiterId] = useState("")
+  const [waiterPin, setWaiterPin] = useState("")
+  const [pinError, setPinError] = useState("")
   const [isProcessing, setIsProcessing] = useState(false)
   const [paymentComplete, setPaymentComplete] = useState(false)
   const [orders, setOrders] = useState<any[]>([])
-  const [waiters, setWaiters] = useState<any[]>([])
+  const [validatedWaiter, setValidatedWaiter] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [tableNumber, setTableNumber] = useState<any>()
   const [guestCounts, setGuestCounts] = useState({ adults: 2, children: 0, infants: 0 })
@@ -114,12 +115,7 @@ export default function SessionOrdersPage() {
         const settings = await getBuffetSettings()
         setBuffetSettings(settings.data)
 
-        // Fetch waiters (users with role waiter)
-        const {data} = await fetchUsers()
-        const waiterUsers = data.filter((user: any) => user.role === 'waiter')
-        console.log("waiterUsers", waiterUsers)
-
-        setWaiters(waiterUsers)
+        // No need to fetch waiters since we'll validate PIN directly
 
         // Fetch orders for this table - only today's orders using API-level filtering
         const selectedTableId = localStorage.getItem('selectedTableId') || `table-${tableNumber}`
@@ -198,24 +194,42 @@ export default function SessionOrdersPage() {
   }
 
   const handlePayment = async () => {
-    if (!waiterId || !waiterId.trim()) return
-
-    const waiter = waiters.find((w) => w.id?.toLowerCase() === waiterId.toLowerCase())
-    if (!waiter) {
-      alert("Invalid waiter ID. Please check and try again.")
+    if (!waiterPin || waiterPin.trim().length !== 4) {
+      setPinError("Please enter a valid 4-digit PIN")
       return
     }
 
+    setPinError("")
     setIsProcessing(true)
 
     try {
-      // Prepare payment data
-      const selectedTableId = localStorage.getItem('selectedTableId')
-      const paymentData = {
-        tableId: selectedTableId || `table-${tableNumber}`,
-        tableNumber: tableNumber,
-        waiterId: waiter.id,
-        waiterName: waiter.name,
+      // Validate PIN
+      const pinResponse = await fetch('/api/users/validate-pin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ pin: waiterPin })
+      })
+
+      const pinResult = await pinResponse.json()
+
+      if (!pinResponse.ok || !pinResult.success) {
+        setPinError(pinResult.error || 'Invalid PIN')
+        setIsProcessing(false)
+        return
+      }
+
+      const waiter = pinResult.data
+       setValidatedWaiter(waiter)
+
+       // Prepare payment data
+       const selectedTableId = localStorage.getItem('selectedTableId')
+       const paymentData = {
+         tableId: selectedTableId || `table-${tableNumber}`,
+         tableNumber: tableNumber,
+         waiterId: waiter.id,
+         waiterName: waiter.name,
         totalAmount: grandTotal,
         sessionType: currentSession?.key || 'lunch',
         sessionData: {
@@ -270,7 +284,7 @@ export default function SessionOrdersPage() {
     } catch (error) {
       console.error('Payment error:', error)
       setIsProcessing(false)
-      alert(`Payment failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      setPinError(`Payment failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
@@ -481,7 +495,7 @@ export default function SessionOrdersPage() {
                       <User className="w-5 h-5" />
                       Waiter Payment
                     </DialogTitle>
-                    <DialogDescription>Select a waiter to process payment of £{grandTotal}</DialogDescription>
+                    <DialogDescription>Enter waiter PIN to process payment of £{grandTotal}</DialogDescription>
                   </DialogHeader>
 
                   {paymentComplete ? (
@@ -494,29 +508,32 @@ export default function SessionOrdersPage() {
                     <>
                       <div className="space-y-4">
                         <div>
-                          <Label htmlFor="waiterId">Select Waiter</Label>
-                          <Select value={waiterId} onValueChange={setWaiterId}>
-                            <SelectTrigger className="mt-1">
-                              <SelectValue placeholder="Choose a waiter" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {waiters.length > 0 ? waiters.map((waiter) => (
-                                <SelectItem key={waiter.id} value={waiter.id}>
-                                  {waiter.name} 
-                                </SelectItem>
-                              )) : (
-                                <SelectItem value="" disabled>
-                                  Loading waiters...
-                                </SelectItem>
-                              )}
-                            </SelectContent>
-                          </Select>
+                          <Label htmlFor="waiterPin">Waiter PIN</Label>
+                          <Input
+                            id="waiterPin"
+                            type="password"
+                            placeholder="Enter 4-digit PIN"
+                            value={waiterPin}
+                            onChange={(e) => {
+                              const value = e.target.value.replace(/\D/g, '').slice(0, 4)
+                              setWaiterPin(value)
+                              if (pinError) setPinError('')
+                            }}
+                            maxLength={4}
+                            className={`mt-1 text-center text-lg tracking-widest ${pinError ? 'border-red-500' : ''}`}
+                          />
+                          {pinError && (
+                            <p className="text-sm text-red-600 mt-1">{pinError}</p>
+                          )}
+                          {validatedWaiter && (
+                            <p className="text-sm text-green-600 mt-1">✓ Validated: {validatedWaiter.name}</p>
+                          )}
                         </div>
                       </div>
 
                       <DialogFooter>
-                        <Button onClick={handlePayment} disabled={!waiterId || !waiterId.trim() || isProcessing} className="w-full">
-                          {isProcessing ? "Processing..." : `Pay £${grandTotal}`}
+                        <Button onClick={handlePayment} disabled={!waiterPin || waiterPin.length !== 4 || isProcessing} className="w-full">
+                          {isProcessing ? "Validating..." : `Pay £${grandTotal}`}
                         </Button>
                       </DialogFooter>
                     </>
