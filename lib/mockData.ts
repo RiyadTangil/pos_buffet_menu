@@ -27,6 +27,7 @@ export interface MenuCategory {
   id: string
   name: string
   description?: string
+  sessions?: string[] // Array of session keys: 'breakfast', 'lunch', 'dinner'
 }
 
 export interface MenuItem {
@@ -111,21 +112,25 @@ export const menuCategories: MenuCategory[] = [
     id: "category-starters",
     name: "Starters",
     description: "Fresh appetizers and light bites to begin your meal",
+    sessions: ["breakfast", "lunch", "dinner"], // Available in all sessions
   },
   {
     id: "category-main",
     name: "Main Course",
     description: "Hearty main dishes featuring international cuisine",
+    sessions: ["lunch", "dinner"], // Not available during breakfast
   },
   {
     id: "category-desserts",
     name: "Desserts",
     description: "Sweet treats and delectable desserts",
+    sessions: ["lunch", "dinner"], // Not available during breakfast
   },
   {
     id: "category-drinks",
     name: "Drinks",
     description: "Refreshing beverages and specialty drinks",
+    sessions: ["breakfast", "lunch", "dinner"], // Available in all sessions
   },
 ]
 

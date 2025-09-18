@@ -17,6 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Progress } from "@/components/ui/progress";
 
 interface GuestCounts {
   adults: number;
@@ -193,23 +194,38 @@ export default function TablesPage() {
             ) : (
               tableStates.map((table) => {
                 const isAvailable = table.status === "available";
+                const getTableColors = (status: string) => {
+                  switch (status) {
+                    case 'available':
+                      return 'bg-green-100 border-2 border-green-300 text-green-800 hover:bg-green-200';
+                    case 'occupied':
+                      return 'bg-red-100 border-2 border-red-300 text-red-800';
+                    case 'cleaning':
+                      return 'bg-yellow-100 border-2 border-yellow-300 text-yellow-800';
+                    case 'selected':
+                      return 'bg-blue-100 border-2 border-blue-300 text-blue-800';
+                    default:
+                      return 'bg-gray-100 border-2 border-gray-300 text-gray-500';
+                  }
+                };
+                
                 return (
                   <div key={table.id}>
                     <div
                       onClick={() => handleTableClick(table)}
                       className={`
                         w-full h-20 sm:h-24 text-base sm:text-lg rounded-xl mb-2 p-2 sm:p-3 
-                        flex flex-col justify-between transition-transform duration-200 ease-in-out
-                        cursor-pointer
+                        flex flex-col justify-between transition-all duration-200 ease-in-out
                         ${
                           isAvailable
-                            ? "bg-white text-[#4d4d4d] hover:shadow-md transform hover:scale-105 active:scale-95"
-                            : "bg-gray-100 text-gray-500 cursor-not-allowed"
+                            ? "cursor-pointer hover:shadow-md transform hover:scale-105 active:scale-95"
+                            : "cursor-not-allowed"
                         }
+                        ${getTableColors(table.status)}
                       `}
                     >
                       <div className="text-base sm:text-lg font-bold">Table {table.number}</div>
-                      <div className="text-xs sm:text-sm text-gray-500">
+                      <div className="text-xs sm:text-sm opacity-75">
                         {isAvailable
                           ? `Capacity: ${table.capacity}`
                           : `${table.status.charAt(0).toUpperCase() + table.status.slice(1)} - ${table.currentGuests}/${table.capacity} guests`}
@@ -219,6 +235,29 @@ export default function TablesPage() {
                 );
               })
             )}
+          </div>
+        </div>
+      </div>
+
+      {/* Color Legend Disclaimer */}
+      <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-md p-4 border">
+        <h3 className="text-sm font-semibold text-gray-700 mb-2 text-center">Table Status Colors</h3>
+        <div className="flex flex-wrap justify-center gap-4 text-xs">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-green-100 border-2 border-green-300 rounded"></div>
+            <span className="text-green-800 font-medium">Available</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-red-100 border-2 border-red-300 rounded"></div>
+            <span className="text-red-800 font-medium">Occupied</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-yellow-100 border-2 border-yellow-300 rounded"></div>
+            <span className="text-yellow-800 font-medium">Cleaning</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-blue-100 border-2 border-blue-300 rounded"></div>
+            <span className="text-blue-800 font-medium">Selected</span>
           </div>
         </div>
       </div>
@@ -271,7 +310,11 @@ export default function TablesPage() {
                     </div>
                     <div className="text-center">
                       <div className="font-medium text-blue-900">Extra Drinks</div>
-                      <div className="text-blue-700">£{buffetSettings.extraDrinksPrice.toFixed(2)}</div>
+                      <div className="text-blue-700 text-xs space-y-1">
+                        <div>Adult: £{(buffetSettings.sessionSpecificExtraDrinksPricing?.[currentSession?.type]?.adultPrice || buffetSettings.extraDrinksPricing?.adultPrice || buffetSettings.extraDrinksPrice)?.toFixed(2)}</div>
+                        <div>Child: £{(buffetSettings.sessionSpecificExtraDrinksPricing?.[currentSession?.type]?.childPrice || buffetSettings.extraDrinksPricing?.childPrice || (buffetSettings.extraDrinksPrice * 0.6))?.toFixed(2)}</div>
+                        <div>Infant: £{(buffetSettings.sessionSpecificExtraDrinksPricing?.[currentSession?.type]?.infantPrice || buffetSettings.extraDrinksPricing?.infantPrice || 0)?.toFixed(2)}</div>
+                      </div>
                     </div>
                   </div>
                 </>
@@ -300,7 +343,7 @@ export default function TablesPage() {
                             </div>
                             <div className="text-center">
                               <div className="text-blue-700">Drinks</div>
-                              <div className="font-medium">£{buffetSettings.extraDrinksPrice.toFixed(2)}</div>
+                              <div className="font-medium">£{(buffetSettings.sessionSpecificExtraDrinksPricing?.[currentSession?.type]?.adultPrice || buffetSettings.extraDrinksPricing?.adultPrice || buffetSettings.extraDrinksPrice)?.toFixed(2)}</div>
                             </div>
                           </div>
                         </div>
@@ -314,20 +357,35 @@ export default function TablesPage() {
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="adults">Adults</Label>
+              <div className="flex justify-between items-center">
+                <Label htmlFor="adults">Adults</Label>
+                <span className="text-sm text-gray-500">
+                  {guestCounts.adults}/{selectedTable?.capacity} capacity
+                </span>
+              </div>
               <Input
                 id="adults"
                 type="number"
                 min="1"
-                max="8"
+                max={selectedTable?.capacity || 8}
                 value={guestCounts.adults}
-                onChange={(e) =>
+                onChange={(e) => {
+                  const value = Number.parseInt(e.target.value) || 1;
+                  const maxCapacity = selectedTable?.capacity || 8;
                   setGuestCounts((prev) => ({
                     ...prev,
-                    adults: Math.max(1, Number.parseInt(e.target.value) || 1),
-                  }))
-                }
+                    adults: Math.max(1, Math.min(value, maxCapacity)),
+                  }));
+                }}
+                className={guestCounts.adults >= (selectedTable?.capacity || 8) ? "border-red-300" : ""}
               />
+              <Progress 
+                value={(guestCounts.adults / (selectedTable?.capacity || 8)) * 100} 
+                className="h-2"
+              />
+              {guestCounts.adults >= (selectedTable?.capacity || 8) && (
+                <p className="text-sm text-red-600">Table capacity reached</p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -336,7 +394,6 @@ export default function TablesPage() {
                 id="children"
                 type="number"
                 min="0"
-                max="6"
                 value={guestCounts.children}
                 onChange={(e) =>
                   setGuestCounts((prev) => ({
@@ -353,7 +410,6 @@ export default function TablesPage() {
                 id="infants"
                 type="number"
                 min="0"
-                max="4"
                 value={guestCounts.infants}
                 onChange={(e) =>
                   setGuestCounts((prev) => ({

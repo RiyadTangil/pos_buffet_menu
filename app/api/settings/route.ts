@@ -14,6 +14,20 @@ interface SessionConfig {
   nextOrderAvailableInMinutes: number
 }
 
+// Interface for extra drinks pricing
+interface ExtraDrinksPricing {
+  adultPrice: number
+  childPrice: number
+  infantPrice: number
+}
+
+// Interface for session-specific extra drinks pricing
+interface SessionSpecificExtraDrinksPricing {
+  breakfast: ExtraDrinksPricing
+  lunch: ExtraDrinksPricing
+  dinner: ExtraDrinksPricing
+}
+
 // Interface for buffet settings
 interface BuffetSettings {
   _id?: ObjectId
@@ -22,7 +36,9 @@ interface BuffetSettings {
     lunch: SessionConfig
     dinner: SessionConfig
   }
-  extraDrinksPrice: number
+  extraDrinksPrice: number // Keep for backward compatibility
+  extraDrinksPricing: ExtraDrinksPricing // Keep for backward compatibility
+  sessionSpecificExtraDrinksPricing: SessionSpecificExtraDrinksPricing
   createdAt?: Date
   updatedAt?: Date
 }
@@ -68,7 +84,29 @@ export async function GET() {
             nextOrderAvailableInMinutes: 30
           }
         },
-        extraDrinksPrice: 5
+        extraDrinksPrice: 5, // Keep for backward compatibility
+        extraDrinksPricing: {
+          adultPrice: 5,
+          childPrice: 3,
+          infantPrice: 0
+        },
+        sessionSpecificExtraDrinksPricing: {
+          breakfast: {
+            adultPrice: 4,
+            childPrice: 2.5,
+            infantPrice: 0
+          },
+          lunch: {
+            adultPrice: 5,
+            childPrice: 3,
+            infantPrice: 0
+          },
+          dinner: {
+            adultPrice: 6,
+            childPrice: 3.5,
+            infantPrice: 0
+          }
+        }
       }
       
       return NextResponse.json({
@@ -112,7 +150,29 @@ export async function GET() {
           nextOrderAvailableInMinutes: 30
         }
       },
-      extraDrinksPrice: settings.extraDrinksPrice || 5,
+      extraDrinksPrice: settings.extraDrinksPrice || 5, // Keep for backward compatibility
+      extraDrinksPricing: settings.extraDrinksPricing || {
+        adultPrice: settings.extraDrinksPrice || 5,
+        childPrice: Math.round((settings.extraDrinksPrice || 5) * 0.6), // 60% of adult price
+        infantPrice: 0
+      },
+      sessionSpecificExtraDrinksPricing: settings.sessionSpecificExtraDrinksPricing || {
+        breakfast: {
+          adultPrice: 4,
+          childPrice: 2.5,
+          infantPrice: 0
+        },
+        lunch: {
+          adultPrice: 5,
+          childPrice: 3,
+          infantPrice: 0
+        },
+        dinner: {
+          adultPrice: 6,
+          childPrice: 3.5,
+          infantPrice: 0
+        }
+      },
       createdAt: settings.createdAt,
       updatedAt: settings.updatedAt
     }
@@ -134,7 +194,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { sessions, extraDrinksPrice } = body
+    const { sessions, extraDrinksPrice, extraDrinksPricing, sessionSpecificExtraDrinksPricing } = body
 
     // Validation for sessions
     if (sessions) {
@@ -179,6 +239,58 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Validate extraDrinksPricing
+    if (extraDrinksPricing !== undefined) {
+      const { adultPrice, childPrice, infantPrice } = extraDrinksPricing
+      if (typeof adultPrice !== 'number' || adultPrice < 0) {
+        return NextResponse.json(
+          { success: false, error: 'extraDrinksPricing.adultPrice must be a non-negative number' },
+          { status: 400 }
+        )
+      }
+      if (typeof childPrice !== 'number' || childPrice < 0) {
+        return NextResponse.json(
+          { success: false, error: 'extraDrinksPricing.childPrice must be a non-negative number' },
+          { status: 400 }
+        )
+      }
+      if (typeof infantPrice !== 'number' || infantPrice < 0) {
+        return NextResponse.json(
+          { success: false, error: 'extraDrinksPricing.infantPrice must be a non-negative number' },
+          { status: 400 }
+        )
+      }
+    }
+
+    // Validate sessionSpecificExtraDrinksPricing
+    if (sessionSpecificExtraDrinksPricing !== undefined) {
+      const sessions = ['breakfast', 'lunch', 'dinner'] as const
+      for (const sessionKey of sessions) {
+        const sessionPricing = sessionSpecificExtraDrinksPricing[sessionKey]
+        if (sessionPricing) {
+          const { adultPrice, childPrice, infantPrice } = sessionPricing
+          if (typeof adultPrice !== 'number' || adultPrice < 0) {
+            return NextResponse.json(
+              { success: false, error: `sessionSpecificExtraDrinksPricing.${sessionKey}.adultPrice must be a non-negative number` },
+              { status: 400 }
+            )
+          }
+          if (typeof childPrice !== 'number' || childPrice < 0) {
+            return NextResponse.json(
+              { success: false, error: `sessionSpecificExtraDrinksPricing.${sessionKey}.childPrice must be a non-negative number` },
+              { status: 400 }
+            )
+          }
+          if (typeof infantPrice !== 'number' || infantPrice < 0) {
+            return NextResponse.json(
+              { success: false, error: `sessionSpecificExtraDrinksPricing.${sessionKey}.infantPrice must be a non-negative number` },
+              { status: 400 }
+            )
+          }
+        }
+      }
+    }
+
     const db = await getDatabase()
     const settingsCollection = db.collection(COLLECTIONS.SETTINGS)
     const now = new Date()
@@ -219,7 +331,29 @@ export async function POST(request: NextRequest) {
           nextOrderAvailableInMinutes: 30
         }
       },
-      extraDrinksPrice: extraDrinksPrice ?? 5,
+      extraDrinksPrice: extraDrinksPrice ?? 5, // Keep for backward compatibility
+      extraDrinksPricing: extraDrinksPricing ?? {
+        adultPrice: extraDrinksPrice ?? 5,
+        childPrice: Math.round((extraDrinksPrice ?? 5) * 0.6), // 60% of adult price
+        infantPrice: 0
+      },
+      sessionSpecificExtraDrinksPricing: sessionSpecificExtraDrinksPricing ?? {
+        breakfast: {
+          adultPrice: 5,
+          childPrice: 3,
+          infantPrice: 0
+        },
+        lunch: {
+          adultPrice: 5,
+          childPrice: 3,
+          infantPrice: 0
+        },
+        dinner: {
+          adultPrice: 5,
+          childPrice: 3,
+          infantPrice: 0
+        }
+      },
       updatedAt: now
     }
 

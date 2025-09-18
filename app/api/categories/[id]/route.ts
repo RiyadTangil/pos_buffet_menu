@@ -35,6 +35,7 @@ export async function GET(
       id: category._id.toString(),
       name: category.name,
       description: category.description || '',
+      sessions: category.sessions || [],
       createdAt: category.createdAt,
       updatedAt: category.updatedAt
     }
@@ -60,12 +61,29 @@ export async function PUT(
   try {
     const { id } = params
     const body = await request.json()
-    const { name, description = '' } = body
+    const { name, description = '', sessions = [] } = body
 
     // Validation
     if (!name || typeof name !== 'string' || name.trim().length === 0) {
       return NextResponse.json(
         { success: false, error: 'Category name is required' },
+        { status: 400 }
+      )
+    }
+
+    // Validate sessions array
+    if (!Array.isArray(sessions)) {
+      return NextResponse.json(
+        { success: false, error: 'Sessions must be an array' },
+        { status: 400 }
+      )
+    }
+
+    const validSessions = ['breakfast', 'lunch', 'dinner']
+    const invalidSessions = sessions.filter(session => !validSessions.includes(session))
+    if (invalidSessions.length > 0) {
+      return NextResponse.json(
+        { success: false, error: `Invalid sessions: ${invalidSessions.join(', ')}. Valid sessions are: ${validSessions.join(', ')}` },
         { status: 400 }
       )
     }
@@ -110,6 +128,7 @@ export async function PUT(
     const updateData = {
       name: name.trim(),
       description: description.trim(),
+      sessions: sessions,
       updatedAt: new Date()
     }
 
@@ -128,6 +147,7 @@ export async function PUT(
       id: updatedCategory!._id.toString(),
       name: updatedCategory!.name,
       description: updatedCategory!.description || '',
+      sessions: updatedCategory!.sessions || [],
       createdAt: updatedCategory!.createdAt,
       updatedAt: updatedCategory!.updatedAt
     }

@@ -45,6 +45,7 @@ interface ProductFormData {
   categoryId: string
   name: string
   limitPerOrder: string
+  price: string
   description: string
   image: string
   isVegetarian: boolean
@@ -56,6 +57,7 @@ const initialFormData: ProductFormData = {
   categoryId: '',
   name: '',
   limitPerOrder: '1',
+  price: '0',
   description: '',
   image: '',
   isVegetarian: false,
@@ -142,6 +144,7 @@ export default function ProductsPage() {
         categoryId: formData.categoryId,
         name: formData.name.trim(),
         limitPerOrder: Number(formData.limitPerOrder),
+        price: Number(formData.price) || 0,
         description: formData.description.trim(),
         image: formData.image,
         isVegetarian: formData.isVegetarian,
@@ -178,6 +181,7 @@ export default function ProductsPage() {
         categoryId: formData.categoryId,
         name: formData.name.trim(),
         limitPerOrder: Number(formData.limitPerOrder),
+        price: Number(formData.price) || 0,
         description: formData.description.trim(),
         image: formData.image,
         isVegetarian: formData.isVegetarian,
@@ -225,6 +229,7 @@ export default function ProductsPage() {
       categoryId: product.categoryId,
       name: product.name,
       limitPerOrder: product.limitPerOrder.toString(),
+      price: (product.price || 0).toString(),
       description: product.description || '',
       image: product.image || '',
       isVegetarian: product.isVegetarian || false,
@@ -356,6 +361,18 @@ export default function ProductsPage() {
                         value={formData.limitPerOrder}
                         onChange={(e) => handleInputChange('limitPerOrder', e.target.value)}
                         placeholder="Maximum servings per guest"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="price">Price (Optional)</Label>
+                      <Input
+                        id="price"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={formData.price}
+                        onChange={(e) => handleInputChange('price', e.target.value)}
+                        placeholder="Enter price (0 for free)"
                       />
                     </div>
                     <div>
@@ -578,6 +595,18 @@ export default function ProductsPage() {
                 value={formData.limitPerOrder}
                 onChange={(e) => handleInputChange('limitPerOrder', e.target.value)}
                 placeholder="Maximum servings per guest"
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-price">Price (Optional)</Label>
+              <Input
+                id="edit-price"
+                type="number"
+                min="0"
+                step="0.01"
+                value={formData.price}
+                onChange={(e) => handleInputChange('price', e.target.value)}
+                placeholder="Enter price (0 for free)"
               />
             </div>
             <div>

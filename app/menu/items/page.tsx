@@ -29,56 +29,7 @@ const getCategoryIcon = (categoryId: string) => {
   return icons[categoryId as keyof typeof icons] || Utensils
 }
 
-const getItemImage = (itemName: string) => {
-  const foodImages: Record<string, string> = {
-    // Starters
-    "Caesar Salad": "photo-1512621776951-a57141f2eefd",
-    "Buffalo Wings": "photo-1567620905732-2d1ec7ab7445",
-    "Bruschetta": "photo-1572441713132-51c75654db73",
-    "Shrimp Cocktail": "photo-1565299624946-b28f40a0ca4b",
 
-    // Main Course
-    "Grilled Salmon": "photo-1467003909585-2f8a72700288",
-    "Beef Tenderloin": "photo-1546833999-b9f581a1996d",
-    "Chicken Tikka Masala": "photo-1565557623262-b51c2513a641",
-    "Vegetable Stir Fry": "photo-1512058564366-18510be2db19",
-    "Lobster Thermidor": "photo-1559847844-d9f0550a5d24",
-
-    // Desserts
-    "Chocolate Lava Cake": "photo-1578985545062-69928b1d9587",
-    "Tiramisu": "photo-1571877227200-a0d98ea607e9",
-    "Fresh Fruit Tart": "photo-1571091718767-18b5b1457add",
-    "Ice Cream Sundae": "photo-1551024506-0bccd828d307",
-
-    // Drinks
-    "Fresh Orange Juice": "photo-1622597467836-f3285f2131b8",
-    "Coffee": "photo-1495474472287-4d71bcdd2085",
-    "Sparkling Water": "photo-1544145945-f90425340c7e",
-    "House Wine": "photo-1506377247377-2a5b3b417ebb",
-  }
-
-  const imageId = foodImages[itemName]
-  if (imageId) {
-    return `https://images.unsplash.com/${imageId}?w=400&h=300&fit=crop&crop=food`
-  }
-  
-  // Fallback images based on item type
-  const fallbackImages = [
-    "photo-1565299624946-b28f40a0ca4b", // food 1
-    "photo-1567620905732-2d1ec7ab7445", // food 2
-    "photo-1512621776951-a57141f2eefd", // food 3
-    "photo-1546833999-b9f581a1996d", // food 4
-    "photo-1571877227200-a0d98ea607e9", // food 5
-  ]
-  
-  const hash = itemName.split('').reduce((a, b) => {
-    a = ((a << 5) - a) + b.charCodeAt(0)
-    return a & a
-  }, 0)
-  
-  const imageIndex = Math.abs(hash) % fallbackImages.length
-  return `https://images.unsplash.com/${fallbackImages[imageIndex]}?w=400&h=300&fit=crop&crop=food`
-}
 
 export default function ItemsPage() {
   const router = useRouter()
@@ -99,10 +50,22 @@ export default function ItemsPage() {
     const fetchData = async () => {
       try {
         setLoading(true)
-        const [categoriesData, productsData, settingsResponse] = await Promise.all([
-          fetchCategories(),
-          fetchProducts(),
+        const [settingsResponse] = await Promise.all([
           getBuffetSettings()
+        ])
+        
+        // Set buffet settings first
+        if (settingsResponse.success && settingsResponse.data) {
+          setBuffetSettings(settingsResponse.data)
+        }
+        
+        // Get current session to filter categories
+        const currentSession = getCurrentSessionFromSettings(settingsResponse.data)
+        
+        // Fetch categories and products with session filtering
+        const [categoriesData, productsData] = await Promise.all([
+          currentSession ? fetchCategories(`?session=${currentSession.key}`) : fetchCategories(),
+          fetchProducts()
         ])
         setCategories(categoriesData)
         setProducts(productsData)
@@ -212,29 +175,41 @@ export default function ItemsPage() {
         return
       }
 
-      // Get table ID and number from localStorage
-      const selectedTableId = localStorage.getItem('selectedTableId') || 'table-1'
-      const tableNumber = parseInt(selectedTableId.split('-')[1]) || 1
-      
-      // Get guest count from localStorage or use defaults
-      const guestCount = {
-        adults: parseInt(localStorage.getItem('adultCount') || '2'),
-        children: parseInt(localStorage.getItem('childCount') || '0'),
-        infants: parseInt(localStorage.getItem('infantCount') || '0')
+      // Get table ID and number from localStorage - ensure we use real values
+      const selectedTableId = localStorage.getItem('selectedTableId')
+      if (!selectedTableId) {
+        alert('No table selected. Please return to the tables page and select a table.')
+        router.push('/menu/tables')
+        return
       }
+     const storedGuestCounts = JSON.parse(localStorage.getItem('guestCounts') || '{}')
+       
+      
+      
+      // if (!storedGuestCounts.adults .children .infants && !childCount && !infantCount) {
+      if (!storedGuestCounts.adults &&storedGuestCounts.children &&storedGuestCounts.infants ) {
+        alert('Guest information is missing. Please return to the tables page and enter guest information.')
+        router.push('/menu/tables')
+        return
+      }
+      
+     
+      
+     
 
       // Prepare order data for new API
       const orderData = {
         tableId: selectedTableId,
-        tableNumber,
+        // tableNumber,
         session: currentSession.key as 'breakfast' | 'lunch' | 'dinner',
         items: cart.map(item => ({
           id: item.menuItem.id,
           name: item.menuItem.name,
+          price: item.menuItem.price || 0,
           quantity: item.quantity,
           category: item.menuItem.categoryId
         })),
-        guestCount
+        storedGuestCounts
       }
 
       // Send order to new API
@@ -283,6 +258,37 @@ export default function ItemsPage() {
     const minutes = Math.floor(seconds / 60)
     const remainingSeconds = seconds % 60
     return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`
+  }
+
+  // Helper function to get current session from settings data (used during initial fetch)
+  const getCurrentSessionFromSettings = (settingsData: any) => {
+    if (!settingsData?.sessions) return null
+    
+    const now = new Date()
+    const currentHour = now.getHours()
+    const currentMinute = now.getMinutes()
+    const currentTimeInMinutes = currentHour * 60 + currentMinute
+    
+    const sessions = [
+      { key: 'breakfast', data: settingsData.sessions.breakfast },
+      { key: 'lunch', data: settingsData.sessions.lunch },
+      { key: 'dinner', data: settingsData.sessions.dinner }
+    ]
+    
+    for (const session of sessions) {
+      if (!session.data.isActive) continue
+      
+      const [startHour, startMin] = session.data.startTime.split(':').map(Number)
+      const [endHour, endMin] = session.data.endTime.split(':').map(Number)
+      const startTime = startHour * 60 + startMin
+      const endTime = endHour * 60 + endMin
+      
+      if (currentTimeInMinutes >= startTime && currentTimeInMinutes < endTime) {
+        return session
+      }
+    }
+    
+    return null
   }
 
   // Get current session based on time
@@ -420,6 +426,14 @@ export default function ItemsPage() {
                               <div className="flex-1">
                                 <h4 className="font-semibold text-gray-900">{item.menuItem.name}</h4>
                                 <p className="text-sm text-gray-600 mt-1">{item.menuItem.description}</p>
+                                {item.menuItem.price && item.menuItem.price > 0 && (
+                                  <div className="flex items-center gap-1 mt-1">
+                                    <DollarSign className="w-3 h-3 text-green-600" />
+                                    <span className="text-sm font-semibold text-green-600">
+                                      ${item.menuItem.price.toFixed(2)} each
+                                    </span>
+                                  </div>
+                                )}
                               </div>
                               <Button
                                 variant="ghost"
@@ -593,6 +607,14 @@ export default function ItemsPage() {
                              <CardDescription className="text-gray-600 text-[12px]  line-clamp-2">
                                {item.description}
                              </CardDescription>
+                           )}
+                           {item.price && item.price > 0 && (
+                             <div className="flex items-center gap-1 mt-2">
+                               <DollarSign className="w-4 h-4 text-green-600" />
+                               <span className="text-lg font-bold text-green-600">
+                                 ${item.price.toFixed(2)}
+                               </span>
+                             </div>
                            )}
                          </CardHeader>
 

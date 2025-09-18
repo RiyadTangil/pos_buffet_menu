@@ -10,9 +10,10 @@ export interface ApiResponse<T> {
 }
 
 // Fetch all categories
-export async function fetchCategories(): Promise<MenuCategory[]> {
+export async function fetchCategories(queryParams?: string): Promise<MenuCategory[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/categories`, {
+    const url = queryParams ? `${API_BASE_URL}/api/categories${queryParams}` : `${API_BASE_URL}/api/categories`
+    const response = await fetch(url, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

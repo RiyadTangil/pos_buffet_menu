@@ -44,6 +44,28 @@ export interface CheckoutOrder {
     childPrice: number
     infantPrice: number
     drinkPrice: number
+    extraDrinksPricing?: {
+      adultPrice: number
+      childPrice: number
+      infantPrice: number
+    }
+    sessionSpecificExtraDrinksPricing?: {
+      breakfast: {
+        adultPrice: number
+        childPrice: number
+        infantPrice: number
+      }
+      lunch: {
+        adultPrice: number
+        childPrice: number
+        infantPrice: number
+      }
+      dinner: {
+        adultPrice: number
+        childPrice: number
+        infantPrice: number
+      }
+    }
   }
   totalAmount: number
   waiterId: string

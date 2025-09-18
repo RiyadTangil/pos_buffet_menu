@@ -34,11 +34,24 @@ interface Order {
   };
 }
 
+// Fetch tables from API
+const fetchTables = async () => {
+  try {
+    const response = await fetch('/api/tables');
+    if (!response.ok) throw new Error('Failed to fetch tables');
+    const result = await response.json();
+    return result.data || [];
+  } catch (error) {
+    console.error('Error fetching tables:', error);
+    return [];
+  }
+};
+
 // Fetch orders from API
 const fetchOrders = async (filters: {
   date?: string;
   session?: string;
-  table?: string;
+  tableId?: string;
 }) => {
   try {
     const params = new URLSearchParams();
@@ -46,8 +59,8 @@ const fetchOrders = async (filters: {
     if (filters.session && filters.session !== 'all') {
       params.append('session', filters.session);
     }
-    if (filters.table && filters.table !== 'all') {
-      params.append('table', filters.table);
+    if (filters.tableId && filters.tableId !== 'all') {
+      params.append('tableId', filters.tableId);
     }
     
     const response = await fetch(`/api/orders?${params.toString()}`);
@@ -74,6 +87,7 @@ const fetchOrders = async (filters: {
 
 export default function OrderManagementPage() {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [tables, setTables] = useState<any[]>([]);
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [selectedSession, setSelectedSession] = useState<string>('all');
@@ -90,18 +104,23 @@ export default function OrderManagementPage() {
 
   // Fetch orders on component mount and when filters change
   useEffect(() => {
-    const loadOrders = async () => {
+    const loadData = async () => {
       setLoading(true);
+      
+      // Load tables
+      const tablesData = await fetchTables();
+      setTables(tablesData);
+      
       const fetchedOrders = await fetchOrders({
         date: selectedDate,
         session: selectedSession,
-        table: selectedTable
+        tableId: selectedTable
       });
       setOrders(fetchedOrders);
       setLoading(false);
     };
     
-    loadOrders();
+    loadData();
   }, [selectedDate, selectedSession, selectedTable]);
 
   // Filter orders based on selected criteria
@@ -117,7 +136,7 @@ export default function OrderManagementPage() {
     }
 
     if (selectedTable !== 'all') {
-      filtered = filtered.filter(order => order.tableNumber.toString() === selectedTable);
+      filtered = filtered.filter(order => order.tableId === selectedTable);
     }
 
     if (searchTerm) {
@@ -196,7 +215,7 @@ export default function OrderManagementPage() {
     }
   };
 
-  const uniqueTables = Array.from(new Set(orders.map(order => order.tableNumber))).sort((a, b) => a - b);
+
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -250,13 +269,13 @@ export default function OrderManagementPage() {
                     <SelectValue placeholder="Table" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All</SelectItem>
-                    {uniqueTables.map(table => (
-                      <SelectItem key={table} value={table.toString()}>
-                        Table {table}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
+                      <SelectItem value="all">All</SelectItem>
+                      {tables?.map(table => (
+                        <SelectItem key={table.id} value={table.id}>
+                          Table {table.number}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
                 </Select>
               </div>
 
@@ -331,7 +350,7 @@ export default function OrderManagementPage() {
                       </div>
                       <div className="flex items-center gap-1">
                         <Users className="h-3 w-3" />
-                        {order.guestCount.adults}A {order.guestCount.children}C {order.guestCount.infants}I
+                        {order.guestCount?.adults || 0}A {order.guestCount?.children || 0}C {order.guestCount?.infants || 0}I
                       </div>
                     </div>
                   </div>

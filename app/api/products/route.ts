@@ -6,6 +6,7 @@ interface CreateProductData {
   categoryId: string
   name: string
   limitPerOrder: number
+  price?: number
   description?: string
   image?: string
   isVegetarian?: boolean
@@ -25,6 +26,7 @@ export async function GET() {
       categoryId: product.categoryId,
       name: product.name,
       limitPerOrder: product.limitPerOrder,
+      price: product.price || 0,
       description: product.description || '',
       image: product.image || '',
       isVegetarian: product.isVegetarian || false,
@@ -55,6 +57,7 @@ export async function POST(request: NextRequest) {
       categoryId, 
       name, 
       limitPerOrder = 1, 
+      price = 0,
       description = '', 
       image = '',
       isVegetarian = false, 
@@ -114,6 +117,7 @@ export async function POST(request: NextRequest) {
       categoryId,
       name: name.trim(),
       limitPerOrder: Number(limitPerOrder),
+      price: Number(price) || 0,
       description: description.trim(),
       image: image || '',
       isVegetarian: Boolean(isVegetarian),

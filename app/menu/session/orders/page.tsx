@@ -84,7 +84,12 @@ export default function SessionOrdersPage() {
     adultPrice: currentSession?.data?.adultPrice || 25,
     childPrice: currentSession?.data?.childPrice || 15,
     infantPrice: currentSession?.data?.infantPrice || 0,
-    drinkPrice: buffetSettings?.extraDrinksPrice || 5,
+    drinkPrice: buffetSettings?.extraDrinksPrice || 5, // Keep for backward compatibility
+    extraDrinksPricing: buffetSettings?.sessionSpecificExtraDrinksPricing?.[currentSession?.type] || buffetSettings?.extraDrinksPricing || {
+      adultPrice: 5,
+      childPrice: 3,
+      infantPrice: 0
+    },
   }
 
   // Load real data on component mount
@@ -138,12 +143,28 @@ export default function SessionOrdersPage() {
 
   const calculateSessionTotal = () => {
     let total = 0
+    // Buffet session pricing
     total += sessionData.adults * sessionData.adultPrice
     total += sessionData.children * sessionData.childPrice
     total += sessionData.infants * sessionData.infantPrice
     if (sessionData.extraDrinks) {
-      total += sessionData.drinkPrice
+      // Use user-type-specific pricing for extra drinks
+      total += sessionData.adults * sessionData.extraDrinksPricing.adultPrice
+      total += sessionData.children * sessionData.extraDrinksPricing.childPrice
+      total += sessionData.infants * sessionData.extraDrinksPricing.infantPrice
     }
+    
+    // Add individual item prices from orders
+    orders.forEach(order => {
+      if (order.items && Array.isArray(order.items)) {
+        order.items.forEach((item: any) => {
+          const itemPrice = item.price || 0
+          const itemQuantity = item.quantity || 1
+          total += itemPrice * itemQuantity
+        })
+      }
+    })
+    
     return total
   }
 
@@ -280,7 +301,7 @@ export default function SessionOrdersPage() {
                 <div>
                   <div className="font-semibold text-blue-900">Extra Drinks</div>
                   <div className="text-sm text-blue-700">
-                    {sessionData.extraDrinks ? "Included (+£5)" : "Not included"}
+                    {sessionData.extraDrinks ? `Included (+£${(sessionData.adults * sessionData.extraDrinksPricing.adultPrice + sessionData.children * sessionData.extraDrinksPricing.childPrice + sessionData.infants * sessionData.extraDrinksPricing.infantPrice).toFixed(2)})` : "Not included"}
                   </div>
                 </div>
               </div>
@@ -313,6 +334,7 @@ export default function SessionOrdersPage() {
                       <th className="text-left py-3 px-4 font-semibold text-gray-700">Order ID</th>
                       <th className="text-left py-3 px-4 font-semibold text-gray-700">Time</th>
                       <th className="text-left py-3 px-4 font-semibold text-gray-700">Items</th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Total Amount</th>
                       <th className="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
                     </tr>
                   </thead>
@@ -334,6 +356,11 @@ export default function SessionOrdersPage() {
                           </div>
                         </td>
                         <td className="py-4 px-4">
+                          <span className="font-semibold text-green-600">
+                            ${(order.totalAmount || 0).toFixed(2)}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4">
                           <Badge className={`${getStatusColor(order.status)} border-0`}>
                             {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                           </Badge>
@@ -347,48 +374,87 @@ export default function SessionOrdersPage() {
           </CardContent>
         </Card>
 
-        {/* Session Total Card */}
-        <Card className="bg-green-50 border-green-200">
-          <CardContent className="pt-6">
+        {/* Session Total Card - E-commerce Style */}
+        <Card className="bg-white border-gray-200 shadow-lg">
+          <CardHeader className="bg-gray-50 border-b">
+            <CardTitle className="text-xl font-bold text-gray-900">Order Summary</CardTitle>
+          </CardHeader>
+          <CardContent className="p-6">
             <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h3 className="text-lg font-semibold text-green-900">Session Total</h3>
-                  <p className="text-sm text-green-700">Buffet access for all guests</p>
-                </div>
-                <div className="text-right">
-                  <div className="text-3xl font-bold text-green-900">£{grandTotal}</div>
-                  <div className="text-sm text-green-700">
-                    {orders.length} order{orders.length !== 1 ? "s" : ""} placed
+              {/* Buffet Charges */}
+              <div className="space-y-3">
+                <h4 className="font-semibold text-gray-800 border-b pb-2">Buffet Access</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">
+                      Adults ({sessionData.adults} × £{sessionData.adultPrice})
+                    </span>
+                    <span className="font-medium">£{(sessionData.adults * sessionData.adultPrice).toFixed(2)}</span>
                   </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">
+                      Children ({sessionData.children} × £{sessionData.childPrice})
+                    </span>
+                    <span className="font-medium">£{(sessionData.children * sessionData.childPrice).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-600">
+                      Infants ({sessionData.infants} × £{sessionData.infantPrice})
+                    </span>
+                    <span className="font-medium">£{(sessionData.infants * sessionData.infantPrice).toFixed(2)}</span>
+                  </div>
+                  {sessionData.extraDrinks && (
+                    <div className="space-y-1">
+                      <div className="text-gray-600 font-medium">Extra Drinks:</div>
+                      {sessionData.adults > 0 && (
+                        <div className="flex justify-between items-center text-sm pl-4">
+                          <span className="text-gray-600">Adults ({sessionData.adults} × £{sessionData.extraDrinksPricing.adultPrice})</span>
+                          <span className="font-medium">£{(sessionData.adults * sessionData.extraDrinksPricing.adultPrice).toFixed(2)}</span>
+                        </div>
+                      )}
+                      {sessionData.children > 0 && (
+                        <div className="flex justify-between items-center text-sm pl-4">
+                          <span className="text-gray-600">Children ({sessionData.children} × £{sessionData.extraDrinksPricing.childPrice})</span>
+                          <span className="font-medium">£{(sessionData.children * sessionData.extraDrinksPricing.childPrice).toFixed(2)}</span>
+                        </div>
+                      )}
+                      {sessionData.infants > 0 && sessionData.extraDrinksPricing.infantPrice > 0 && (
+                        <div className="flex justify-between items-center text-sm pl-4">
+                          <span className="text-gray-600">Infants ({sessionData.infants} × £{sessionData.extraDrinksPricing.infantPrice})</span>
+                          <span className="font-medium">£{(sessionData.infants * sessionData.extraDrinksPricing.infantPrice).toFixed(2)}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <div className="flex justify-between items-center pt-2 border-t">
+                  <span className="font-medium text-gray-800">Buffet Subtotal:</span>
+                  <span className="font-semibold">£{(sessionData.adults * sessionData.adultPrice + sessionData.children * sessionData.childPrice + sessionData.infants * sessionData.infantPrice + (sessionData.extraDrinks ? sessionData.drinkPrice : 0)).toFixed(2)}</span>
                 </div>
               </div>
 
-              <div className="text-sm text-green-700 space-y-1">
-                <div className="flex justify-between">
-                  <span>
-                    Adults ({sessionData.adults} × £{sessionData.adultPrice}):
-                  </span>
-                  <span>£{sessionData.adults * sessionData.adultPrice}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>
-                    Children ({sessionData.children} × £{sessionData.childPrice}):
-                  </span>
-                  <span>£{sessionData.children * sessionData.childPrice}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>
-                    Infants ({sessionData.infants} × £{sessionData.infantPrice}):
-                  </span>
-                  <span>£{sessionData.infants * sessionData.infantPrice}</span>
-                </div>
-                {sessionData.extraDrinks && (
-                  <div className="flex justify-between">
-                    <span>Extra Drinks:</span>
-                    <span>£{sessionData.drinkPrice}</span>
+              {/* Order Items Total */}
+              {orders.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-gray-800 border-b pb-2">Additional Orders</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600">
+                        {orders.length} order{orders.length !== 1 ? "s" : ""} placed
+                      </span>
+                      <span className="font-medium">£{orders.reduce((sum, order) => sum + (order.totalAmount || 0), 0).toFixed(2)}</span>
+                    </div>
                   </div>
-                )}
+                </div>
+              )}
+
+              {/* Grand Total */}
+              <div className="border-t-2 border-gray-300 pt-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-xl font-bold text-gray-900">Total Amount:</span>
+                  <span className="text-2xl font-bold text-green-600">£{grandTotal}</span>
+                </div>
+                <p className="text-sm text-gray-500 mt-1">Including all buffet access and additional orders</p>
               </div>
             </div>
           </CardContent>

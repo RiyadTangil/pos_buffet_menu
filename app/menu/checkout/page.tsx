@@ -98,7 +98,12 @@ export default function CheckoutPage() {
     adultPrice: currentSession?.adultPrice || 25,
     childPrice: currentSession?.childPrice || 15,
     infantPrice: currentSession?.infantPrice || 0,
-    drinkPrice: buffetSettings?.extraDrinksPrice || 5,
+    drinkPrice: buffetSettings?.extraDrinksPrice || 5, // Keep for backward compatibility
+    extraDrinksPricing: buffetSettings?.sessionSpecificExtraDrinksPricing?.[currentSession?.type] || buffetSettings?.extraDrinksPricing || {
+      adultPrice: 5,
+      childPrice: 3,
+      infantPrice: 0
+    },
   }
 
   const calculateTotal = () => {
@@ -107,7 +112,10 @@ export default function CheckoutPage() {
     total += sessionData.children * sessionData.childPrice
     total += sessionData.infants * sessionData.infantPrice
     if (sessionData.extraDrinks) {
-      total += sessionData.drinkPrice
+      // Use user-type-specific pricing for extra drinks
+      total += sessionData.adults * sessionData.extraDrinksPricing.adultPrice
+      total += sessionData.children * sessionData.extraDrinksPricing.childPrice
+      total += sessionData.infants * sessionData.extraDrinksPricing.infantPrice
     }
     return total
   }
@@ -239,12 +247,29 @@ export default function CheckoutPage() {
                     <span className="font-semibold">£{sessionData.infants * sessionData.infantPrice}</span>
                   </div>
                   {sessionData.extraDrinks && (
-                    <div className="flex justify-between">
-                      <span className="flex items-center gap-1">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-1 text-sm font-medium text-gray-700">
                         <Coffee className="w-3 h-3" />
                         Extra Drinks:
-                      </span>
-                      <span className="font-semibold">£{sessionData.drinkPrice}</span>
+                      </div>
+                      {sessionData.adults > 0 && (
+                        <div className="flex justify-between text-sm pl-4">
+                          <span>Adults ({sessionData.adults} × £{sessionData.extraDrinksPricing.adultPrice}):</span>
+                          <span className="font-semibold">£{(sessionData.adults * sessionData.extraDrinksPricing.adultPrice).toFixed(2)}</span>
+                        </div>
+                      )}
+                      {sessionData.children > 0 && (
+                        <div className="flex justify-between text-sm pl-4">
+                          <span>Children ({sessionData.children} × £{sessionData.extraDrinksPricing.childPrice}):</span>
+                          <span className="font-semibold">£{(sessionData.children * sessionData.extraDrinksPricing.childPrice).toFixed(2)}</span>
+                        </div>
+                      )}
+                      {sessionData.infants > 0 && sessionData.extraDrinksPricing.infantPrice > 0 && (
+                        <div className="flex justify-between text-sm pl-4">
+                          <span>Infants ({sessionData.infants} × £{sessionData.extraDrinksPricing.infantPrice}):</span>
+                          <span className="font-semibold">£{(sessionData.infants * sessionData.extraDrinksPricing.infantPrice).toFixed(2)}</span>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

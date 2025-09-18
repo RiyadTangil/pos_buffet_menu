@@ -10,6 +10,18 @@ export interface SessionConfig {
   nextOrderAvailableInMinutes: number
 }
 
+export interface ExtraDrinksPricing {
+  adultPrice: number
+  childPrice: number
+  infantPrice: number
+}
+
+export interface SessionSpecificExtraDrinksPricing {
+  breakfast: ExtraDrinksPricing
+  lunch: ExtraDrinksPricing
+  dinner: ExtraDrinksPricing
+}
+
 export interface BuffetSettings {
   id?: string
   sessions: {
@@ -17,7 +29,9 @@ export interface BuffetSettings {
     lunch: SessionConfig
     dinner: SessionConfig
   }
-  extraDrinksPrice: number
+  extraDrinksPrice: number // Keep for backward compatibility
+  extraDrinksPricing: ExtraDrinksPricing // Keep for backward compatibility
+  sessionSpecificExtraDrinksPricing: SessionSpecificExtraDrinksPricing
   createdAt?: Date
   updatedAt?: Date
 }
@@ -28,7 +42,9 @@ export interface CreateBuffetSettingsData {
     lunch: SessionConfig
     dinner: SessionConfig
   }
-  extraDrinksPrice: number
+  extraDrinksPrice: number // Keep for backward compatibility
+  extraDrinksPricing: ExtraDrinksPricing // Keep for backward compatibility
+  sessionSpecificExtraDrinksPricing: SessionSpecificExtraDrinksPricing
 }
 
 export interface UpdateBuffetSettingsData extends Partial<CreateBuffetSettingsData> {}

@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "@/hooks/use-toast"
 import { Loader2, Save, DollarSign, Clock, Users } from "lucide-react"
-import { getBuffetSettings, updateBuffetSettings, BuffetSettings } from '@/lib/api/settings'
+import { getBuffetSettings, updateBuffetSettings, BuffetSettings, ExtraDrinksPricing, SessionSpecificExtraDrinksPricing } from '@/lib/api/settings'
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<BuffetSettings>({
@@ -45,7 +45,29 @@ export default function SettingsPage() {
         nextOrderAvailableInMinutes: 30
       }
     },
-    extraDrinksPrice: 5
+    extraDrinksPrice: 5, // Keep for backward compatibility
+    extraDrinksPricing: {
+      adultPrice: 5,
+      childPrice: 3,
+      infantPrice: 0
+    },
+    sessionSpecificExtraDrinksPricing: {
+      breakfast: {
+        adultPrice: 5,
+        childPrice: 3,
+        infantPrice: 0
+      },
+      lunch: {
+        adultPrice: 5,
+        childPrice: 3,
+        infantPrice: 0
+      },
+      dinner: {
+        adultPrice: 5,
+        childPrice: 3,
+        infantPrice: 0
+      }
+    }
   })
   const [selectedSession, setSelectedSession] = useState<'breakfast' | 'lunch' | 'dinner'>('breakfast')
   const [loading, setLoading] = useState(true)
@@ -126,6 +148,29 @@ export default function SettingsPage() {
         [field]: typeof value === 'string' ? parseFloat(value) || 0 : value
       }))
     }
+  }
+
+  const handleExtraDrinksPricingChange = (userType: keyof ExtraDrinksPricing, value: string | number) => {
+    setSettings(prev => ({
+      ...prev,
+      extraDrinksPricing: {
+        ...prev.extraDrinksPricing,
+        [userType]: typeof value === 'string' ? parseFloat(value) || 0 : value
+      }
+    }))
+  }
+
+  const handleSessionSpecificExtraDrinksPricingChange = (sessionType: 'breakfast' | 'lunch' | 'dinner', userType: keyof ExtraDrinksPricing, value: string | number) => {
+    setSettings(prev => ({
+      ...prev,
+      sessionSpecificExtraDrinksPricing: {
+        ...prev.sessionSpecificExtraDrinksPricing,
+        [sessionType]: {
+          ...prev.sessionSpecificExtraDrinksPricing?.[sessionType],
+          [userType]: typeof value === 'string' ? parseFloat(value) || 0 : value
+        }
+      }
+    }))
   }
 
   const handleSessionChange = (sessionType: 'breakfast' | 'lunch' | 'dinner', field: string, value: string | number | boolean) => {
@@ -317,17 +362,47 @@ export default function SettingsPage() {
               
               <Separator />
               
-              <div className="grid gap-2">
-                <Label htmlFor="extraDrinksPrice">Extra Drinks Price ($)</Label>
-                <Input
-                  id="extraDrinksPrice"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={settings.extraDrinksPrice}
-                  onChange={handleInputChange}
-                  placeholder="5.00"
-                />
+              <div className="space-y-4">
+                <h4 className="font-semibold text-lg">Extra Drinks Pricing for {settings.sessions[selectedSession]?.name}</h4>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="sessionAdultDrinkPrice">Adult Price ($)</Label>
+                    <Input
+                      id="sessionAdultDrinkPrice"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={settings.sessionSpecificExtraDrinksPricing?.[selectedSession]?.adultPrice || 0}
+                      onChange={(e) => handleSessionSpecificExtraDrinksPricingChange(selectedSession, 'adultPrice', e.target.value)}
+                      placeholder="5.00"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="sessionChildDrinkPrice">Child Price ($)</Label>
+                    <Input
+                      id="sessionChildDrinkPrice"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={settings.sessionSpecificExtraDrinksPricing?.[selectedSession]?.childPrice || 0}
+                      onChange={(e) => handleSessionSpecificExtraDrinksPricingChange(selectedSession, 'childPrice', e.target.value)}
+                      placeholder="3.00"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="sessionInfantDrinkPrice">Infant Price ($)</Label>
+                    <Input
+                      id="sessionInfantDrinkPrice"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={settings.sessionSpecificExtraDrinksPricing?.[selectedSession]?.infantPrice || 0}
+                      onChange={(e) => handleSessionSpecificExtraDrinksPricingChange(selectedSession, 'infantPrice', e.target.value)}
+                      placeholder="0.00"
+                    />
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -367,9 +442,20 @@ export default function SettingsPage() {
             </div>
             <Separator className="my-2" />
             <div className="bg-gray-50 rounded-lg p-4">
-              <div className="flex justify-between">
-                <span>Extra Drinks:</span>
-                <span className="font-semibold">${settings.extraDrinksPrice?.toFixed(2)}</span>
+              <div className="space-y-2">
+                <div className="font-medium text-sm text-gray-700 mb-2">Extra Drinks Pricing for {settings.sessions[selectedSession]?.name}:</div>
+                <div className="flex justify-between text-sm">
+                  <span>Adults:</span>
+                  <span className="font-semibold">${settings.sessionSpecificExtraDrinksPricing?.[selectedSession]?.adultPrice?.toFixed(2) || '0.00'}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Children:</span>
+                  <span className="font-semibold">${settings.sessionSpecificExtraDrinksPricing?.[selectedSession]?.childPrice?.toFixed(2) || '0.00'}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span>Infants:</span>
+                  <span className="font-semibold">${settings.sessionSpecificExtraDrinksPricing?.[selectedSession]?.infantPrice?.toFixed(2) || '0.00'}</span>
+                </div>
               </div>
             </div>
           </div>

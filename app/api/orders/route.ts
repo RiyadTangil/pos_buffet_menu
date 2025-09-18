@@ -8,6 +8,7 @@ interface OrderItem {
   name: string
   quantity: number
   category: string
+  price: number
 }
 
 interface Order {
@@ -18,6 +19,7 @@ interface Order {
   date: string
   time: string
   items: OrderItem[]
+  totalAmount: number
   status: 'pending' | 'preparing' | 'ready' | 'served'
   guestCount: {
     adults: number
@@ -123,6 +125,11 @@ export async function POST(request: NextRequest) {
     const date = now.toISOString().split('T')[0] // YYYY-MM-DD
     const time = now.toTimeString().split(' ')[0].substring(0, 5) // HH:MM
     
+    // Calculate total amount
+    const totalAmount = orderData.items.reduce((total: number, item: any) => {
+      return total + (item.price || 0) * item.quantity
+    }, 0)
+
     // Create new order
     const newOrder: Order = {
       id: orderId,
@@ -135,8 +142,10 @@ export async function POST(request: NextRequest) {
         id: item.id,
         name: item.name,
         quantity: item.quantity,
-        category: item.category
+        category: item.category,
+        price: item.price || 0
       })),
+      totalAmount,
       status: 'pending',
       guestCount: orderData.guestCount
     }

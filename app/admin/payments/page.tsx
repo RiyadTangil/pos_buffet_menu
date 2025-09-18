@@ -11,12 +11,30 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Calendar, Clock, Users, CreditCard, Filter, Search, DollarSign } from 'lucide-react';
 import { Payment } from '@/lib/models/payment';
 
+// Fetch tables from API
+const fetchTables = async () => {
+  try {
+    const response = await fetch('/api/tables');
+    const data = await response.json();
+    
+    if (data.success) {
+      return data.data;
+    } else {
+      console.error('Failed to fetch tables:', data.error);
+      return [];
+    }
+  } catch (error) {
+    console.error('Error fetching tables:', error);
+    return [];
+  }
+};
+
 // Fetch payments from API
 const fetchPayments = async (filters: {
   startDate?: string;
   endDate?: string;
   sessionType?: string;
-  tableNumber?: string;
+  tableId?: string;
   waiterId?: string;
   status?: string;
   page?: number;
@@ -30,8 +48,8 @@ const fetchPayments = async (filters: {
     if (filters.sessionType && filters.sessionType !== 'all') {
       params.append('sessionType', filters.sessionType);
     }
-    if (filters.tableNumber && filters.tableNumber !== 'all') {
-      params.append('tableNumber', filters.tableNumber);
+    if (filters.tableId && filters.tableId !== 'all') {
+      params.append('tableId', filters.tableId);
     }
     if (filters.waiterId && filters.waiterId !== 'all') {
       params.append('waiterId', filters.waiterId);
@@ -79,6 +97,7 @@ const fetchWaiters = async () => {
 export default function PaymentsPage() {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [waiters, setWaiters] = useState<any[]>([]);
+  const [tables, setTables] = useState<any[]>([]);
   const [pagination, setPagination] = useState<any>(null);
   const [selectedStartDate, setSelectedStartDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [selectedEndDate, setSelectedEndDate] = useState<string>(new Date().toISOString().split('T')[0]);
@@ -89,9 +108,6 @@ export default function PaymentsPage() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // Get unique table numbers from payments
-  const uniqueTables = Array.from(new Set(payments.map(payment => payment.tableNumber))).sort((a, b) => a - b);
-
   // Load data on component mount and when filters change
   useEffect(() => {
     const loadData = async () => {
@@ -101,12 +117,16 @@ export default function PaymentsPage() {
       const waitersData = await fetchWaiters();
       setWaiters(waitersData);
       
+      // Load tables
+      const tablesData = await fetchTables();
+      setTables(tablesData);
+      
       // Load payments
       const { payments: paymentsData, pagination: paginationData } = await fetchPayments({
         startDate: selectedStartDate,
         endDate: selectedEndDate,
         sessionType: selectedSession,
-        tableNumber: selectedTable,
+        tableId: selectedTable,
         waiterId: selectedWaiter,
         status: selectedStatus,
         page: currentPage,
@@ -224,9 +244,9 @@ export default function PaymentsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All</SelectItem>
-                  {uniqueTables.map(table => (
-                    <SelectItem key={table} value={table.toString()}>
-                      Table {table}
+                  {tables?.map(table => (
+                    <SelectItem key={table.id} value={table.id}>
+                      Table {table.number}
                     </SelectItem>
                   ))}
                 </SelectContent>

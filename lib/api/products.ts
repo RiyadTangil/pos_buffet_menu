@@ -5,6 +5,7 @@ export interface Product {
   categoryId: string
   name: string
   limitPerOrder: number
+  price?: number
   description?: string
   image?: string
   isVegetarian?: boolean
@@ -18,6 +19,7 @@ export interface CreateProductData {
   categoryId: string
   name: string
   limitPerOrder: number
+  price?: number
   description?: string
   image?: string
   isVegetarian?: boolean
@@ -29,6 +31,7 @@ export interface UpdateProductData {
   categoryId?: string
   name?: string
   limitPerOrder?: number
+  price?: number
   description?: string
   image?: string
   isVegetarian?: boolean

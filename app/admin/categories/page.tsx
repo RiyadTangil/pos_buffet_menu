@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Dialog,
   DialogContent,
@@ -38,7 +39,7 @@ export default function CategoriesPage() {
   const [showEditDialog, setShowEditDialog] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState<MenuCategory | null>(null)
-  const [formData, setFormData] = useState({ name: '', description: '' })
+  const [formData, setFormData] = useState({ name: '', description: '', sessions: [] as string[] })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Fetch categories on component mount
@@ -60,13 +61,17 @@ export default function CategoriesPage() {
   }
 
   const handleAddCategory = () => {
-    setFormData({ name: '', description: '' })
+    setFormData({ name: '', description: '', sessions: [] })
     setShowAddDialog(true)
   }
 
   const handleEditCategory = (category: MenuCategory) => {
     setSelectedCategory(category)
-    setFormData({ name: category.name, description: category.description || '' })
+    setFormData({ 
+      name: category.name, 
+      description: category.description || '', 
+      sessions: category.sessions || [] 
+    })
     setShowEditDialog(true)
   }
 
@@ -85,11 +90,12 @@ export default function CategoriesPage() {
       setIsSubmitting(true)
       const newCategory = await createCategory({
         name: formData.name.trim(),
-        description: formData.description.trim()
+        description: formData.description.trim(),
+        sessions: formData.sessions
       })
       setCategories(prev => [...prev, newCategory])
       setShowAddDialog(false)
-      setFormData({ name: '', description: '' })
+      setFormData({ name: '', description: '', sessions: [] })
       toast.success('Category created successfully')
     } catch (error: any) {
       console.error('Error creating category:', error)
@@ -109,14 +115,15 @@ export default function CategoriesPage() {
       setIsSubmitting(true)
       const updatedCategory = await updateCategory(selectedCategory.id, {
         name: formData.name.trim(),
-        description: formData.description.trim()
+        description: formData.description.trim(),
+        sessions: formData.sessions
       })
       setCategories(prev => prev.map(cat => 
         cat.id === selectedCategory.id ? updatedCategory : cat
       ))
       setShowEditDialog(false)
       setSelectedCategory(null)
-      setFormData({ name: '', description: '' })
+      setFormData({ name: '', description: '', sessions: [] })
       toast.success('Category updated successfully')
     } catch (error: any) {
       console.error('Error updating category:', error)
@@ -205,6 +212,15 @@ export default function CategoriesPage() {
                       {category.description && (
                         <p className="text-gray-600 text-sm">{category.description}</p>
                       )}
+                      {category.sessions && category.sessions.length > 0 && (
+                        <div className="flex gap-1 mt-2">
+                          {category.sessions.map((session) => (
+                            <Badge key={session} variant="outline" className="text-xs capitalize">
+                              {session}
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
                     </div>
                     <div className="flex items-center gap-2">
                       <Button
@@ -264,6 +280,35 @@ export default function CategoriesPage() {
                 rows={3}
               />
             </div>
+            <div>
+              <Label>Available Sessions</Label>
+              <div className="mt-2 space-y-2">
+                {['breakfast', 'lunch', 'dinner'].map((session) => (
+                  <div key={session} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`add-session-${session}`}
+                      checked={formData.sessions.includes(session)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setFormData(prev => ({
+                            ...prev,
+                            sessions: [...prev.sessions, session]
+                          }))
+                        } else {
+                          setFormData(prev => ({
+                            ...prev,
+                            sessions: prev.sessions.filter(s => s !== session)
+                          }))
+                        }
+                      }}
+                    />
+                    <Label htmlFor={`add-session-${session}`} className="capitalize">
+                      {session}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
           <DialogFooter>
             <Button
@@ -314,6 +359,35 @@ export default function CategoriesPage() {
                 className="mt-1"
                 rows={3}
               />
+            </div>
+            <div>
+              <Label>Available Sessions</Label>
+              <div className="mt-2 space-y-2">
+                {['breakfast', 'lunch', 'dinner'].map((session) => (
+                  <div key={session} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`edit-session-${session}`}
+                      checked={formData.sessions.includes(session)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setFormData(prev => ({
+                            ...prev,
+                            sessions: [...prev.sessions, session]
+                          }))
+                        } else {
+                          setFormData(prev => ({
+                            ...prev,
+                            sessions: prev.sessions.filter(s => s !== session)
+                          }))
+                        }
+                      }}
+                    />
+                    <Label htmlFor={`edit-session-${session}`} className="capitalize">
+                      {session}
+                    </Label>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
           <DialogFooter>

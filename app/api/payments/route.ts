@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     
     // Filter parameters
     const sessionType = searchParams.get('sessionType')
-    const tableNumber = searchParams.get('tableNumber')
+    const tableId = searchParams.get('tableId')
     const waiterId = searchParams.get('waiterId')
     const startDate = searchParams.get('startDate')
     const endDate = searchParams.get('endDate')
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     const filter: any = {}
     
     if (sessionType) filter.sessionType = sessionType
-    if (tableNumber) filter.tableNumber = parseInt(tableNumber)
+    if (tableId) filter.tableId = tableId
     if (waiterId) filter.waiterId = waiterId
     if (status) filter.status = status
     

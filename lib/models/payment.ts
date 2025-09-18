@@ -18,7 +18,29 @@ export interface MongoPayment {
     adultPrice: number
     childPrice: number
     infantPrice: number
-    drinkPrice?: number
+    drinkPrice?: number // Keep for backward compatibility
+    extraDrinksPricing?: {
+      adultPrice: number
+      childPrice: number
+      infantPrice: number
+    }
+    sessionSpecificExtraDrinksPricing?: {
+      breakfast: {
+        adultPrice: number
+        childPrice: number
+        infantPrice: number
+      }
+      lunch: {
+        adultPrice: number
+        childPrice: number
+        infantPrice: number
+      }
+      dinner: {
+        adultPrice: number
+        childPrice: number
+        infantPrice: number
+      }
+    }
   }
   paymentDate: string
   paymentTime: string
@@ -46,7 +68,29 @@ export interface Payment {
     adultPrice: number
     childPrice: number
     infantPrice: number
-    drinkPrice?: number
+    drinkPrice?: number // Keep for backward compatibility
+    extraDrinksPricing?: {
+      adultPrice: number
+      childPrice: number
+      infantPrice: number
+    }
+    sessionSpecificExtraDrinksPricing?: {
+      breakfast: {
+        adultPrice: number
+        childPrice: number
+        infantPrice: number
+      }
+      lunch: {
+        adultPrice: number
+        childPrice: number
+        infantPrice: number
+      }
+      dinner: {
+        adultPrice: number
+        childPrice: number
+        infantPrice: number
+      }
+    }
   }
   paymentDate: string
   paymentTime: string
@@ -72,6 +116,28 @@ export interface CreatePaymentRequest {
     adultPrice: number
     childPrice: number
     infantPrice: number
-    drinkPrice?: number
+    drinkPrice?: number // Keep for backward compatibility
+    extraDrinksPricing?: {
+      adultPrice: number
+      childPrice: number
+      infantPrice: number
+    }
+    sessionSpecificExtraDrinksPricing?: {
+      breakfast: {
+        adultPrice: number
+        childPrice: number
+        infantPrice: number
+      }
+      lunch: {
+        adultPrice: number
+        childPrice: number
+        infantPrice: number
+      }
+      dinner: {
+        adultPrice: number
+        childPrice: number
+        infantPrice: number
+      }
+    }
   }
 }

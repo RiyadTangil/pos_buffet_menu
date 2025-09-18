@@ -3,16 +3,30 @@ import { getDatabase, COLLECTIONS } from '@/lib/mongodb'
 import { ObjectId } from 'mongodb'
 
 // GET - Fetch all categories
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url)
+    const session = searchParams.get('session')
+    
     const db = await getDatabase()
-    const categories = await db.collection(COLLECTIONS.CATEGORIES).find({}).toArray()
+    let query = {}
+    
+    // Filter by session if provided
+    if (session) {
+      const validSessions = ['breakfast', 'lunch', 'dinner']
+      if (validSessions.includes(session)) {
+        query = { sessions: { $in: [session] } }
+      }
+    }
+    
+    const categories = await db.collection(COLLECTIONS.CATEGORIES).find(query).toArray()
     
     // Convert MongoDB _id to id and format response
     const formattedCategories = categories.map(category => ({
       id: category._id.toString(),
       name: category.name,
       description: category.description || '',
+      sessions: category.sessions || [],
       createdAt: category.createdAt,
       updatedAt: category.updatedAt
     }))
@@ -34,12 +48,29 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { name, description = '' } = body
+    const { name, description = '', sessions = [] } = body
 
     // Validation
     if (!name || typeof name !== 'string' || name.trim().length === 0) {
       return NextResponse.json(
         { success: false, error: 'Category name is required' },
+        { status: 400 }
+      )
+    }
+
+    // Validate sessions array
+    if (!Array.isArray(sessions)) {
+      return NextResponse.json(
+        { success: false, error: 'Sessions must be an array' },
+        { status: 400 }
+      )
+    }
+
+    const validSessions = ['breakfast', 'lunch', 'dinner']
+    const invalidSessions = sessions.filter(session => !validSessions.includes(session))
+    if (invalidSessions.length > 0) {
+      return NextResponse.json(
+        { success: false, error: `Invalid sessions: ${invalidSessions.join(', ')}. Valid sessions are: ${validSessions.join(', ')}` },
         { status: 400 }
       )
     }
@@ -63,6 +94,7 @@ export async function POST(request: NextRequest) {
     const newCategory = {
       name: name.trim(),
       description: description.trim(),
+      sessions: sessions,
       createdAt: new Date(),
       updatedAt: new Date()
     }
@@ -75,6 +107,7 @@ export async function POST(request: NextRequest) {
       id: result.insertedId.toString(),
       name: newCategory.name,
       description: newCategory.description,
+      sessions: newCategory.sessions,
       createdAt: newCategory.createdAt,
       updatedAt: newCategory.updatedAt
     }

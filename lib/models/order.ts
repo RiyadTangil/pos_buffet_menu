@@ -50,6 +50,28 @@ export interface MongoCheckoutOrder extends MongoOrder {
     childPrice: number
     infantPrice: number
     extraDrinksPrice: number
+    extraDrinksPricing?: {
+      adultPrice: number
+      childPrice: number
+      infantPrice: number
+    }
+    sessionSpecificExtraDrinksPricing?: {
+      breakfast: {
+        adultPrice: number
+        childPrice: number
+        infantPrice: number
+      }
+      lunch: {
+        adultPrice: number
+        childPrice: number
+        infantPrice: number
+      }
+      dinner: {
+        adultPrice: number
+        childPrice: number
+        infantPrice: number
+      }
+    }
     duration: number
   }
   paymentStatus: 'completed' | 'pending' | 'failed'
