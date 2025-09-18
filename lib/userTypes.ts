@@ -154,6 +154,26 @@ export const generateWaiterPIN = (): string => {
   return Math.floor(1000 + Math.random() * 9000).toString();
 };
 
+// Generate unique PIN by checking against existing PINs
+export const generateUniqueWaiterPIN = async (existingPins: string[]): Promise<string> => {
+  let pin: string;
+  let attempts = 0;
+  const maxAttempts = 100; // Prevent infinite loops
+  
+  do {
+    pin = generateWaiterPIN();
+    attempts++;
+    
+    if (attempts >= maxAttempts) {
+      // If we can't find a unique PIN after 100 attempts, 
+      // there might be too many waiters or we need a different approach
+      throw new Error('Unable to generate unique PIN after multiple attempts');
+    }
+  } while (existingPins.includes(pin));
+  
+  return pin;
+};
+
 // Validate PIN format
 export const isValidPIN = (pin: string): boolean => {
   return /^\d{4}$/.test(pin);

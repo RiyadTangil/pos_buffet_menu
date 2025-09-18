@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getDatabase, COLLECTIONS } from '@/lib/mongodb'
 import bcrypt from 'bcryptjs'
 import { ObjectId } from 'mongodb'
+import { generateUniqueWaiterPIN } from '@/lib/userTypes'
 
 // GET - Fetch single user by ID
 export async function GET(
@@ -40,7 +41,8 @@ export async function GET(
       status: user.status,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
-      lastLogin: user.lastLogin
+      lastLogin: user.lastLogin,
+      ...(user.role === 'waiter' && user.pin && { pin: user.pin })
     }
 
     return NextResponse.json({
@@ -131,6 +133,25 @@ export async function PUT(
         )
       }
       updateData.role = body.role
+      
+      // Generate unique PIN when changing role to waiter
+      if (body.role === 'waiter' && existingUser.role !== 'waiter') {
+        // Get existing PINs to ensure uniqueness
+        const existingWaiters = await usersCollection
+          .find({ role: 'waiter', pin: { $exists: true } }, { projection: { pin: 1 } })
+          .toArray()
+        
+        const existingPins = existingWaiters
+          .map(waiter => waiter.pin)
+          .filter(Boolean) as string[]
+        
+        updateData.pin = await generateUniqueWaiterPIN(existingPins)
+      }
+      
+      // Remove PIN when changing role from waiter to admin
+      if (body.role === 'admin' && existingUser.role === 'waiter') {
+        updateData.pin = null
+      }
     }
 
     if (body.status !== undefined) {
@@ -181,7 +202,8 @@ export async function PUT(
       status: updatedUser!.status,
       createdAt: updatedUser!.createdAt,
       updatedAt: updatedUser!.updatedAt,
-      lastLogin: updatedUser!.lastLogin
+      lastLogin: updatedUser!.lastLogin,
+      ...(updatedUser!.role === 'waiter' && updatedUser!.pin && { pin: updatedUser!.pin })
     }
 
     return NextResponse.json({

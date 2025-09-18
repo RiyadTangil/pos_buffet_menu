@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getDatabase, COLLECTIONS } from '@/lib/mongodb'
 import bcrypt from 'bcryptjs'
 import { ObjectId } from 'mongodb'
-import { generateWaiterPIN } from '@/lib/userTypes'
+import { generateWaiterPIN, generateUniqueWaiterPIN } from '@/lib/userTypes'
 
 // GET - Fetch all users
 export async function GET() {
@@ -20,10 +20,10 @@ export async function GET() {
       email: user.email,
       role: user.role,
       status: user.status,
-      pin: user.pin,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
-      lastLogin: user.lastLogin
+      lastLogin: user.lastLogin,
+      ...(user.role === 'waiter' && user.pin && { pin: user.pin })
     }))
 
     return NextResponse.json({
@@ -82,8 +82,20 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12)
 
-    // Generate PIN for waiters
-    const pin = role === 'waiter' ? generateWaiterPIN() : undefined
+    // Generate unique PIN for waiters
+    let pin: string | undefined = undefined
+    if (role === 'waiter') {
+      // Get existing PINs to ensure uniqueness
+      const existingWaiters = await usersCollection
+        .find({ role: 'waiter', pin: { $exists: true } }, { projection: { pin: 1 } })
+        .toArray()
+      
+      const existingPins = existingWaiters
+        .map(waiter => waiter.pin)
+        .filter(Boolean) as string[]
+      
+      pin = await generateUniqueWaiterPIN(existingPins)
+    }
 
     // Create user document
     const newUser = {
