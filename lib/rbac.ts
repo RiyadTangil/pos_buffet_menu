@@ -20,6 +20,8 @@ export type Permission =
   | 'orders.manage'
   | 'payments.view'
   | 'payments.manage'
+  | 'printers.view'
+  | 'printers.manage'
   | 'settings.view'
   | 'settings.manage'
   | 'profile.view'
@@ -72,6 +74,7 @@ export const DEFAULT_ROLE_CONFIGS: Record<UserRole, RoleConfig> = {
       'products.view', 'products.manage',
       'orders.view', 'orders.manage',
       'payments.view', 'payments.manage',
+      'printers.view', 'printers.manage',
       'settings.view', 'settings.manage',
       'profile.view', 'profile.edit',
       'reports.view', 'reports.generate',
@@ -79,7 +82,7 @@ export const DEFAULT_ROLE_CONFIGS: Record<UserRole, RoleConfig> = {
     ],
     defaultNavigation: [
       'dashboard', 'users', 'tables', 'categories', 'products', 
-      'order-management', 'payments', 'role-management', 'settings', 'profile'
+      'order-management', 'payments', 'printers', 'role-management', 'settings', 'profile'
     ],
     canBeCustomized: true
   },
@@ -194,13 +197,22 @@ export const ALL_NAVIGATION_ITEMS: NavigationItem[] = [
     order: 8
   },
   {
+    id: 'printers',
+    name: 'Printers',
+    href: '/admin/printers',
+    icon: 'Printer',
+    requiredPermissions: ['printers.view'],
+    isVisible: true,
+    order: 9
+  },
+  {
     id: 'role-management',
     name: 'Role Management',
     href: '/admin/role-management',
     icon: 'Shield',
     requiredPermissions: ['roles.manage'],
     isVisible: true,
-    order: 9
+    order: 10
   },
   {
     id: 'settings',
@@ -209,7 +221,7 @@ export const ALL_NAVIGATION_ITEMS: NavigationItem[] = [
     icon: 'Settings',
     requiredPermissions: ['settings.view'],
     isVisible: true,
-    order: 10
+    order: 11
   }
 ]
 

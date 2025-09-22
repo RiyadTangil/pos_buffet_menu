@@ -13,6 +13,9 @@ import { fetchCategories } from "@/lib/api/categories"
 import { fetchProducts, type Product } from "@/lib/api/products"
 import { getBuffetSettings, type BuffetSettings } from "@/lib/api/settings"
 import { saveOrder, type SessionOrder } from "@/lib/api/orders-client"
+import { usePrinting } from '@/hooks/usePrinting'
+import { PrintButton } from '@/components/printing/PrintButton'
+import { PrintJobStatus } from '@/components/printing/PrintJobStatus'
 import Confetti from "react-confetti"
 
 interface CartItem {
@@ -34,18 +37,20 @@ const getCategoryIcon = (categoryId: string) => {
 
 export default function ItemsPage() {
   const router = useRouter()
+  const { printOrder, isPrinting } = usePrinting()
   const [cart, setCart] = useState<CartItem[]>([])
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [showConfetti, setShowConfetti] = useState(false)
   const [orderPlaced, setOrderPlaced] = useState(false)
   const [timeRemaining, setTimeRemaining] = useState(0)
-  const [selectedCategory, setSelectedCategory] = useState<string>("")
-  const [categories, setCategories] = useState<MenuCategory[]>([])
-  const [products, setProducts] = useState<Product[]>([])
+  const [selectedCategory, setSelectedCategory] = useState<string>('all')
+  const [categories, setCategories] = useState<any[]>([])
+  const [products, setProducts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [buffetSettings, setBuffetSettings] = useState<BuffetSettings | null>(null)
-  const [progressKey, setProgressKey] = useState(0) // Force re-render of progress component
+  const [buffetSettings, setBuffetSettings] = useState<any>(null)
+  const [progressKey, setProgressKey] = useState(0)
   const [currentTime, setCurrentTime] = useState(new Date())
+  const [lastOrderId, setLastOrderId] = useState<string | null>(null)
 
   // Fetch categories, products, and buffet settings on component mount
   useEffect(() => {
@@ -277,6 +282,33 @@ export default function ItemsPage() {
       
       if (result.success) {
         console.log('Order created successfully:', result.orderId)
+        setLastOrderId(result.orderId)
+        
+        // Print the order
+        try {
+          const orderItems = cart.map(item => ({
+            id: item.menuItem.id,
+            name: item.menuItem.name,
+            quantity: item.quantity,
+            price: item.menuItem.price || 0,
+            categoryId: item.menuItem.categoryId,
+            category: {
+              id: item.menuItem.categoryId,
+              name: categories.find(cat => cat.id === item.menuItem.categoryId)?.name || 'Unknown'
+            }
+          }))
+
+          await printOrder({
+            orderId: result.orderId,
+            orderItems,
+            tableNumber: selectedTableId,
+            guestCount: (storedGuestCounts.adults || 0) + (storedGuestCounts.children || 0) + (storedGuestCounts.infants || 0),
+            orderTime: new Date().toISOString()
+          })
+        } catch (printError) {
+          console.error('Print error:', printError)
+          // Don't block the order flow if printing fails
+        }
         
         setShowConfetti(true)
         setOrderPlaced(true)
@@ -421,7 +453,6 @@ export default function ItemsPage() {
           </div>
 
           <div className="flex items-center gap-4">
-          
             {currentSession && (
               <div className="flex items-center gap-2 bg-blue-50 rounded-lg px-3 py-2 border border-blue-200">
                 <Clock className="h-4 w-4 text-blue-600" />
@@ -528,6 +559,19 @@ export default function ItemsPage() {
 
                   {cart.length > 0 && (
                     <div className="border-t border-orange-200 pt-4 space-y-4 bg-white/95 backdrop-blur-sm flex-shrink-0 px-1">
+                      {/* Print Job Status */}
+                      {lastOrderId && (
+                        <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
+                          <h4 className="text-sm font-semibold text-blue-900 mb-2">Print Status</h4>
+                          <PrintJobStatus 
+                            orderId={lastOrderId}
+                            showHeader={false}
+                            maxItems={3}
+                            autoRefresh={true}
+                          />
+                        </div>
+                      )}
+                      
                       <div className="bg-orange-50 rounded-lg p-3 border border-orange-200">
                         <div className="flex justify-between items-center text-lg font-semibold text-gray-900">
                           <span>Total Items:</span>
@@ -539,8 +583,9 @@ export default function ItemsPage() {
                         className="w-full bg-orange-600 hover:bg-orange-700 text-white shadow-lg"
                         size="lg"
                         onClick={handleConfirmOrder}
+                        disabled={isPrinting}
                       >
-                        Confirm Order
+                        {isPrinting ? 'Processing...' : 'Confirm Order'}
                       </Button>
                     </div>
                   )}

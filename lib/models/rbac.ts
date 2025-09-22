@@ -54,7 +54,7 @@ export const DEFAULT_ROLE_CONFIGURATIONS: Omit<RoleConfiguration, '_id' | 'creat
     ],
     navigationItems: [
       'dashboard', 'users', 'tables', 'categories', 'products', 
-      'order-management', 'payments', 'role-management', 'settings', 'profile'
+      'order-management', 'payments', 'printers', 'role-management', 'settings', 'profile'
     ]
   }
 ]

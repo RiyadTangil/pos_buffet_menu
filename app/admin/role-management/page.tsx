@@ -123,10 +123,10 @@ function RolePermissionCard({
                   <Save className="w-4 h-4 mr-2" />
                   Save
                 </Button>
-                <Button size="sm" variant="outline" onClick={handleReset}>
+                {/* <Button size="sm" variant="outline" onClick={handleReset}>
                   <RotateCcw className="w-4 h-4 mr-2" />
                   Reset
-                </Button>
+                </Button> */}
               </>
             ) : (
               <Button size="sm" variant="outline" onClick={() => setIsEditing(true)}>
@@ -139,7 +139,7 @@ function RolePermissionCard({
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Permissions Section */}
-        <div>
+        {/* <div>
           <h4 className="font-medium text-gray-900 mb-3 flex items-center">
             <Shield className="w-4 h-4 mr-2" />
             Permissions
@@ -162,7 +162,7 @@ function RolePermissionCard({
               </div>
             ))}
           </div>
-        </div>
+        </div> */}
 
         <Separator />
 

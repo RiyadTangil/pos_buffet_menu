@@ -18,7 +18,8 @@ import {
   User,
   Table,
   ClipboardList,
-  CreditCard
+  CreditCard,
+  Printer
 } from "lucide-react"
 import { NavigationItem, UserRole } from "@/lib/rbac"
 
@@ -32,6 +33,7 @@ const ICON_MAP = {
   ShoppingCart,
   ClipboardList,
   CreditCard,
+  Printer,
   Settings,
   Calendar,
   Image,
@@ -163,23 +165,6 @@ export function DynamicNavigation({
           )
         })}
       </nav>
-
-      {/* User info at bottom of sidebar */}
-      {sidebarOpen && (
-        <div className="p-4">
-          <div className="bg-gray-50 rounded-lg p-3">
-            <div className="flex items-center space-x-2">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${roleInfo.bgColor}`}>
-                <User className={`w-4 h-4 ${roleInfo.color}`} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">{userName}</p>
-                <p className={`text-xs ${roleInfo.color} truncate`}>{roleInfo.name}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
