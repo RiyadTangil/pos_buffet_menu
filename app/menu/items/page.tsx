@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import { ItemsLimitProgress } from '@/components/ui/items-limit-progress'
 import { ShoppingCart, Plus, Minus, Leaf, Flame, X, Clock, Users, Utensils, ChefHat, Coffee, Cake, DollarSign } from "lucide-react"
 import { type MenuCategory } from "@/lib/mockData"
 import { fetchCategories } from "@/lib/api/categories"
@@ -43,6 +44,7 @@ export default function ItemsPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [buffetSettings, setBuffetSettings] = useState<BuffetSettings | null>(null)
+  const [progressKey, setProgressKey] = useState(0) // Force re-render of progress component
   const [currentTime, setCurrentTime] = useState(new Date())
 
   // Fetch categories, products, and buffet settings on component mount
@@ -136,6 +138,54 @@ export default function ItemsPage() {
   }, [timeRemaining])
 
   const addToCart = (product: Product) => {
+    // Check items limit before adding to cart
+    const currentSession = getCurrentSession()
+    if (!currentSession || !buffetSettings) {
+      alert('No active session found. Please try again during buffet hours.')
+      return
+    }
+
+    // Get guest counts from localStorage
+    const storedGuestCounts = JSON.parse(localStorage.getItem('guestCounts') || '{}')
+    const adultCount = storedGuestCounts.adults || 0
+    const childCount = storedGuestCounts.children || 0
+    const infantCount = storedGuestCounts.infants || 0
+
+    if (adultCount === 0 && childCount === 0 && infantCount === 0) {
+      alert('Guest information is missing. Please return to the tables page and enter guest information.')
+      return
+    }
+
+    // Get items limit for current session
+    const sessionKey = currentSession.key as 'breakfast' | 'lunch' | 'dinner'
+    let itemsLimit = buffetSettings.itemsLimit
+    
+    // Check if there's session-specific items limit
+    if (buffetSettings.sessionSpecificItemsLimit && buffetSettings.sessionSpecificItemsLimit[sessionKey]) {
+      itemsLimit = buffetSettings.sessionSpecificItemsLimit[sessionKey]
+    }
+
+    // If no items limit is set, skip validation
+    if (!itemsLimit) {
+      // No validation needed
+    } else {
+      // Calculate maximum allowed items based on guest counts and limits
+      const maxAllowedItems = (
+        (adultCount * itemsLimit.adultLimit) +
+        (childCount * itemsLimit.childLimit) +
+        (infantCount * itemsLimit.infantLimit)
+      )
+
+      // Get current total items in cart
+      const currentTotalItems = getTotalItems()
+
+      // Check if adding this item would exceed the limit
+      if (currentTotalItems >= maxAllowedItems) {
+        alert(`You have reached the maximum limit of ${maxAllowedItems} items per round. Please complete your current order before adding more items.`)
+        return
+      }
+    }
+
     setCart((prev) => {
       const existingItem = prev.find((item) => item.menuItem.id === product.id)
       if (existingItem) {
@@ -143,6 +193,7 @@ export default function ItemsPage() {
       }
       return [...prev, { menuItem: product, quantity: 1 }]
     })
+    setProgressKey(prev => prev + 1) // Force progress component re-render
   }
 
   const removeFromCart = (menuItemId: string) => {
@@ -151,6 +202,7 @@ export default function ItemsPage() {
         .map((item) => (item.menuItem.id === menuItemId ? { ...item, quantity: item.quantity - 1 } : item))
         .filter((item) => item.quantity > 0)
     })
+    setProgressKey(prev => prev + 1) // Force progress component re-render
   }
 
   const getItemQuantity = (menuItemId: string) => {
@@ -498,6 +550,18 @@ export default function ItemsPage() {
           </div>
         </div>
       </div>
+
+      {/* Items Limit Progress */}
+      {currentSession && buffetSettings && (
+        <div className="bg-white border-b border-gray-200 px-6 py-3">
+          <ItemsLimitProgress 
+            key={progressKey}
+            currentItems={getTotalItems()}
+            buffetSettings={buffetSettings}
+            currentSession={currentSession.key as 'breakfast' | 'lunch' | 'dinner'}
+          />
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="flex h-[calc(100vh-80px)]">

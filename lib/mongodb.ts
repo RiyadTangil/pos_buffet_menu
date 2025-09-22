@@ -49,7 +49,8 @@ export const COLLECTIONS = {
   BANNERS: 'banners',
   COUPONS: 'coupons',
   TABLES: 'tables',
-  SETTINGS: 'settings'
+  SETTINGS: 'settings',
+  RBAC: 'rbac'
 } as const
 
 // Helper function to get a specific collection
@@ -81,4 +82,8 @@ export async function getTablesCollection() {
 
 export async function getSettingsCollection() {
   return await getCollection(COLLECTIONS.SETTINGS)
+}
+
+export async function getRBACCollection() {
+  return await getCollection(COLLECTIONS.RBAC)
 }

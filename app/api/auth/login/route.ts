@@ -17,10 +17,10 @@ export async function POST(request: NextRequest) {
     // Get users collection
     const usersCollection = await getUsersCollection()
 
-    // Find admin user by email
+    // Find user by email (allow all roles)
     const user = await usersCollection.findOne({
       email: email.toLowerCase(),
-      role: 'admin', // Only allow admin users
+      role: { $in: ['admin', 'waiter', 'stall_manager'] }, // Allow all user types
       status: 'active' // Only allow active users
     })
 

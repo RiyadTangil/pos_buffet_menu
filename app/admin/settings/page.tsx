@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "@/hooks/use-toast"
 import { Loader2, Save, DollarSign, Clock, Users } from "lucide-react"
-import { getBuffetSettings, updateBuffetSettings, BuffetSettings, ExtraDrinksPricing, SessionSpecificExtraDrinksPricing } from '@/lib/api/settings'
+import { getBuffetSettings, updateBuffetSettings, BuffetSettings, ExtraDrinksPricing, SessionSpecificExtraDrinksPricing, ItemsLimit, SessionSpecificItemsLimit } from '@/lib/api/settings'
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<BuffetSettings>({
@@ -66,6 +66,28 @@ export default function SettingsPage() {
         adultPrice: 5,
         childPrice: 3,
         infantPrice: 0
+      }
+    },
+    itemsLimit: {
+      adultLimit: 5,
+      childLimit: 4,
+      infantLimit: 3
+    },
+    sessionSpecificItemsLimit: {
+      breakfast: {
+        adultLimit: 5,
+        childLimit: 4,
+        infantLimit: 3
+      },
+      lunch: {
+        adultLimit: 5,
+        childLimit: 4,
+        infantLimit: 3
+      },
+      dinner: {
+        adultLimit: 5,
+        childLimit: 4,
+        infantLimit: 3
       }
     }
   })
@@ -168,6 +190,29 @@ export default function SettingsPage() {
         [sessionType]: {
           ...prev.sessionSpecificExtraDrinksPricing?.[sessionType],
           [userType]: typeof value === 'string' ? parseFloat(value) || 0 : value
+        }
+      }
+    }))
+  }
+
+  const handleItemsLimitChange = (userType: keyof ItemsLimit, value: string | number) => {
+    setSettings(prev => ({
+      ...prev,
+      itemsLimit: {
+        ...prev.itemsLimit,
+        [userType]: typeof value === 'string' ? parseInt(value) || 0 : value
+      }
+    }))
+  }
+
+  const handleSessionSpecificItemsLimitChange = (sessionType: 'breakfast' | 'lunch' | 'dinner', userType: keyof ItemsLimit, value: string | number) => {
+    setSettings(prev => ({
+      ...prev,
+      sessionSpecificItemsLimit: {
+        ...prev.sessionSpecificItemsLimit,
+        [sessionType]: {
+          ...prev.sessionSpecificItemsLimit?.[sessionType],
+          [userType]: typeof value === 'string' ? parseInt(value) || 0 : value
         }
       }
     }))
@@ -400,6 +445,48 @@ export default function SettingsPage() {
                       value={settings.sessionSpecificExtraDrinksPricing?.[selectedSession]?.infantPrice || 0}
                       onChange={(e) => handleSessionSpecificExtraDrinksPricingChange(selectedSession, 'infantPrice', e.target.value)}
                       placeholder="0.00"
+                    />
+                  </div>
+                </div>
+              </div>
+              
+              <Separator />
+              
+              <div className="space-y-4">
+                <h4 className="font-semibold text-lg">Items Limit for {settings.sessions[selectedSession]?.name}</h4>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="sessionAdultItemsLimit">Adult Limit</Label>
+                    <Input
+                      id="sessionAdultItemsLimit"
+                      type="number"
+                      min="0"
+                      value={settings.sessionSpecificItemsLimit?.[selectedSession]?.adultLimit || 0}
+                      onChange={(e) => handleSessionSpecificItemsLimitChange(selectedSession, 'adultLimit', e.target.value)}
+                      placeholder="5"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="sessionChildItemsLimit">Child Limit</Label>
+                    <Input
+                      id="sessionChildItemsLimit"
+                      type="number"
+                      min="0"
+                      value={settings.sessionSpecificItemsLimit?.[selectedSession]?.childLimit || 0}
+                      onChange={(e) => handleSessionSpecificItemsLimitChange(selectedSession, 'childLimit', e.target.value)}
+                      placeholder="4"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="sessionInfantItemsLimit">Infant Limit</Label>
+                    <Input
+                      id="sessionInfantItemsLimit"
+                      type="number"
+                      min="0"
+                      value={settings.sessionSpecificItemsLimit?.[selectedSession]?.infantLimit || 0}
+                      onChange={(e) => handleSessionSpecificItemsLimitChange(selectedSession, 'infantLimit', e.target.value)}
+                      placeholder="3"
                     />
                   </div>
                 </div>

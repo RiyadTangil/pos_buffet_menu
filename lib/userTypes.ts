@@ -96,7 +96,7 @@ export const validateUserData = (userData: CreateUserRequest): string[] => {
     errors.push('Password must be at least 6 characters long');
   }
   
-  if (!['admin', 'waiter'].includes(userData.role)) {
+  if (!['admin', 'waiter', 'stall_manager'].includes(userData.role)) {
     errors.push('Invalid user role');
   }
   

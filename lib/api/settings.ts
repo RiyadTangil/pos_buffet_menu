@@ -22,6 +22,20 @@ export interface SessionSpecificExtraDrinksPricing {
   dinner: ExtraDrinksPricing
 }
 
+// Interface for items limit per user type
+export interface ItemsLimit {
+  adultLimit: number
+  childLimit: number
+  infantLimit: number
+}
+
+// Interface for session-specific items limit
+export interface SessionSpecificItemsLimit {
+  breakfast: ItemsLimit
+  lunch: ItemsLimit
+  dinner: ItemsLimit
+}
+
 export interface BuffetSettings {
   id?: string
   sessions: {
@@ -32,6 +46,8 @@ export interface BuffetSettings {
   extraDrinksPrice: number // Keep for backward compatibility
   extraDrinksPricing: ExtraDrinksPricing // Keep for backward compatibility
   sessionSpecificExtraDrinksPricing: SessionSpecificExtraDrinksPricing
+  itemsLimit?: ItemsLimit // Keep for backward compatibility
+  sessionSpecificItemsLimit?: SessionSpecificItemsLimit
   createdAt?: Date
   updatedAt?: Date
 }
@@ -45,6 +61,8 @@ export interface CreateBuffetSettingsData {
   extraDrinksPrice: number // Keep for backward compatibility
   extraDrinksPricing: ExtraDrinksPricing // Keep for backward compatibility
   sessionSpecificExtraDrinksPricing: SessionSpecificExtraDrinksPricing
+  itemsLimit?: ItemsLimit // Keep for backward compatibility
+  sessionSpecificItemsLimit?: SessionSpecificItemsLimit
 }
 
 export interface UpdateBuffetSettingsData extends Partial<CreateBuffetSettingsData> {}

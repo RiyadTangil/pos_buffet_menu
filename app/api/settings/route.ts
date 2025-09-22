@@ -28,6 +28,20 @@ interface SessionSpecificExtraDrinksPricing {
   dinner: ExtraDrinksPricing
 }
 
+// Interface for items limit per user type
+interface ItemsLimit {
+  adultLimit: number
+  childLimit: number
+  infantLimit: number
+}
+
+// Interface for session-specific items limit
+interface SessionSpecificItemsLimit {
+  breakfast: ItemsLimit
+  lunch: ItemsLimit
+  dinner: ItemsLimit
+}
+
 // Interface for buffet settings
 interface BuffetSettings {
   _id?: ObjectId
@@ -39,6 +53,8 @@ interface BuffetSettings {
   extraDrinksPrice: number // Keep for backward compatibility
   extraDrinksPricing: ExtraDrinksPricing // Keep for backward compatibility
   sessionSpecificExtraDrinksPricing: SessionSpecificExtraDrinksPricing
+  itemsLimit?: ItemsLimit // Keep for backward compatibility
+  sessionSpecificItemsLimit?: SessionSpecificItemsLimit
   createdAt?: Date
   updatedAt?: Date
 }
@@ -173,6 +189,28 @@ export async function GET() {
           infantPrice: 0
         }
       },
+      itemsLimit: settings.itemsLimit || {
+        adultLimit: 5,
+        childLimit: 4,
+        infantLimit: 3
+      },
+      sessionSpecificItemsLimit: settings.sessionSpecificItemsLimit || {
+        breakfast: {
+          adultLimit: 5,
+          childLimit: 4,
+          infantLimit: 3
+        },
+        lunch: {
+          adultLimit: 5,
+          childLimit: 4,
+          infantLimit: 3
+        },
+        dinner: {
+          adultLimit: 5,
+          childLimit: 4,
+          infantLimit: 3
+        }
+      },
       createdAt: settings.createdAt,
       updatedAt: settings.updatedAt
     }
@@ -194,7 +232,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { sessions, extraDrinksPrice, extraDrinksPricing, sessionSpecificExtraDrinksPricing } = body
+    const { sessions, extraDrinksPrice, extraDrinksPricing, sessionSpecificExtraDrinksPricing, itemsLimit, sessionSpecificItemsLimit } = body
 
     // Validation for sessions
     if (sessions) {
@@ -291,6 +329,58 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Validate itemsLimit
+    if (itemsLimit !== undefined) {
+      const { adultLimit, childLimit, infantLimit } = itemsLimit
+      if (typeof adultLimit !== 'number' || adultLimit < 0) {
+        return NextResponse.json(
+          { success: false, error: 'itemsLimit.adultLimit must be a non-negative number' },
+          { status: 400 }
+        )
+      }
+      if (typeof childLimit !== 'number' || childLimit < 0) {
+        return NextResponse.json(
+          { success: false, error: 'itemsLimit.childLimit must be a non-negative number' },
+          { status: 400 }
+        )
+      }
+      if (typeof infantLimit !== 'number' || infantLimit < 0) {
+        return NextResponse.json(
+          { success: false, error: 'itemsLimit.infantLimit must be a non-negative number' },
+          { status: 400 }
+        )
+      }
+    }
+
+    // Validate sessionSpecificItemsLimit
+    if (sessionSpecificItemsLimit !== undefined) {
+      const sessions = ['breakfast', 'lunch', 'dinner'] as const
+      for (const sessionKey of sessions) {
+        const sessionLimit = sessionSpecificItemsLimit[sessionKey]
+        if (sessionLimit) {
+          const { adultLimit, childLimit, infantLimit } = sessionLimit
+          if (typeof adultLimit !== 'number' || adultLimit < 0) {
+            return NextResponse.json(
+              { success: false, error: `sessionSpecificItemsLimit.${sessionKey}.adultLimit must be a non-negative number` },
+              { status: 400 }
+            )
+          }
+          if (typeof childLimit !== 'number' || childLimit < 0) {
+            return NextResponse.json(
+              { success: false, error: `sessionSpecificItemsLimit.${sessionKey}.childLimit must be a non-negative number` },
+              { status: 400 }
+            )
+          }
+          if (typeof infantLimit !== 'number' || infantLimit < 0) {
+            return NextResponse.json(
+              { success: false, error: `sessionSpecificItemsLimit.${sessionKey}.infantLimit must be a non-negative number` },
+              { status: 400 }
+            )
+          }
+        }
+      }
+    }
+
     const db = await getDatabase()
     const settingsCollection = db.collection(COLLECTIONS.SETTINGS)
     const now = new Date()
@@ -352,6 +442,28 @@ export async function POST(request: NextRequest) {
           adultPrice: 5,
           childPrice: 3,
           infantPrice: 0
+        }
+      },
+      itemsLimit: itemsLimit ?? {
+        adultLimit: 5,
+        childLimit: 4,
+        infantLimit: 3
+      },
+      sessionSpecificItemsLimit: sessionSpecificItemsLimit ?? {
+        breakfast: {
+          adultLimit: 5,
+          childLimit: 4,
+          infantLimit: 3
+        },
+        lunch: {
+          adultLimit: 5,
+          childLimit: 4,
+          infantLimit: 3
+        },
+        dinner: {
+          adultLimit: 5,
+          childLimit: 4,
+          infantLimit: 3
         }
       },
       updatedAt: now

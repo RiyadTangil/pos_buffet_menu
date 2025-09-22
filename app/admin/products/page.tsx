@@ -40,6 +40,7 @@ import { Plus, Edit, Trash2, Search, Leaf, Flame, Eye, EyeOff } from "lucide-rea
 import { toast } from "sonner"
 import { fetchProducts, createProduct, updateProduct, deleteProduct, type Product, type CreateProductData } from "@/lib/api/products"
 import { fetchCategories, type Category } from "@/lib/api/categories"
+import { PermissionGuard } from "@/lib/rbac-client"
 
 interface ProductFormData {
   categoryId: string
@@ -66,6 +67,21 @@ const initialFormData: ProductFormData = {
 }
 
 export default function ProductsPage() {
+  return (
+    <PermissionGuard permission="products.view" fallback={
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Access Denied</h2>
+          <p className="text-gray-600">You don't have permission to view products.</p>
+        </div>
+      </div>
+    }>
+      <ProductsPageContent />
+    </PermissionGuard>
+  )
+}
+
+function ProductsPageContent() {
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)

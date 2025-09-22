@@ -23,7 +23,7 @@ export const authOptions: NextAuthOptions = {
           // Find user by email
           const user = await usersCollection.findOne({ 
             email: credentials.email,
-            role: 'admin', // Only allow admin users to login
+            role: { $in: ['admin', 'waiter', 'stall_manager'] }, // Allow admin, waiter, and stall_manager users to login
             status: 'active' // Only allow active users
           })
 
@@ -75,7 +75,7 @@ export const authOptions: NextAuthOptions = {
     }
   },
   pages: {
-    signIn: '/admin/login',
+    signIn: '/auth/admin/login',
   },
   secret: process.env.NEXTAUTH_SECRET,
 }
