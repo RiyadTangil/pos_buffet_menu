@@ -92,9 +92,10 @@ export const DEFAULT_ROLE_CONFIGS: Record<UserRole, RoleConfig> = {
       'orders.view', 'orders.create', 'orders.edit',
       'payments.view', 'payments.process',
       'products.view',
+      'categories.view',
       'profile.view', 'profile.edit'
     ],
-    defaultNavigation: ['dashboard', 'profile', 'payments', 'products'],
+    defaultNavigation: ['dashboard', 'profile', 'payments', 'products', 'categories'],
     canBeCustomized: true
   },
   stall_manager: {

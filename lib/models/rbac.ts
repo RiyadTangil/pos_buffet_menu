@@ -23,9 +23,10 @@ export const DEFAULT_ROLE_CONFIGURATIONS: Omit<RoleConfiguration, '_id' | 'creat
       'orders.view', 'orders.create', 'orders.edit',
       'payments.view', 'payments.process',
       'tables.view',
-      'products.view'
+      'products.view',
+      'categories.view'
     ],
-    navigationItems: ['profile', 'payments', 'products']
+    navigationItems: ['profile', 'payments', 'products', 'categories']
   },
   {
     role: 'stall_manager',
@@ -48,11 +49,12 @@ export const DEFAULT_ROLE_CONFIGURATIONS: Omit<RoleConfiguration, '_id' | 'creat
       'tables.view', 'tables.manage',
       'categories.view', 'categories.manage',
       'settings.view', 'settings.edit',
-      'reports.view', 'reports.export'
+      'reports.view', 'reports.export',
+      'roles.manage'
     ],
     navigationItems: [
       'dashboard', 'users', 'tables', 'categories', 'products', 
-      'order-management', 'payments', 'settings', 'profile'
+      'order-management', 'payments', 'role-management', 'settings', 'profile'
     ]
   }
 ]

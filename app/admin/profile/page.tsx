@@ -4,46 +4,37 @@ import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { 
   User, 
-  Mail, 
-  Phone, 
-  Calendar, 
-  MapPin, 
-  Shield, 
-  Clock, 
-  Edit3, 
-  Save, 
-  X,
-  Camera,
-  Key,
-  Activity
+  Activity,
+  Clock,
+  CheckCircle,
+  AlertCircle,
+  Loader2
 } from "lucide-react"
 import { toast } from "sonner"
-import { UserRole } from "@/lib/rbac"
+import { UserRole } from "@/types/auth"
+import ProfileInfoForm from "@/components/profile/ProfileInfoForm"
+import PasswordChangeForm from "@/components/profile/PasswordChangeForm"
 
 interface UserProfile {
   id: string
   name: string
   email: string
-  phone?: string
   role: UserRole
-  status: string
+  phone?: string
+  department?: string
+  position?: string
+  bio?: string
+  avatar?: string
+  location?: string
+  timezone?: string
+  language?: string
   createdAt: string
   lastLogin?: string
-  avatar?: string
-  address?: string
-  emergencyContact?: string
-  employeeId?: string
-  department?: string
-  shift?: string
 }
 
 interface ProfileFieldProps {
@@ -53,6 +44,14 @@ interface ProfileFieldProps {
   editable?: boolean
   type?: string
   onEdit?: (value: string) => void
+}
+
+interface ActivityItem {
+  id: string
+  type: 'login' | 'profile_update' | 'password_change' | 'role_change'
+  description: string
+  timestamp: string
+  ip?: string
 }
 
 function ProfileField({ label, value, icon: Icon, editable = false, type = "text", onEdit }: ProfileFieldProps) {
@@ -114,31 +113,57 @@ function ProfileField({ label, value, icon: Icon, editable = false, type = "text
   )
 }
 
-function ActivityCard({ title, description, time, type }: {
-  title: string
-  description: string
-  time: string
-  type: 'login' | 'order' | 'payment' | 'system'
-}) {
-  const getTypeColor = (type: string) => {
+function ActivityCard({ activity }: { activity: ActivityItem }) {
+  const getActivityIcon = (type: ActivityItem['type']) => {
     switch (type) {
-      case 'login': return 'bg-green-50 text-green-700 border-green-200'
-      case 'order': return 'bg-blue-50 text-blue-700 border-blue-200'
-      case 'payment': return 'bg-purple-50 text-purple-700 border-purple-200'
-      case 'system': return 'bg-gray-50 text-gray-700 border-gray-200'
-      default: return 'bg-gray-50 text-gray-700 border-gray-200'
+      case 'login':
+        return <User className="w-4 h-4 text-blue-600" />
+      case 'profile_update':
+        return <CheckCircle className="w-4 h-4 text-green-600" />
+      case 'password_change':
+        return <AlertCircle className="w-4 h-4 text-orange-600" />
+      case 'role_change':
+        return <AlertCircle className="w-4 h-4 text-red-600" />
+      default:
+        return <Activity className="w-4 h-4 text-gray-600" />
+    }
+  }
+
+  const getActivityColor = (type: ActivityItem['type']) => {
+    switch (type) {
+      case 'login':
+        return 'bg-blue-50 border-blue-200'
+      case 'profile_update':
+        return 'bg-green-50 border-green-200'
+      case 'password_change':
+        return 'bg-orange-50 border-orange-200'
+      case 'role_change':
+        return 'bg-red-50 border-red-200'
+      default:
+        return 'bg-gray-50 border-gray-200'
     }
   }
 
   return (
-    <div className="flex items-start space-x-3 p-3 border rounded-lg">
-      <div className={`p-2 rounded-full ${getTypeColor(type)}`}>
-        <Activity className="w-4 h-4" />
-      </div>
-      <div className="flex-1">
-        <h4 className="text-sm font-medium text-gray-900">{title}</h4>
-        <p className="text-xs text-gray-500 mt-1">{description}</p>
-        <p className="text-xs text-gray-400 mt-1">{time}</p>
+    <div className={`p-3 rounded-lg border ${getActivityColor(activity.type)}`}>
+      <div className="flex items-start space-x-3">
+        <div className="p-1 rounded-full bg-white">
+          {getActivityIcon(activity.type)}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-gray-900">
+            {activity.description}
+          </p>
+          <div className="flex items-center space-x-2 mt-1">
+            <Clock className="w-3 h-3 text-gray-400" />
+            <p className="text-xs text-gray-500">
+              {new Date(activity.timestamp).toLocaleString()}
+            </p>
+            {activity.ip && (
+              <span className="text-xs text-gray-400">• {activity.ip}</span>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -148,6 +173,7 @@ export default function ProfilePage() {
   const { data: session } = useSession()
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [isChangingPassword, setIsChangingPassword] = useState(false)
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
@@ -155,48 +181,61 @@ export default function ProfilePage() {
     confirmPassword: ''
   })
 
+  // Fetch profile data
   useEffect(() => {
-    fetchProfile()
-  }, [])
+    const fetchProfile = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch('/api/profile')
+        const data = await response.json()
 
-  const fetchProfile = async () => {
-    try {
-      setLoading(true)
-      // Mock data for now - replace with actual API call
-      const mockProfile: UserProfile = {
-        id: session?.user?.id || '1',
-        name: session?.user?.name || 'John Doe',
-        email: session?.user?.email || 'john@example.com',
-        phone: '+1 (555) 123-4567',
-        role: (session?.user?.role as UserRole) || 'waiter',
-        status: 'active',
-        createdAt: '2024-01-15',
-        lastLogin: '2024-01-20 10:30 AM',
-        avatar: session?.user?.image,
-        address: '123 Main St, City, State 12345',
-        emergencyContact: '+1 (555) 987-6543',
-        employeeId: 'EMP001',
-        department: 'Food Service',
-        shift: 'Morning (8 AM - 4 PM)'
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to fetch profile')
+        }
+
+        setProfile(data.data)
+      } catch (error) {
+        console.error('Error fetching profile:', error)
+        setError(error instanceof Error ? error.message : 'Failed to load profile')
+        toast.error('Failed to load profile data')
+      } finally {
+        setLoading(false)
       }
-      setProfile(mockProfile)
-    } catch (error) {
-      toast.error('Failed to load profile')
-    } finally {
-      setLoading(false)
     }
-  }
 
+    if (session?.user) {
+      fetchProfile()
+    }
+  }, [session])
+
+  // Handle profile update
   const handleProfileUpdate = async (field: string, value: string) => {
     try {
-      // Mock API call - replace with actual implementation
-      setProfile(prev => prev ? { ...prev, [field]: value } : null)
+      const response = await fetch('/api/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ [field]: value }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update profile')
+      }
+
+      setProfile(data.data)
       toast.success('Profile updated successfully')
     } catch (error) {
-      toast.error('Failed to update profile')
+      console.error('Error updating profile:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update profile'
+      toast.error(errorMessage)
+      throw error
     }
   }
 
+  // Handle password change
   const handlePasswordChange = async () => {
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       toast.error('New passwords do not match')
@@ -204,58 +243,88 @@ export default function ProfilePage() {
     }
 
     try {
-      // Mock API call - replace with actual implementation
+      const response = await fetch('/api/profile/password', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          currentPassword: passwordData.currentPassword,
+          newPassword: passwordData.newPassword,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to change password')
+      }
+
       toast.success('Password changed successfully')
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' })
       setIsChangingPassword(false)
     } catch (error) {
-      toast.error('Failed to change password')
+      console.error('Error changing password:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Failed to change password'
+      toast.error(errorMessage)
     }
   }
 
+  // Mock recent activities data
+  const recentActivities: ActivityItem[] = [
+    {
+      id: '1',
+      type: 'login',
+      description: 'Logged in to the system',
+      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+      ip: '192.168.1.100'
+    },
+    {
+      id: '2',
+      type: 'profile_update',
+      description: 'Updated profile information',
+      timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+    },
+    {
+      id: '3',
+      type: 'password_change',
+      description: 'Changed account password',
+      timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    }
+  ]
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex items-center space-x-2">
+          <Loader2 className="w-6 h-6 animate-spin" />
+          <span>Loading profile...</span>
+        </div>
       </div>
     )
   }
 
-  if (!profile) {
+  if (error || !profile) {
     return (
-      <Alert>
-        <AlertDescription>Failed to load profile information.</AlertDescription>
-      </Alert>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Failed to Load Profile</h3>
+          <p className="text-gray-600 mb-4">{error || 'Unable to load profile data'}</p>
+          <Button onClick={() => window.location.reload()}>
+            Try Again
+          </Button>
+        </div>
+      </div>
     )
   }
 
-  const recentActivities = [
-    {
-      title: 'Logged in',
-      description: 'Successfully logged into the system',
-      time: '2 hours ago',
-      type: 'login' as const
-    },
-    {
-      title: 'Order processed',
-      description: 'Processed order #12345 for table 8',
-      time: '3 hours ago',
-      type: 'order' as const
-    },
-    {
-      title: 'Payment received',
-      description: 'Payment of $45.50 received for table 3',
-      time: '4 hours ago',
-      type: 'payment' as const
-    }
-  ]
-
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="container mx-auto py-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Profile</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Profile Settings</h1>
           <p className="text-gray-600">Manage your account information and preferences</p>
         </div>
       </div>
@@ -267,187 +336,60 @@ export default function ProfilePage() {
           <TabsTrigger value="activity">Activity</TabsTrigger>
         </TabsList>
 
+        {/* Personal Information Tab */}
         <TabsContent value="personal" className="space-y-6">
           {/* Profile Header */}
           <Card>
             <CardContent className="pt-6">
-              <div className="flex items-center space-x-6">
-                <div className="relative">
-                  <Avatar className="w-20 h-20">
-                    <AvatarImage src={profile.avatar} alt={profile.name} />
-                    <AvatarFallback className="text-lg">
-                      {profile.name.split(' ').map(n => n[0]).join('')}
-                    </AvatarFallback>
-                  </Avatar>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="absolute -bottom-2 -right-2 rounded-full w-8 h-8 p-0"
-                  >
-                    <Camera className="w-4 h-4" />
-                  </Button>
-                </div>
+              <div className="flex items-center space-x-4">
+                <Avatar className="w-20 h-20">
+                  <AvatarImage src={profile.avatar} alt={profile.name} />
+                  <AvatarFallback className="text-lg">
+                    {profile.name.split(' ').map(n => n[0]).join('')}
+                  </AvatarFallback>
+                </Avatar>
                 <div className="flex-1">
                   <h2 className="text-xl font-semibold text-gray-900">{profile.name}</h2>
                   <p className="text-gray-600">{profile.email}</p>
-                  <div className="flex items-center space-x-4 mt-2">
-                    <Badge variant={profile.status === 'active' ? 'default' : 'secondary'}>
-                      {profile.status}
-                    </Badge>
-                    <Badge variant="outline">
+                  <div className="flex items-center space-x-2 mt-2">
+                    <Badge variant="secondary" className="capitalize">
                       {profile.role}
                     </Badge>
+                    <span className="text-sm text-gray-500">
+                      Member since {new Date(profile.createdAt).toLocaleDateString()}
+                    </span>
                   </div>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Personal Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Personal Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <ProfileField
-                label="Full Name"
-                value={profile.name}
-                icon={User}
-                editable
-                onEdit={(value) => handleProfileUpdate('name', value)}
-              />
-              <ProfileField
-                label="Email Address"
-                value={profile.email}
-                icon={Mail}
-                editable
-                type="email"
-                onEdit={(value) => handleProfileUpdate('email', value)}
-              />
-              <ProfileField
-                label="Phone Number"
-                value={profile.phone || ''}
-                icon={Phone}
-                editable
-                type="tel"
-                onEdit={(value) => handleProfileUpdate('phone', value)}
-              />
-              <ProfileField
-                label="Address"
-                value={profile.address || ''}
-                icon={MapPin}
-                editable
-                onEdit={(value) => handleProfileUpdate('address', value)}
-              />
-            </CardContent>
-          </Card>
-
-          {/* Work Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Work Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <ProfileField
-                label="Employee ID"
-                value={profile.employeeId || ''}
-                icon={Shield}
-              />
-              <ProfileField
-                label="Department"
-                value={profile.department || ''}
-                icon={User}
-              />
-              <ProfileField
-                label="Shift"
-                value={profile.shift || ''}
-                icon={Clock}
-              />
-              <ProfileField
-                label="Emergency Contact"
-                value={profile.emergencyContact || ''}
-                icon={Phone}
-                editable
-                type="tel"
-                onEdit={(value) => handleProfileUpdate('emergencyContact', value)}
-              />
-            </CardContent>
-          </Card>
+          {/* Profile Information Form */}
+          <ProfileInfoForm
+            profile={profile}
+            onUpdate={handleProfileUpdate}
+          />
         </TabsContent>
 
+        {/* Security Tab */}
         <TabsContent value="security" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Security Settings</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-blue-50 rounded-lg">
-                    <Key className="w-4 h-4 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">Password</p>
-                    <p className="text-sm text-gray-500">Last changed 30 days ago</p>
-                  </div>
-                </div>
-                <Button
-                  variant="outline"
-                  onClick={() => setIsChangingPassword(!isChangingPassword)}
-                >
-                  Change Password
-                </Button>
-              </div>
-
-              {isChangingPassword && (
-                <Card>
-                  <CardContent className="pt-6 space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="current-password">Current Password</Label>
-                      <Input
-                        id="current-password"
-                        type="password"
-                        value={passwordData.currentPassword}
-                        onChange={(e) => setPasswordData(prev => ({ ...prev, currentPassword: e.target.value }))}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="new-password">New Password</Label>
-                      <Input
-                        id="new-password"
-                        type="password"
-                        value={passwordData.newPassword}
-                        onChange={(e) => setPasswordData(prev => ({ ...prev, newPassword: e.target.value }))}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="confirm-password">Confirm New Password</Label>
-                      <Input
-                        id="confirm-password"
-                        type="password"
-                        value={passwordData.confirmPassword}
-                        onChange={(e) => setPasswordData(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                      />
-                    </div>
-                    <div className="flex space-x-2">
-                      <Button onClick={handlePasswordChange}>Save Changes</Button>
-                      <Button variant="outline" onClick={() => setIsChangingPassword(false)}>Cancel</Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </CardContent>
-          </Card>
+          <PasswordChangeForm
+            onPasswordChange={handlePasswordChange}
+          />
         </TabsContent>
 
+        {/* Activity Tab */}
         <TabsContent value="activity" className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Recent Activity</CardTitle>
+              <CardTitle className="flex items-center space-x-2">
+                <Activity className="w-5 h-5" />
+                <span>Recent Activity</span>
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {recentActivities.map((activity, index) => (
-                <ActivityCard key={index} {...activity} />
+              {recentActivities.map((activity) => (
+                <ActivityCard key={activity.id} activity={activity} />
               ))}
             </CardContent>
           </Card>

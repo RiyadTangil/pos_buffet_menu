@@ -4,6 +4,7 @@ import { useSession, signOut } from "next-auth/react"
 import { redirect } from "next/navigation"
 import { useEffect, useState } from "react"
 import { DynamicNavigation } from "@/components/admin/dynamic-navigation"
+import { AdminHeader } from "@/components/admin/admin-header"
 import { Loader2 } from "lucide-react"
 import { useSimpleRBAC } from "@/hooks/use-simple-rbac"
 
@@ -50,7 +51,7 @@ export default function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50">
       <DynamicNavigation 
         userRole={userRole}
         userId={userId}
@@ -60,7 +61,17 @@ export default function AdminLayout({
         setSidebarOpen={setSidebarOpen}
         onLogout={handleLogout}
       />
-      <main className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'ml-0' : 'ml-0'}`}>
+      {/* Fixed top header with AdminHeader component */}
+      <div className={`fixed top-0 right-0 z-20 transition-all duration-300 ${sidebarOpen ? 'left-64' : 'left-16'}`}>
+        <AdminHeader
+          userRole={userRole}
+          userName={userName}
+          navigationItems={navigationItems}
+          onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
+          onLogout={handleLogout}
+        />
+      </div>
+      <main className={`transition-all duration-300 pt-16 ${sidebarOpen ? 'ml-64' : 'ml-16'}`}>
         <div className="px-4 py-6 sm:px-6 lg:px-8">
           {children}
         </div>

@@ -211,48 +211,56 @@ function RolePermissionCard({
 }
 
 function RoleManagementPage() {
-  const [roleConfigs, setRoleConfigs] = useState<Record<UserRole, RolePermissionConfig>>({
-    admin: {
-      role: 'admin',
-      permissions: [
-        'users.view', 'users.create', 'users.edit', 'users.delete',
-        'products.view', 'products.create', 'products.edit', 'products.delete',
-        'orders.view', 'orders.create', 'orders.edit', 'orders.delete',
-        'payments.view', 'payments.process', 'payments.refund',
-        'tables.view', 'tables.manage',
-        'categories.view', 'categories.manage',
-        'settings.view', 'settings.edit',
-        'reports.view', 'reports.export'
-      ],
-      navigationItems: [
-        'dashboard', 'users', 'tables', 'categories', 'products', 
-        'order-management', 'payments', 'settings', 'profile'
-      ]
-    },
-    waiter: {
-      role: 'waiter',
-      permissions: [
-        'orders.view', 'orders.create', 'orders.edit',
-        'payments.view', 'payments.process',
-        'tables.view',
-        'products.view'
-      ],
-      navigationItems: ['profile', 'payments']
-    },
-    stall_manager: {
-      role: 'stall_manager',
-      permissions: [
-        'products.view', 'products.create', 'products.edit',
-        'orders.view', 'orders.create', 'orders.edit',
-        'payments.view', 'payments.process',
-        'tables.view', 'tables.manage',
-        'categories.view'
-      ],
-      navigationItems: ['profile', 'order-management', 'payments', 'products']
-    }
-  })
+  const [roleConfigs, setRoleConfigs] = useState<Record<UserRole, RolePermissionConfig>>({})
   
   const [loading, setLoading] = useState(false)
+
+  // Load role configurations from the database on component mount
+  useEffect(() => {
+    console.log('🔄 Role Management: useEffect triggered - loading configurations...')
+    
+    const loadRoleConfigurations = async () => {
+      try {
+        setLoading(true)
+        console.log('📡 Role Management: Making API call to /api/rbac/public')
+        
+        const response = await fetch('/api/rbac/public')
+        console.log('📡 Role Management: API response status:', response.status)
+        
+        if (response.ok) {
+          const result = await response.json()
+          console.log('📡 Role Management: API response data:', result)
+          
+          if (result.success && result.data) {
+            console.log('✅ Role Management: Setting role configs:', result.data)
+            setRoleConfigs(result.data)
+          } else {
+            console.warn('⚠️ Role Management: API response missing success/data:', result)
+          }
+        } else {
+          console.error('❌ Role Management: Failed to load role configurations:', response.statusText)
+          // Fallback to authenticated endpoint
+          console.log('🔄 Role Management: Trying authenticated endpoint...')
+          const authResponse = await fetch('/api/rbac')
+          if (authResponse.ok) {
+            const authResult = await authResponse.json()
+            console.log('📡 Role Management: Auth API response data:', authResult)
+            if (authResult.success && authResult.data) {
+              console.log('✅ Role Management: Setting role configs from auth endpoint:', authResult.data)
+              setRoleConfigs(authResult.data)
+            }
+          }
+        }
+      } catch (error) {
+        console.error('❌ Role Management: Error loading role configurations:', error)
+      } finally {
+        setLoading(false)
+        console.log('🏁 Role Management: Loading completed')
+      }
+    }
+
+    loadRoleConfigurations()
+  }, [])
 
   const handleRoleUpdate = async (role: UserRole, config: RolePermissionConfig) => {
     setLoading(true)
@@ -300,36 +308,7 @@ function RoleManagementPage() {
     }
   }
 
-  const handleExportConfig = () => {
-    const configData = JSON.stringify(roleConfigs, null, 2)
-    const blob = new Blob([configData], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = 'role-configurations.json'
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-    toast.success('Configuration exported successfully')
-  }
 
-  const handleImportConfig = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
-
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      try {
-        const importedConfig = JSON.parse(e.target?.result as string)
-        setRoleConfigs(importedConfig)
-        toast.success('Configuration imported successfully')
-      } catch (error) {
-        toast.error('Invalid configuration file')
-      }
-    }
-    reader.readAsText(file)
-  }
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -339,37 +318,34 @@ function RoleManagementPage() {
           <h1 className="text-2xl font-bold text-gray-900">Role Management</h1>
           <p className="text-gray-600">Configure permissions and navigation for different user roles</p>
         </div>
-        <div className="flex space-x-2">
-          <Button variant="outline" onClick={handleExportConfig}>
-            Export Config
-          </Button>
-          <Button variant="outline" asChild>
-            <label className="cursor-pointer">
-              Import Config
-              <input
-                type="file"
-                accept=".json"
-                onChange={handleImportConfig}
-                className="hidden"
-              />
-            </label>
-          </Button>
-        </div>
+
       </div>
 
+      {/* Loading State */}
+      {loading && Object.keys(roleConfigs).length === 0 && (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading role configurations...</p>
+          </div>
+        </div>
+      )}
+
       {/* Role Configuration Cards */}
-      <div className="space-y-6">
-        {(Object.keys(roleConfigs) as UserRole[])
-          .filter(role => role !== 'admin') // Exclude admin from configuration
-          .map(role => (
-          <RolePermissionCard
-            key={role}
-            role={role}
-            config={roleConfigs[role]}
-            onUpdate={handleRoleUpdate}
-          />
-        ))}
-      </div>
+      {!loading || Object.keys(roleConfigs).length > 0 ? (
+        <div className="space-y-6">
+          {(Object.keys(roleConfigs) as UserRole[])
+            .filter(role => role !== 'admin') // Exclude admin from configuration
+            .map(role => (
+            <RolePermissionCard
+              key={role}
+              role={role}
+              config={roleConfigs[role]}
+              onUpdate={handleRoleUpdate}
+            />
+          ))}
+        </div>
+      ) : null}
 
       {/* Admin Information Card */}
       <Card>

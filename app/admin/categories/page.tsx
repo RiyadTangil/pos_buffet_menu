@@ -31,8 +31,9 @@ import { Plus, Edit, Trash2, Package } from "lucide-react"
 import { toast } from "sonner"
 import { fetchCategories, createCategory, updateCategory, deleteCategory } from "@/lib/api/categories"
 import { menuItems, type MenuCategory } from "@/lib/mockData"
+import { withRouteProtection } from "@/components/admin/route-protection"
 
-export default function CategoriesPage() {
+function CategoriesPage() {
   const [categories, setCategories] = useState<MenuCategory[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [showAddDialog, setShowAddDialog] = useState(false)
@@ -440,3 +441,7 @@ export default function CategoriesPage() {
     </div>
   )
 }
+
+export default withRouteProtection(CategoriesPage, {
+  requiredPermission: 'categories.view'
+})

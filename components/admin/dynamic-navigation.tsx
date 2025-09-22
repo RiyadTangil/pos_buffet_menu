@@ -79,7 +79,7 @@ export function DynamicNavigation({
   const roleInfo = getRoleDisplayInfo(userRole)
 
   return (
-    <div className={`${sidebarOpen ? 'w-64' : 'w-16'} bg-white shadow-lg transition-all duration-300 flex flex-col`}>
+    <div className={`fixed left-0 top-0 h-full z-30 ${sidebarOpen ? 'w-64' : 'w-16'} bg-white shadow-lg transition-all duration-300 flex flex-col`}>
       <div className="p-6">
         <div className={`flex items-center transition-all duration-300 ${
           sidebarOpen ? "space-x-3" : "justify-center"
