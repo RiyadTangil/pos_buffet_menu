@@ -268,9 +268,10 @@ export default function UsersPage() {
             <div className="border rounded-lg overflow-hidden">
               <div className="bg-gray-50 px-6 py-3 border-b">
                 <div className="grid grid-cols-12 gap-4 text-sm font-medium text-gray-700">
-                  <div className="col-span-3">Name</div>
+                  <div className="col-span-2">Name</div>
                   <div className="col-span-3">Email</div>
                   <div className="col-span-2">Role</div>
+                  <div className="col-span-1">PIN</div>
                   <div className="col-span-2">Status</div>
                   <div className="col-span-2">Actions</div>
                 </div>
@@ -279,7 +280,7 @@ export default function UsersPage() {
                 {users.map((user) => (
                   <div key={user.id} className="px-6 py-4 hover:bg-gray-50">
                     <div className="grid grid-cols-12 gap-4 items-center">
-                      <div className="col-span-3">
+                      <div className="col-span-2">
                         <div className="flex items-center space-x-3">
                           <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                             <span className="text-sm font-medium text-blue-600">
@@ -300,6 +301,11 @@ export default function UsersPage() {
                         <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
                           {getRoleDisplayName(user.role)}
                         </Badge>
+                      </div>
+                      <div className="col-span-1">
+                        <span className="text-sm font-mono">
+                          {user.pin || 'N/A'}
+                        </span>
                       </div>
                       <div className="col-span-2">
                         <Badge variant={user.status === 'active' ? 'default' : 'secondary'}>

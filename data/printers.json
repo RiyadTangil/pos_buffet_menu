@@ -1,17 +1,1 @@
-[
-  {
-    "id": "printer-1758540952631-inbnj6hfu",
-    "name": "printer-1",
-    "ipAddress": "192.168.1.100",
-    "port": 9100,
-    "type": "thermal",
-    "isActive": true,
-    "categories": [
-      "68c167f8c85542d7fb04fe24",
-      "68c2aeade1593b5d02f10f2e",
-      "68c167dbc85542d7fb04fe23"
-    ],
-    "createdAt": "2025-09-22T11:35:52.631Z",
-    "updatedAt": "2025-09-22T11:49:06.136Z"
-  }
-]
+[]
