@@ -39,11 +39,10 @@ export async function GET() {
   }
 }
 
-// POST - Create new user
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { name, email, password, role } = body
+    const { name, email, password, role, pin } = body
 
     // Validation
     if (!name || !email || !password || !role) {
@@ -82,19 +81,43 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12)
 
-    // Generate unique PIN for waiters
-    let pin: string | undefined = undefined
+    // Handle PIN for waiters
+    let finalPin: string | undefined = undefined
     if (role === 'waiter') {
-      // Get existing PINs to ensure uniqueness
-      const existingWaiters = await usersCollection
-        .find({ role: 'waiter', pin: { $exists: true } }, { projection: { pin: 1 } })
-        .toArray()
-      
-      const existingPins = existingWaiters
-        .map(waiter => waiter.pin)
-        .filter(Boolean) as string[]
-      
-      pin = await generateUniqueWaiterPIN(existingPins)
+      if (pin) {
+        // Validate provided PIN
+        if (!/^\d{4}$/.test(pin)) {
+          return NextResponse.json(
+            { success: false, error: 'PIN must be exactly 4 digits' },
+            { status: 400 }
+          )
+        }
+        
+        // Check if PIN already exists
+        const existingPinUser = await usersCollection.findOne({ 
+          role: 'waiter', 
+          pin: pin 
+        })
+        if (existingPinUser) {
+          return NextResponse.json(
+            { success: false, error: 'This PIN is already in use by another waiter' },
+            { status: 409 }
+          )
+        }
+        
+        finalPin = pin
+      } else {
+        // Generate unique PIN automatically
+        const existingWaiters = await usersCollection
+          .find({ role: 'waiter', pin: { $exists: true } }, { projection: { pin: 1 } })
+          .toArray()
+        
+        const existingPins = existingWaiters
+          .map(waiter => waiter.pin)
+          .filter(Boolean) as string[]
+        
+        finalPin = await generateUniqueWaiterPIN(existingPins)
+      }
     }
 
     // Create user document
@@ -104,7 +127,7 @@ export async function POST(request: NextRequest) {
       password: hashedPassword,
       role,
       status: 'active',
-      ...(pin && { pin }),
+      ...(finalPin && { pin: finalPin }),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
@@ -118,7 +141,7 @@ export async function POST(request: NextRequest) {
       email,
       role,
       status: 'active',
-      ...(pin && { pin }),
+      ...(finalPin && { pin: finalPin }),
       createdAt: newUser.createdAt,
       updatedAt: newUser.updatedAt
     }

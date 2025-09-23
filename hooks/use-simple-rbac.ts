@@ -29,6 +29,7 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { id: 'products', name: 'Products', href: '/admin/products', icon: 'ShoppingCart' },
   { id: 'order-management', name: 'Order Management', href: '/admin/order-management', icon: 'ClipboardList' },
   { id: 'payments', name: 'Payments', href: '/admin/payments', icon: 'CreditCard' },
+  { id: 'my-payments', name: 'My Payments', href: '/admin/my-payments', icon: 'Wallet' },
   { id: 'printers', name: 'Printers', href: '/admin/printers', icon: 'Printer' },
   { id: 'role-management', name: 'Role Management', href: '/admin/role-management', icon: 'Shield' },
   { id: 'settings', name: 'Settings', href: '/admin/settings', icon: 'Settings' }

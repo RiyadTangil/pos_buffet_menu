@@ -65,10 +65,27 @@ function RolePermissionCard({
     'reports.view', 'reports.export'
   ]
 
-  const availableNavItems = [
-    'dashboard', 'users', 'tables', 'categories', 'products', 
-    'order-management', 'payments', 'settings', 'profile'
-  ]
+  const getAvailableNavItems = (role: UserRole) => {
+    const allNavItems = [
+      'dashboard', 'users', 'tables', 'categories', 'products', 
+      'order-management', 'payments', 'settings', 'profile','my-payments'
+    ]
+    
+    // For waiter role, show all navigation items
+    if (role === 'waiter') {
+      return allNavItems
+    }
+    
+    // For stall manager role, exclude 'my-payments'
+    if (role === 'stall_manager') {
+      return allNavItems.filter(item => item !== 'my-payments')
+    }
+    
+    // For other roles (admin), show all items
+    return allNavItems
+  }
+
+  const availableNavItems = getAvailableNavItems(role)
 
   const handlePermissionToggle = (permission: string) => {
     const newPermissions = localConfig.permissions.includes(permission)
@@ -195,10 +212,10 @@ function RolePermissionCard({
         {/* Summary */}
         <div className="bg-gray-50 p-4 rounded-lg">
           <div className="grid grid-cols-2 gap-4 text-sm">
-            <div>
+            {/* <div>
               <span className="font-medium text-gray-700">Permissions:</span>
               <span className="ml-2 text-gray-600">{localConfig.permissions.length}</span>
-            </div>
+            </div> */}
             <div>
               <span className="font-medium text-gray-700">Navigation Items:</span>
               <span className="ml-2 text-gray-600">{localConfig.navigationItems.length}</span>

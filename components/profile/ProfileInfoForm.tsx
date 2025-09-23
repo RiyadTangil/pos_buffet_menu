@@ -15,8 +15,10 @@ import {
   Shield, 
   Clock, 
   Camera,
-  Loader2
+  Loader2,
+  Key
 } from "lucide-react"
+import { PinField } from "./PinField"
 import { toast } from "sonner"
 
 export interface UserProfile {
@@ -26,6 +28,7 @@ export interface UserProfile {
   phone?: string
   role: string
   status: string
+  pin?: string
   createdAt: string
   lastLogin?: string
   avatar?: string
@@ -320,6 +323,14 @@ export default function ProfileInfoForm({
             onEdit={(value) => onUpdate('emergencyContact', value)}
             isLoading={isLoading}
           />
+          {profile.role === 'waiter' && (
+            <PinField
+              value={profile.pin || ''}
+              userId={profile.id}
+              onUpdate={onUpdate}
+              isLoading={isLoading}
+            />
+          )}
         </CardContent>
       </Card>
     </div>

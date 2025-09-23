@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
-import { User, CreateUserRequest, validateUserData, getRoleDisplayName, getStatusDisplayName } from "@/lib/userTypes"
+import { User, CreateUserRequest, validateUserData, getRoleDisplayName, getStatusDisplayName, isValidPIN } from "@/lib/userTypes"
 import { fetchUsers, createUser, updateUser, toggleUserStatus, deleteUser } from "@/lib/api/users"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -14,7 +14,7 @@ export default function UsersPage() {
   const { data: session } = useSession()
   const [showAddUser, setShowAddUser] = useState(false)
   const [users, setUsers] = useState<User[]>([])
-  const [newUser, setNewUser] = useState<CreateUserRequest>({ name: '', email: '', role: 'waiter', password: '' })
+  const [newUser, setNewUser] = useState<CreateUserRequest & { pin?: string }>({ name: '', email: '', role: 'waiter', password: '', pin: '' })
   const [formErrors, setFormErrors] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -56,6 +56,20 @@ export default function UsersPage() {
 
   const handleAddUser = async () => {
     const errors = validateUserData(newUser)
+    
+    // Additional PIN validation for waiters
+    if (newUser.role === 'waiter' && newUser.pin) {
+      if (!isValidPIN(newUser.pin)) {
+        errors.push('PIN must be exactly 4 digits')
+      }
+      
+      // Check if PIN already exists
+      const existingPinUser = users.find(user => user.role === 'waiter' && user.pin === newUser.pin)
+      if (existingPinUser) {
+        errors.push('This PIN is already in use by another waiter')
+      }
+    }
+    
     setFormErrors(errors)
     
     if (errors.length === 0) {
@@ -65,7 +79,7 @@ export default function UsersPage() {
         
         if (response.success && response.data) {
           setUsers([...users, response.data])
-          setNewUser({ name: '', email: '', role: 'waiter', password: '' })
+          setNewUser({ name: '', email: '', role: 'waiter', password: '', pin: '' })
           setFormErrors([])
           setShowAddUser(false)
         } else {
@@ -246,6 +260,25 @@ export default function UsersPage() {
                         onChange={(e) => setNewUser({...newUser, password: e.target.value})}
                       />
                     </div>
+                    {newUser.role === 'waiter' && (
+                      <div>
+                        <label className="block text-sm font-medium mb-2">4-Digit PIN</label>
+                        <input
+                          type="text"
+                          maxLength={4}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="Enter 4-digit PIN"
+                          value={newUser.pin || ''}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\D/g, ''); // Only allow digits
+                            setNewUser({...newUser, pin: value});
+                          }}
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          Leave empty to auto-generate a unique PIN
+                        </p>
+                      </div>
+                    )}
                   </div>
                   <div className="flex justify-end space-x-2 mt-4">
                     <Button variant="outline" onClick={() => setShowAddUser(false)}>Cancel</Button>

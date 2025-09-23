@@ -25,6 +25,7 @@ export type Permission =
   | 'settings.view'
   | 'settings.manage'
   | 'profile.view'
+  | 'my-payments.view'
   | 'profile.edit'
   | 'reports.view'
   | 'reports.generate'
@@ -93,12 +94,12 @@ export const DEFAULT_ROLE_CONFIGS: Record<UserRole, RoleConfig> = {
       'dashboard.view',
       'tables.view',
       'orders.view', 'orders.create', 'orders.edit',
-      'payments.view', 'payments.process',
+      'payments.view', 'payments.process',  'my-payments.view',
       'products.view',
       'categories.view',
       'profile.view', 'profile.edit'
     ],
-    defaultNavigation: ['dashboard', 'profile', 'payments', 'products', 'categories'],
+    defaultNavigation: ['dashboard', 'profile', 'payments','my-payments', 'products', 'categories'],
     canBeCustomized: true
   },
   stall_manager: {
@@ -195,6 +196,15 @@ export const ALL_NAVIGATION_ITEMS: NavigationItem[] = [
     requiredPermissions: ['payments.view'],
     isVisible: true,
     order: 8
+  },
+  {
+    id: 'my-payments',
+    name: 'Payments',
+    href: '/admin/my-payments',
+    icon: 'CreditCard',
+    requiredPermissions: ['my-payments.view'],
+    isVisible: true,
+    order: 12
   },
   {
     id: 'printers',

@@ -57,7 +57,7 @@ export async function fetchUsers(): Promise<ApiResponse<User[]>> {
 }
 
 // Create new user
-export async function createUser(userData: CreateUserRequest): Promise<ApiResponse<User>> {
+export async function createUser(userData: CreateUserRequest & { pin?: string }): Promise<ApiResponse<User>> {
   try {
     const response = await fetch(`${API_BASE_URL}/users`, {
       method: 'POST',
@@ -170,4 +170,26 @@ export const getStatusDisplayName = (status: 'active' | 'inactive'): string => {
     inactive: '❌ Inactive'
   }
   return statusNames[status]
+}
+
+// Update user profile field
+export async function updateUserField(userId: string, field: string, value: any): Promise<ApiResponse<User>> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ [field]: value }),
+    })
+
+    const data = await response.json()
+    return data
+  } catch (error) {
+    console.error('Error updating user field:', error)
+    return {
+      success: false,
+      error: 'Failed to update user field'
+    }
+  }
 }

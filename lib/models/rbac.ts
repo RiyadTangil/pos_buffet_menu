@@ -21,12 +21,12 @@ export const DEFAULT_ROLE_CONFIGURATIONS: Omit<RoleConfiguration, '_id' | 'creat
     role: 'waiter',
     permissions: [
       'orders.view', 'orders.create', 'orders.edit',
-      'payments.view', 'payments.process',
+      'payments.view', 'payments.process', 'my-payments.view',
       'tables.view',
       'products.view',
       'categories.view'
     ],
-    navigationItems: ['profile', 'payments', 'products', 'categories']
+    navigationItems: ['profile', 'payments', 'my-payments', 'products', 'categories']
   },
   {
     role: 'stall_manager',

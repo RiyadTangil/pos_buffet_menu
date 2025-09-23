@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { ItemsLimitProgress } from '@/components/ui/items-limit-progress'
+import { SessionCountdown } from '@/components/ui/session-countdown'
 import { ShoppingCart, Plus, Minus, Leaf, Flame, X, Clock, Users, Utensils, ChefHat, Coffee, Cake, DollarSign } from "lucide-react"
 import { type MenuCategory } from "@/lib/mockData"
 import { fetchCategories } from "@/lib/api/categories"
@@ -43,6 +44,7 @@ export default function ItemsPage() {
   const [showConfetti, setShowConfetti] = useState(false)
   const [orderPlaced, setOrderPlaced] = useState(false)
   const [timeRemaining, setTimeRemaining] = useState(0)
+  const [sessionEnded, setSessionEnded] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [categories, setCategories] = useState<any[]>([])
   const [products, setProducts] = useState<any[]>([])
@@ -121,10 +123,18 @@ export default function ItemsPage() {
   useEffect(() => {
     const timeInterval = setInterval(() => {
       setCurrentTime(new Date())
+      
+      // Check if current session has ended
+      const currentSession = getCurrentSession()
+      if (!currentSession) {
+        setSessionEnded(true)
+      } else {
+        setSessionEnded(false)
+      }
     }, 60000) // Update every minute
 
     return () => clearInterval(timeInterval)
-  }, [])
+  }, [buffetSettings])
 
   useEffect(() => {
     let interval: NodeJS.Timeout
@@ -429,19 +439,10 @@ export default function ItemsPage() {
               />
             </div>
             
-            {/* Current Session Display */}
-            {currentSession && (
-              <div className="flex items-center gap-4 bg-blue-50 rounded-lg px-4 py-2 border border-blue-200">
-                <Clock className="h-5 w-5 text-blue-600" />
-                <div className="text-sm">
-                  <div className="font-semibold text-blue-900 capitalize">{currentSession.key}</div>
-                  <div className="text-blue-700">{currentSession.data.startTime} - {currentSession.data.endTime}</div>
-                </div>
-              </div>
-            )}
-            
-            {/* Fallback when no active session */}
-            {!currentSession && buffetSettings && (
+            {/* Current Session Display / Countdown */}
+            {currentSession ? (
+              <SessionCountdown currentSession={currentSession} />
+            ) : buffetSettings && (
               <div className="flex items-center gap-4 bg-gray-50 rounded-lg px-4 py-2 border border-gray-200">
                 <Clock className="h-5 w-5 text-gray-600" />
                 <div className="text-sm text-gray-700">
@@ -475,7 +476,11 @@ export default function ItemsPage() {
             ) : (
               <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
                 <SheetTrigger asChild>
-                  <Button className="relative bg-orange-600 hover:bg-orange-700" size="lg">
+                  <Button 
+                    className="relative bg-orange-600 hover:bg-orange-700" 
+                    size="lg"
+                    disabled={sessionEnded}
+                  >
                     <ShoppingCart className="w-5 h-5 mr-2" />
                    Item in Cart
                     {getTotalItems() > 0 && (
@@ -750,6 +755,10 @@ export default function ItemsPage() {
                               <div className="text-sm text-gray-500 bg-gray-100 px-3 rounded-md">
                                 Orders disabled
                               </div>
+                            ) : sessionEnded ? (
+                              <div className="text-sm text-gray-500 bg-gray-100 px-3 rounded-md">
+                                Session ended
+                              </div>
                             ) : quantity > 0 ? (
                                <div className="flex items-center gap-2 bg-orange-100 rounded-full p-1">
                                  <Button
@@ -757,6 +766,7 @@ export default function ItemsPage() {
                                    size="sm"
                                    onClick={() => removeFromCart(item.id)}
                                    className="w-8 h-8 p-0 rounded-full hover:bg-orange-200 text-orange-700"
+                                   disabled={sessionEnded}
                                  >
                                    <Minus className="w-4 h-4" />
                                  </Button>
@@ -766,6 +776,7 @@ export default function ItemsPage() {
                                    size="sm"
                                    onClick={() => addToCart(item)}
                                    className="w-8 h-8 p-0 rounded-full hover:bg-orange-200 text-orange-700"
+                                   disabled={sessionEnded}
                                  >
                                    <Plus className="w-4 h-4" />
                                  </Button>

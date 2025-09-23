@@ -247,14 +247,14 @@ export default function TablesPage() {
             <div className="w-4 h-4 bg-green-100 border-2 border-green-300 rounded"></div>
             <span className="text-green-800 font-medium">Available</span>
           </div>
-          <div className="flex items-center gap-2">
+          {/* <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-red-100 border-2 border-red-300 rounded"></div>
             <span className="text-red-800 font-medium">Occupied</span>
-          </div>
-          <div className="flex items-center gap-2">
+          </div> */}
+          {/* <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-yellow-100 border-2 border-yellow-300 rounded"></div>
             <span className="text-yellow-800 font-medium">Cleaning</span>
-          </div>
+          </div> */}
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-blue-100 border-2 border-blue-300 rounded"></div>
             <span className="text-blue-800 font-medium">Selected</span>

@@ -60,6 +60,7 @@ export const USER_PERMISSIONS = {
     canManageCoupons: false,
     canViewReports: false,
     canManageSettings: false,
+    canViewMyPayments: true,
   },
   stall_manager: {
     canManageUsers: false,

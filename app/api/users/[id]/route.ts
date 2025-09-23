@@ -164,6 +164,43 @@ export async function PUT(
       updateData.status = body.status
     }
 
+    // Handle PIN update for waiters
+    if (body.pin !== undefined) {
+      // Only allow PIN updates for waiters
+      if (existingUser.role !== 'waiter') {
+        return NextResponse.json(
+          { success: false, error: 'PIN can only be set for waiters' },
+          { status: 400 }
+        )
+      }
+
+      // Validate PIN format if provided
+      if (body.pin && !/^\d{4}$/.test(body.pin)) {
+        return NextResponse.json(
+          { success: false, error: 'PIN must be exactly 4 digits' },
+          { status: 400 }
+        )
+      }
+
+      // Check PIN uniqueness if value is provided
+      if (body.pin) {
+        const existingPinUser = await usersCollection.findOne({
+          role: 'waiter',
+          pin: body.pin,
+          _id: { $ne: new ObjectId(id) }
+        })
+
+        if (existingPinUser) {
+          return NextResponse.json(
+            { success: false, error: 'This PIN is already in use by another waiter' },
+            { status: 409 }
+          )
+        }
+      }
+
+      updateData.pin = body.pin || null
+    }
+
     // Handle password update
     if (body.password !== undefined) {
       if (body.password.length < 6) {
