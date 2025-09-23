@@ -45,9 +45,210 @@ export default function ItemsPage() {
   const [orderPlaced, setOrderPlaced] = useState(false)
   const [timeRemaining, setTimeRemaining] = useState(0)
   const [sessionEnded, setSessionEnded] = useState(false)
+
+  // Helper functions for localStorage persistence
+  const saveOrderIntervalToStorage = (orderPlacedState: boolean, timeRemainingValue: number) => {
+    const orderIntervalData = {
+      orderPlaced: orderPlacedState,
+      timeRemaining: timeRemainingValue,
+      timestamp: Date.now()
+    }
+    localStorage.setItem('orderInterval', JSON.stringify(orderIntervalData))
+  }
+
+  const loadOrderIntervalFromStorage = () => {
+    try {
+      const stored = localStorage.getItem('orderInterval')
+      if (!stored) return null
+
+      const data = JSON.parse(stored)
+      const now = Date.now()
+      const elapsed = Math.floor((now - data.timestamp) / 1000) // seconds elapsed
+
+      // If time has passed, calculate remaining time
+      if (data.orderPlaced && data.timeRemaining > 0) {
+        const remainingTime = Math.max(0, data.timeRemaining - elapsed)
+        return {
+          orderPlaced: remainingTime > 0,
+          timeRemaining: remainingTime
+        }
+      }
+
+      return null
+    } catch (error) {
+      console.error('Error loading order interval from storage:', error)
+      return null
+    }
+  }
+
+  const clearOrderIntervalFromStorage = () => {
+    localStorage.removeItem('orderInterval')
+  }
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [categories, setCategories] = useState<any[]>([])
   const [products, setProducts] = useState<any[]>([])
+
+  // Local printer function
+  const printToLocalPrinter = (orderData: {
+    orderId: string
+    orderItems: any[]
+    tableNumber?: string | number
+    guestCount?: number
+    orderTime?: string
+  }) => {
+    // Create a new window for printing
+    const printWindow = window.open('', '_blank', 'width=800,height=600')
+    if (!printWindow) {
+      console.error('Could not open print window')
+      return
+    }
+
+    // Format the order for printing
+    const orderDate = new Date(orderData.orderTime || new Date()).toLocaleString()
+    const totalAmount = orderData.orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Order Receipt - ${orderData.orderId}</title>
+        <style>
+          body {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            margin: 20px;
+            color: #000;
+          }
+          .header {
+            text-align: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+          }
+          .restaurant-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 5px;
+          }
+          .order-info {
+            margin-bottom: 15px;
+            border-bottom: 1px dashed #000;
+            padding-bottom: 10px;
+          }
+          .order-info div {
+            margin-bottom: 3px;
+          }
+          .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+          }
+          .items-table th,
+          .items-table td {
+            text-align: left;
+            padding: 5px 2px;
+            border-bottom: 1px solid #ddd;
+          }
+          .items-table th {
+            border-bottom: 2px solid #000;
+            font-weight: bold;
+          }
+          .item-name {
+            width: 50%;
+          }
+          .item-qty {
+            width: 15%;
+            text-align: center;
+          }
+          .item-price {
+            width: 20%;
+            text-align: right;
+          }
+          .item-total {
+            width: 15%;
+            text-align: right;
+          }
+          .total-section {
+            border-top: 2px solid #000;
+            padding-top: 10px;
+            text-align: right;
+          }
+          .total-amount {
+            font-size: 16px;
+            font-weight: bold;
+          }
+          .footer {
+            text-align: center;
+            margin-top: 20px;
+            border-top: 1px dashed #000;
+            padding-top: 10px;
+            font-size: 10px;
+          }
+          @media print {
+            body { margin: 0; }
+            .no-print { display: none; }
+          }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="restaurant-name">BUFFET RESTAURANT</div>
+          <div>Kitchen Order</div>
+        </div>
+        
+        <div class="order-info">
+          <div><strong>Order ID:</strong> ${orderData.orderId}</div>
+          <div><strong>Table:</strong> ${orderData.tableNumber || 'N/A'}</div>
+          <div><strong>Guests:</strong> ${orderData.guestCount || 0}</div>
+          <div><strong>Date & Time:</strong> ${orderDate}</div>
+        </div>
+
+        <table class="items-table">
+          <thead>
+            <tr>
+              <th class="item-name">Item</th>
+              <th class="item-qty">Qty</th>
+              <th class="item-price">Price</th>
+              <th class="item-total">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${orderData.orderItems.map(item => `
+              <tr>
+                <td class="item-name">${item.name}</td>
+                <td class="item-qty">${item.quantity}</td>
+                <td class="item-price">$${item.price.toFixed(2)}</td>
+                <td class="item-total">$${(item.price * item.quantity).toFixed(2)}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+
+        <div class="total-section">
+          <div class="total-amount">Total: $${totalAmount.toFixed(2)}</div>
+        </div>
+
+        <div class="footer">
+          <div>Thank you for your order!</div>
+          <div>Printed on ${new Date().toLocaleString()}</div>
+        </div>
+
+        <script>
+          window.onload = function() {
+            window.print();
+            setTimeout(function() {
+              window.close();
+            }, 1000);
+          }
+        </script>
+      </body>
+      </html>
+    `
+
+    printWindow.document.write(printContent)
+    printWindow.document.close()
+  }
   const [loading, setLoading] = useState(true)
   const [buffetSettings, setBuffetSettings] = useState<any>(null)
   const [progressKey, setProgressKey] = useState(0)
@@ -84,6 +285,13 @@ export default function ItemsPage() {
         // Set first category as selected by default
         if (categoriesData.length > 0) {
           setSelectedCategory(categoriesData[0].id)
+        }
+
+        // Restore order interval state from localStorage after data is loaded
+        const storedOrderInterval = loadOrderIntervalFromStorage()
+        if (storedOrderInterval) {
+          setOrderPlaced(storedOrderInterval.orderPlaced)
+          setTimeRemaining(storedOrderInterval.timeRemaining)
         }
       } catch (error) {
         console.error('Error fetching data:', error)
@@ -141,11 +349,18 @@ export default function ItemsPage() {
     if (timeRemaining > 0) {
       interval = setInterval(() => {
         setTimeRemaining((prev) => {
-          if (prev <= 1) {
+          const newValue = prev <= 1 ? 0 : prev - 1
+          const newOrderPlaced = newValue > 0
+          
+          // Update localStorage with current state
+          if (newValue > 0) {
+            saveOrderIntervalToStorage(newOrderPlaced, newValue)
+          } else {
+            clearOrderIntervalFromStorage()
             setOrderPlaced(false)
-            return 0
           }
-          return prev - 1
+          
+          return newValue
         })
       }, 1000)
     }
@@ -294,7 +509,8 @@ export default function ItemsPage() {
         console.log('Order created successfully:', result.orderId)
         setLastOrderId(result.orderId)
         
-        // Print the order
+        // Print the order - IP-based printer (commented out for now)
+        /*
         try {
           const orderItems = cart.map(item => ({
             id: item.menuItem.id,
@@ -319,6 +535,34 @@ export default function ItemsPage() {
           console.error('Print error:', printError)
           // Don't block the order flow if printing fails
         }
+        */
+
+        // Print to local printer
+        try {
+          const orderItems = cart.map(item => ({
+            id: item.menuItem.id,
+            name: item.menuItem.name,
+            quantity: item.quantity,
+            price: item.menuItem.price || 0,
+            categoryId: item.menuItem.categoryId,
+            category: {
+              id: item.menuItem.categoryId,
+              name: categories.find(cat => cat.id === item.menuItem.categoryId)?.name || 'Unknown'
+            }
+          }))
+
+          // Use browser's print functionality for local printer
+          printToLocalPrinter({
+            orderId: result.orderId,
+            orderItems,
+            tableNumber: selectedTableId,
+            guestCount: (storedGuestCounts.adults || 0) + (storedGuestCounts.children || 0) + (storedGuestCounts.infants || 0),
+            orderTime: new Date().toISOString()
+          })
+        } catch (printError) {
+          console.error('Local print error:', printError)
+          // Don't block the order flow if printing fails
+        }
         
         setShowConfetti(true)
         setOrderPlaced(true)
@@ -327,6 +571,10 @@ export default function ItemsPage() {
         const timingMinutes = currentSessionData?.data.nextOrderAvailableInMinutes || 1
         const timingInSeconds = Math.max(timingMinutes * 60, 60) // Ensure at least 60 seconds
         setTimeRemaining(timingInSeconds)
+        
+        // Save order interval state to localStorage when order is placed
+        saveOrderIntervalToStorage(true, timingInSeconds)
+        
         setCart([])
         setIsCartOpen(false)
 
