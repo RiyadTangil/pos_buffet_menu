@@ -257,6 +257,32 @@ export default function ItemsPage() {
 
   // Fetch categories, products, and buffet settings on component mount
   useEffect(() => {
+    // Check if user has selected a table before accessing this page
+    const selectedTableId = localStorage.getItem('selectedTableId')
+    const storedGuestCounts = JSON.parse(localStorage.getItem('guestCounts') || '{}')
+    const sessionId = localStorage.getItem('sessionId')
+    
+    if (!selectedTableId) {
+      alert('Please select a table first before accessing the menu.')
+      router.push('/menu/tables')
+      return
+    }
+
+    // Check if session ID exists (required for multi-device sharing)
+    if (!sessionId) {
+      alert('Session information is missing. Please return to the tables page and select a table.')
+      router.push('/menu/tables')
+      return
+    }
+
+    // Check if guest information is available
+    const hasGuestInfo = storedGuestCounts.adults || storedGuestCounts.children || storedGuestCounts.infants
+    if (!hasGuestInfo) {
+      alert('Guest information is missing. Please return to the tables page and enter guest information.')
+      router.push('/menu/tables')
+      return
+    }
+
     const fetchData = async () => {
       try {
         setLoading(true)
@@ -480,8 +506,10 @@ export default function ItemsPage() {
      
 
       // Prepare order data for new API
+      const sessionId = localStorage.getItem('sessionId')
       const orderData = {
         tableId: selectedTableId,
+        sessionId: sessionId, // Include session ID for multi-device isolation
         // tableNumber,
         session: currentSession.key as 'breakfast' | 'lunch' | 'dinner',
         items: cart.map(item => ({
@@ -489,7 +517,8 @@ export default function ItemsPage() {
           name: item.menuItem.name,
           price: item.menuItem.price || 0,
           quantity: item.quantity,
-          category: item.menuItem.categoryId
+          category: item.menuItem.categoryId,
+          sessionId: sessionId // Include session ID with each item
         })),
         storedGuestCounts
       }

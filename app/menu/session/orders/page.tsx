@@ -97,35 +97,37 @@ export default function SessionOrdersPage() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        // Get table ID from localStorage and fetch table data
+        // Get table ID and session ID from localStorage
         const storedTableId = localStorage.getItem('selectedTableId')
+        const sessionId = localStorage.getItem('sessionId')
+        
         if (storedTableId) {
-          // Extract table number from table ID (assuming format like 'table-1', 'table-2', etc.)
-   
           setTableNumber(storedTableId)
         }
 
+        // Check if session ID exists for multi-device sharing
+        if (!sessionId) {
+          alert('Session information is missing. Please return to the tables page and select a table.')
+          router.push('/menu/tables')
+          return
+        }
+
         // Get guest counts from localStorage
-      
         const storedGuestCounts = JSON.parse(localStorage.getItem('guestCounts') || '{}')
-       
         setGuestCounts(storedGuestCounts)
 
         // Fetch buffet settings
         const settings = await getBuffetSettings()
         setBuffetSettings(settings.data)
 
-        // No need to fetch waiters since we'll validate PIN directly
-
-        // Fetch orders for this table - only today's orders using API-level filtering
-        const selectedTableId = localStorage.getItem('selectedTableId') || `table-${tableNumber}`
+        // Fetch orders for this session - using sessionId instead of tableId for multi-device isolation
         const today = new Date().toISOString().split('T')[0] // YYYY-MM-DD format
         
-        const tableOrders = await getOrders({
-          tableId: selectedTableId,
+        const sessionOrders = await getOrders({
+          sessionId: sessionId, // Use sessionId instead of tableId
           date: today
         })
-        setOrders(tableOrders)
+        setOrders(sessionOrders)
 
         setLoading(false)
       } catch (error) {

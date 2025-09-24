@@ -88,6 +88,7 @@ export async function getOrders(filters?: {
   status?: string
   tableNumber?: number
   tableId?: string
+  sessionId?: string
   date?: string
   session?: string
   type?: 'session' | 'checkout'
@@ -97,6 +98,7 @@ export async function getOrders(filters?: {
     if (filters?.status) params.append('status', filters.status)
     if (filters?.tableNumber) params.append('tableNumber', filters.tableNumber.toString())
     if (filters?.tableId) params.append('tableId', filters.tableId)
+    if (filters?.sessionId) params.append('sessionId', filters.sessionId)
     if (filters?.date) params.append('date', filters.date)
     if (filters?.session) params.append('session', filters.session)
     if (filters?.type) params.append('type', filters.type)

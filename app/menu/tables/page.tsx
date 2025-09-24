@@ -18,6 +18,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
+import { 
+  generateSessionId, 
+  setCurrentSessionId, 
+  getRemainingCapacity, 
+  canFitInTable,
+  hasActiveSessionForTable 
+} from "@/lib/utils";
 
 interface GuestCounts {
   adults: number;
@@ -33,6 +40,7 @@ export default function TablesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [buffetSettings, setBuffetSettings] = useState<BuffetSettings | null>(null);
+  const [showCapacityWarning, setShowCapacityWarning] = useState(false);
   const [guestCounts, setGuestCounts] = useState<GuestCounts>({
     adults: 1,
     children: 0,
@@ -111,9 +119,18 @@ export default function TablesPage() {
   const currentSession = getCurrentSession();
 
   const handleTableClick = (table: Table) => {
-    if (table.status === "available") {
+    // Allow selection if table is available OR if it has remaining capacity
+    const remainingCapacity = getRemainingCapacity(table);
+    const isAvailable = table.status === "available";
+    const hasCapacity = remainingCapacity > 0;
+    const hasActiveSession = hasActiveSessionForTable(table.id);
+
+    if (isAvailable || hasCapacity || hasActiveSession) {
       setSelectedTable(table);
+      setShowCapacityWarning(!isAvailable && hasCapacity);
       setIsModalOpen(true);
+    } else {
+      toast.error(`Table ${table.number} is full and cannot accommodate more guests.`);
     }
   };
 
@@ -121,26 +138,47 @@ export default function TablesPage() {
     if (selectedTable) {
       try {
         const totalGuests = guestCounts.adults + guestCounts.children + guestCounts.infants;
+        const remainingCapacity = getRemainingCapacity(selectedTable);
         
-        // Update table status to selected and set guest count
-        await updateTableStatus(selectedTable.id, "selected");
-        await updateTableGuests(selectedTable.id, totalGuests);
+        // Validate capacity
+        if (!canFitInTable(selectedTable, totalGuests)) {
+          toast.error(`Cannot accommodate ${totalGuests} guests. Only ${remainingCapacity} spots remaining.`);
+          return;
+        }
+
+        // Generate unique session ID
+        const sessionId = generateSessionId(selectedTable.id);
+        
+        // Calculate new guest count (add to existing)
+        const newTotalGuests = selectedTable.currentGuests + totalGuests;
+        
+        // Update table status and guest count
+        const newStatus = selectedTable.status === "available" ? "occupied" : selectedTable.status;
+        await updateTableStatus(selectedTable.id, newStatus);
+        await updateTableGuests(selectedTable.id, newTotalGuests);
 
         // Update local state
         setTableStates((prev) =>
           prev.map((table) =>
             table.id === selectedTable.id
-              ? { ...table, status: "selected" as const, currentGuests: totalGuests }
+              ? { ...table, status: newStatus as const, currentGuests: newTotalGuests }
               : table
           )
         );
 
-        // Store guest counts in localStorage for the items page
+        // Store session data in localStorage
         localStorage.setItem("guestCounts", JSON.stringify(guestCounts));
         localStorage.setItem("selectedTableId", selectedTable.id);
+        localStorage.setItem("sessionId", sessionId); // Store as 'sessionId' to match items page expectation
 
         setIsModalOpen(false);
-        toast.success(`Table ${selectedTable.number} selected successfully!`);
+        
+        if (showCapacityWarning) {
+          toast.success(`Joined Table ${selectedTable.number}! You're sharing this table with other customers.`);
+        } else {
+          toast.success(`Table ${selectedTable.number} selected successfully!`);
+        }
+        
         router.push("/menu/items");
       } catch (error) {
         console.error('Failed to select table:', error);
@@ -152,6 +190,7 @@ export default function TablesPage() {
   const handleModalClose = () => {
     setIsModalOpen(false);
     setSelectedTable(null);
+    setShowCapacityWarning(false);
     setGuestCounts({
       adults: 1,
       children: 0,
@@ -193,19 +232,28 @@ export default function TablesPage() {
               ))
             ) : (
               tableStates.map((table) => {
+                const remainingCapacity = getRemainingCapacity(table);
                 const isAvailable = table.status === "available";
-                const getTableColors = (status: string) => {
-                  switch (status) {
-                    case 'available':
-                      return 'bg-green-100 border-2 border-green-300 text-green-800 hover:bg-green-200';
-                    case 'occupied':
-                      return 'bg-red-100 border-2 border-red-300 text-red-800';
-                    case 'cleaning':
-                      return 'bg-yellow-100 border-2 border-yellow-300 text-yellow-800';
-                    case 'selected':
-                      return 'bg-blue-100 border-2 border-blue-300 text-blue-800';
-                    default:
-                      return 'bg-gray-100 border-2 border-gray-300 text-gray-500';
+                const hasCapacity = remainingCapacity > 0;
+                const hasActiveSession = hasActiveSessionForTable(table.id);
+                const canSelect = isAvailable || hasCapacity || hasActiveSession;
+                
+                const getTableColors = (status: string, hasCapacity: boolean, isAvailable: boolean) => {
+                  if (isAvailable) {
+                    return 'bg-green-100 border-2 border-green-300 text-green-800 hover:bg-green-200';
+                  } else if (hasCapacity) {
+                    return 'bg-orange-100 border-2 border-orange-300 text-orange-800 hover:bg-orange-200';
+                  } else {
+                    switch (status) {
+                      case 'occupied':
+                        return 'bg-red-100 border-2 border-red-300 text-red-800';
+                      case 'cleaning':
+                        return 'bg-yellow-100 border-2 border-yellow-300 text-yellow-800';
+                      case 'selected':
+                        return 'bg-blue-100 border-2 border-blue-300 text-blue-800';
+                      default:
+                        return 'bg-gray-100 border-2 border-gray-300 text-gray-500';
+                    }
                   }
                 };
                 
@@ -217,19 +265,26 @@ export default function TablesPage() {
                         w-full h-20 sm:h-24 text-base sm:text-lg rounded-xl mb-2 p-2 sm:p-3 
                         flex flex-col justify-between transition-all duration-200 ease-in-out
                         ${
-                          isAvailable
+                          canSelect
                             ? "cursor-pointer hover:shadow-md transform hover:scale-105 active:scale-95"
-                            : "cursor-not-allowed"
+                            : "cursor-not-allowed opacity-60"
                         }
-                        ${getTableColors(table.status)}
+                        ${getTableColors(table.status, hasCapacity, isAvailable)}
                       `}
                     >
                       <div className="text-base sm:text-lg font-bold">Table {table.number}</div>
                       <div className="text-xs sm:text-sm opacity-75">
-                        {isAvailable
-                          ? `Capacity: ${table.capacity}`
-                          : `${table.status.charAt(0).toUpperCase() + table.status.slice(1)} - ${table.currentGuests}/${table.capacity} guests`}
+                        {isAvailable ? (
+                          `Available - ${table.capacity} seats`
+                        ) : hasCapacity ? (
+                          `${remainingCapacity} seats left`
+                        ) : (
+                          `Full - ${table.currentGuests}/${table.capacity}`
+                        )}
                       </div>
+                      {hasActiveSession && (
+                        <div className="text-xs bg-blue-200 text-blue-800 px-1 rounded">Your Session</div>
+                      )}
                     </div>
                   </div>
                 );
@@ -247,17 +302,17 @@ export default function TablesPage() {
             <div className="w-4 h-4 bg-green-100 border-2 border-green-300 rounded"></div>
             <span className="text-green-800 font-medium">Available</span>
           </div>
-          {/* <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-orange-100 border-2 border-orange-300 rounded"></div>
+            <span className="text-orange-800 font-medium">Partially Full</span>
+          </div>
+          <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-red-100 border-2 border-red-300 rounded"></div>
-            <span className="text-red-800 font-medium">Occupied</span>
-          </div> */}
-          {/* <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-yellow-100 border-2 border-yellow-300 rounded"></div>
-            <span className="text-yellow-800 font-medium">Cleaning</span>
-          </div> */}
+            <span className="text-red-800 font-medium">Full</span>
+          </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-blue-100 border-2 border-blue-300 rounded"></div>
-            <span className="text-blue-800 font-medium">Selected</span>
+            <span className="text-blue-800 font-medium">Your Session</span>
           </div>
         </div>
       </div>
@@ -286,6 +341,29 @@ export default function TablesPage() {
               Please specify the number of guests for your dining experience.
             </DialogDescription>
           </DialogHeader>
+
+          {/* Table Sharing Notice */}
+          {showCapacityWarning && selectedTable && (
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-4">
+              <div className="flex items-start gap-3">
+                <div className="text-orange-500 mt-0.5">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-orange-800 mb-1">Table Sharing Notice</h4>
+                  <p className="text-sm text-orange-700">
+                    This table is currently occupied by other guests ({selectedTable.currentGuests}/{selectedTable.capacity} seats taken). 
+                    You'll be sharing the table with them. Your orders will be kept separate.
+                  </p>
+                  <p className="text-xs text-orange-600 mt-2">
+                    Remaining capacity: {getRemainingCapacity(selectedTable)} seats
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Session Pricing */}
           {buffetSettings && buffetSettings.sessions && (

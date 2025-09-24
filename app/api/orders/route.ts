@@ -15,6 +15,7 @@ interface Order {
   id: string
   tableId: string
   tableNumber: number
+  sessionId?: string
   session: 'breakfast' | 'lunch' | 'dinner'
   date: string
   time: string
@@ -73,6 +74,7 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status')
     const tableNumber = searchParams.get('tableNumber')
     const tableId = searchParams.get('tableId')
+    const sessionId = searchParams.get('sessionId')
     const session = searchParams.get('session')
     const date = searchParams.get('date')
     
@@ -87,6 +89,9 @@ export async function GET(request: NextRequest) {
     }
     if (tableId) {
       orders = orders.filter(order => order.tableId === tableId)
+    }
+    if (sessionId) {
+      orders = orders.filter(order => order.sessionId === sessionId)
     }
     if (session) {
       orders = orders.filter(order => order.session === session)
@@ -135,6 +140,7 @@ export async function POST(request: NextRequest) {
       id: orderId,
       tableId: orderData.tableId || `table-${orderData.tableNumber}`,
       tableNumber: orderData.tableNumber,
+      sessionId: orderData.sessionId, // Add sessionId from the request data
       session: orderData.session,
       date,
       time,
