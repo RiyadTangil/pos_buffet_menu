@@ -41,6 +41,8 @@ export default function TablesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [buffetSettings, setBuffetSettings] = useState<BuffetSettings | null>(null);
   const [showCapacityWarning, setShowCapacityWarning] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [guestCounts, setGuestCounts] = useState<GuestCounts>({
     adults: 1,
     children: 0,
@@ -59,6 +61,7 @@ export default function TablesPage() {
         ]);
         setTableStates(tablesData);
         setBuffetSettings(settingsData);
+        setLastUpdated(new Date());
       } catch (error) {
         console.error('Failed to fetch data:', error);
         toast.error('Failed to load data. Please try again.');
@@ -69,6 +72,44 @@ export default function TablesPage() {
 
     loadData();
   }, []);
+
+  // Real-time polling for table updates
+  useEffect(() => {
+    const refreshTableData = async () => {
+      try {
+        setIsRefreshing(true);
+        const tablesData = await fetchTables();
+        setTableStates(tablesData);
+        setLastUpdated(new Date());
+      } catch (error) {
+        console.error('Failed to refresh table data:', error);
+      } finally {
+        setIsRefreshing(false);
+      }
+    };
+
+    // Set up polling interval (refresh every 10 seconds)
+    const pollInterval = setInterval(refreshTableData, 10000);
+
+    // Cleanup interval on component unmount
+    return () => clearInterval(pollInterval);
+  }, []);
+
+  // Manual refresh function
+  const handleManualRefresh = async () => {
+    try {
+      setIsRefreshing(true);
+      const tablesData = await fetchTables();
+      setTableStates(tablesData);
+      setLastUpdated(new Date());
+      toast.success('Table data refreshed');
+    } catch (error) {
+      console.error('Failed to refresh table data:', error);
+      toast.error('Failed to refresh data');
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const getStatusColor = (status: Table["status"]) => {
     switch (status) {
@@ -220,6 +261,28 @@ export default function TablesPage() {
       {/* Main Content */}
       <div className="flex flex-col items-center justify-center   px-4">
         <div className="w-full ">
+          {/* Real-time Update Header */}
+          <div className="flex justify-between items-center mb-4 bg-white rounded-lg p-3 shadow-sm">
+            <div className="flex items-center space-x-2">
+              <div className={`w-2 h-2 rounded-full ${isRefreshing ? 'bg-blue-500 animate-pulse' : 'bg-green-500'}`}></div>
+              <span className="text-sm text-gray-600">
+                Last updated: {lastUpdated.toLocaleTimeString()}
+              </span>
+              {isRefreshing && (
+                <span className="text-xs text-blue-600 animate-pulse">Refreshing...</span>
+              )}
+            </div>
+            <Button 
+              onClick={handleManualRefresh} 
+              disabled={isRefreshing}
+              variant="outline" 
+              size="sm"
+              className="text-xs"
+            >
+              {isRefreshing ? 'Refreshing...' : 'Refresh Now'}
+            </Button>
+          </div>
+          
           {/* Table Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 mb-16">
             {isLoading ? (
