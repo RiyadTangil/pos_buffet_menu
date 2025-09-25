@@ -178,27 +178,29 @@ export default function TablesPage() {
   const handleConfirm = async () => {
     if (selectedTable) {
       try {
+        // Only count adults for table capacity validation and currentGuests tracking
+        const adultsCount = guestCounts.adults;
         const totalGuests = guestCounts.adults + guestCounts.children + guestCounts.infants;
         const remainingCapacity = getRemainingCapacity(selectedTable);
         
-        // Validate capacity
-        if (!canFitInTable(selectedTable, totalGuests)) {
-          toast.error(`Cannot accommodate ${totalGuests} guests. Only ${remainingCapacity} spots remaining.`);
+        // Validate capacity based on adults only (since only adults count towards table capacity)
+        if (!canFitInTable(selectedTable, adultsCount)) {
+          toast.error(`Cannot accommodate ${adultsCount} adults. Only ${remainingCapacity} spots remaining.`);
           return;
         }
 
         // Generate unique session ID
         const sessionId = generateSessionId(selectedTable.id);
         
-        // Calculate new guest count (add to existing)
-        const newTotalGuests = selectedTable.currentGuests + totalGuests;
+        // Calculate new guest count (add only adults to existing currentGuests)
+        const newTotalGuests = selectedTable.currentGuests + adultsCount;
         
-        // Update table status and guest count
+        // Update table status and guest count (only adults count)
         const newStatus = selectedTable.status === "available" ? "occupied" : selectedTable.status;
         await updateTableStatus(selectedTable.id, newStatus);
         await updateTableGuests(selectedTable.id, newTotalGuests);
 
-        // Update local state
+        // Update local state (only adults count for currentGuests)
         setTableStates((prev) =>
           prev.map((table) =>
             table.id === selectedTable.id
@@ -207,7 +209,7 @@ export default function TablesPage() {
           )
         );
 
-        // Store session data in localStorage
+        // Store complete session data in localStorage (preserve all guest types for later use)
         localStorage.setItem("guestCounts", JSON.stringify(guestCounts));
         localStorage.setItem("selectedTableId", selectedTable.id);
         localStorage.setItem("sessionId", sessionId); // Store as 'sessionId' to match items page expectation
