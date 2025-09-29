@@ -7,9 +7,10 @@ import { fetchUsers } from "@/lib/api/users"
 import { getBuffetSettings } from "@/lib/api/settings"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { CreditCard, Users, Coffee, CheckCircle, User } from "lucide-react"
+import { CreditCard, Users, Coffee, CheckCircle, User, Banknote } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import {
   Select,
   SelectContent,
@@ -32,6 +33,7 @@ export default function SessionOrdersPage() {
   const router = useRouter()
   const [isPaymentOpen, setIsPaymentOpen] = useState(false)
   const [waiterPin, setWaiterPin] = useState("")
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card'>('cash')
   const [pinError, setPinError] = useState("")
   const [isProcessing, setIsProcessing] = useState(false)
   const [paymentComplete, setPaymentComplete] = useState(false)
@@ -234,6 +236,7 @@ export default function SessionOrdersPage() {
          waiterName: waiter.name,
         totalAmount: grandTotal,
         sessionType: currentSession?.key || 'lunch',
+        paymentMethod: paymentMethod,
         sessionData: {
           adults: sessionData.adults,
           children: sessionData.children,
@@ -510,6 +513,30 @@ export default function SessionOrdersPage() {
                     <>
                       <div className="space-y-4">
                         <div>
+                          <Label>Payment Method</Label>
+                          <RadioGroup 
+                            value={paymentMethod} 
+                            onValueChange={(value: 'cash' | 'card') => setPaymentMethod(value)}
+                            className="flex flex-row space-x-6 mt-2"
+                          >
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="cash" id="cash" />
+                              <Label htmlFor="cash" className="flex items-center space-x-2 cursor-pointer">
+                                <Banknote className="w-4 h-4" />
+                                <span>Cash</span>
+                              </Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="card" id="card" />
+                              <Label htmlFor="card" className="flex items-center space-x-2 cursor-pointer">
+                                <CreditCard className="w-4 h-4" />
+                                <span>Card</span>
+                              </Label>
+                            </div>
+                          </RadioGroup>
+                        </div>
+                        
+                        <div>
                           <Label htmlFor="waiterPin">Waiter PIN</Label>
                           <Input
                             id="waiterPin"
@@ -535,7 +562,7 @@ export default function SessionOrdersPage() {
 
                       <DialogFooter>
                         <Button onClick={handlePayment} disabled={!waiterPin || waiterPin.length !== 4 || isProcessing} className="w-full">
-                          {isProcessing ? "Validating..." : `Pay £${grandTotal}`}
+                          {isProcessing ? "Processing..." : `Pay £${grandTotal} with ${paymentMethod.charAt(0).toUpperCase() + paymentMethod.slice(1)}`}
                         </Button>
                       </DialogFooter>
                     </>

@@ -96,11 +96,12 @@ export async function POST(request: NextRequest) {
       waiterName,
       totalAmount,
       sessionType,
+      paymentMethod,
       sessionData
     } = body
 
     // Validation
-    if (!tableId || !tableNumber || !waiterId || !waiterName || !totalAmount || !sessionType || !sessionData) {
+    if (!tableId || !tableNumber || !waiterId || !waiterName || !totalAmount || !sessionType || !sessionData || !paymentMethod) {
       return NextResponse.json(
         { success: false, error: 'All required fields must be provided' },
         { status: 400 }
@@ -129,7 +130,7 @@ export async function POST(request: NextRequest) {
       paymentDate: now.toISOString().split('T')[0], // YYYY-MM-DD format
       paymentTime: now.toTimeString().split(' ')[0], // HH:MM:SS format
       status: 'completed',
-      paymentMethod: 'waiter',
+      paymentMethod: paymentMethod,
       createdAt: now.toISOString(),
       updatedAt: now.toISOString()
     }
