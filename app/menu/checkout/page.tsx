@@ -309,7 +309,7 @@ export default function CheckoutPage() {
                     sessionOrders.slice(0, 5).map((order) => (
                       <div key={order.orderId} className="border border-gray-200 rounded-lg p-3">
                         <div className="flex justify-between items-start mb-2">
-                          <span className="font-medium">Order #{order.orderId.split('_')[1]}</span>
+                          <span className="font-medium">Order #{order?.orderId?.split('_')[1]}</span>
                           <Badge 
                             variant={order.status === 'completed' ? 'default' : 'outline'}
                             className={order.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 

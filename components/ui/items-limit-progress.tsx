@@ -19,7 +19,31 @@ export function ItemsLimitProgress({ currentItems, buffetSettings, currentSessio
 
   // Update guest counts when localStorage changes
   useEffect(() => {
-    const updateGuestCounts = () => {
+    const updateGuestCounts = async () => {
+      // Check if we're in a synchronized group
+      const groupType = localStorage.getItem('groupType')
+      const groupId = localStorage.getItem('groupId')
+      
+      if (groupType === 'same' && groupId) {
+        // Fetch combined guest counts from synchronized group
+        try {
+          const response = await fetch(`/api/synchronized-groups?groupId=${groupId}`)
+          const result = await response.json()
+          
+          if (result.success && result.data?.guestCounts) {
+            setGuestCounts({
+              adults: result.data.guestCounts.adults || 0,
+              children: result.data.guestCounts.children || 0,
+              infants: result.data.guestCounts.infants || 0
+            })
+            return
+          }
+        } catch (error) {
+          console.error('Failed to fetch synchronized group guest counts:', error)
+        }
+      }
+      
+      // Fallback to localStorage guest counts
       const storedGuestCounts = JSON.parse(localStorage.getItem('guestCounts') || '{}')
       setGuestCounts({
         adults: storedGuestCounts.adults || 0,

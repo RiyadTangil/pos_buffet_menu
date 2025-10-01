@@ -3,6 +3,7 @@ import { getDatabase, COLLECTIONS } from '@/lib/mongodb'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { MongoPayment } from '@/lib/models/payment'
+import { ObjectId } from 'mongodb'
 
 // GET - Fetch payments for the logged-in waiter with filtering
 export async function GET(request: NextRequest) {
@@ -54,6 +55,7 @@ export async function GET(request: NextRequest) {
 
     const db = await getDatabase()
     const paymentsCollection = db.collection(COLLECTIONS.PAYMENTS)
+    const tablesCollection = db.collection('tables')
     
     // Get total count for pagination
     const totalCount = await paymentsCollection.countDocuments(filter)
@@ -66,12 +68,24 @@ export async function GET(request: NextRequest) {
       .limit(limit)
       .toArray()
 
-    // Convert MongoDB _id to id for frontend compatibility
+    // Fetch table information for each payment to get actual table numbers
+    const tableIds = [...new Set(payments.map(payment => payment.tableId).filter(Boolean))]
+    const tables = await tablesCollection
+      .find({ _id: { $in: tableIds.map(id => new ObjectId(id)) } })
+      .toArray()
+    
+    // Create a map of tableId to table number for quick lookup
+    const tableMap = new Map()
+    tables.forEach(table => {
+      tableMap.set(table._id.toString(), table.number)
+    })
+
+    // Convert MongoDB _id to id for frontend compatibility and add proper table numbers
     const formattedPayments = payments.map(payment => ({
       id: payment._id.toString(),
       paymentId: payment.paymentId,
       tableId: payment.tableId,
-      tableNumber: payment.tableNumber,
+      tableNumber: tableMap.get(payment.tableId) || payment.tableId, // Use actual table number or fallback to tableId
       waiterId: payment.waiterId,
       waiterName: payment.waiterName,
       totalAmount: payment.totalAmount,

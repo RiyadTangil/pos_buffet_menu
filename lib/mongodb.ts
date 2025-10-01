@@ -41,15 +41,17 @@ export async function getDatabase(): Promise<Db> {
 // Collection names
 export const COLLECTIONS = {
   USERS: 'users',
+  TABLES: 'tables',
   CATEGORIES: 'categories',
   PRODUCTS: 'products',
   ORDERS: 'orders',
   PAYMENTS: 'payments',
-  BOOKINGS: 'bookings',
-  BANNERS: 'banners',
-  COUPONS: 'coupons',
-  TABLES: 'tables',
   SETTINGS: 'settings',
+  PRINTERS: 'printers',
+  PRINT_JOBS: 'print_jobs',
+  CATEGORY_PRINTER_MAPPINGS: 'category_printer_mappings',
+  DEVICE_SESSIONS: 'device_sessions',
+  SYNCHRONIZED_GROUPS: 'synchronized_groups',
   RBAC: 'rbac'
 } as const
 

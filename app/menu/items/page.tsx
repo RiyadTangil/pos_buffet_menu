@@ -14,6 +14,7 @@ import { fetchCategories } from "@/lib/api/categories"
 import { fetchProducts, type Product } from "@/lib/api/products"
 import { getBuffetSettings, type BuffetSettings } from "@/lib/api/settings"
 import { saveOrder, type SessionOrder } from "@/lib/api/orders-client"
+import { DeviceSessionManager } from "@/lib/api/device-sessions"
 import { usePrinting } from '@/hooks/usePrinting'
 import { PrintButton } from '@/components/printing/PrintButton'
 import { PrintJobStatus } from '@/components/printing/PrintJobStatus'
@@ -45,6 +46,10 @@ export default function ItemsPage() {
   const [orderPlaced, setOrderPlaced] = useState(false)
   const [timeRemaining, setTimeRemaining] = useState(0)
   const [sessionEnded, setSessionEnded] = useState(false)
+  
+  // Device session management
+  const [sessionManager, setSessionManager] = useState<DeviceSessionManager | null>(null)
+  const [isGroupSynced, setIsGroupSynced] = useState(false)
 
   // Helper functions for localStorage persistence
   const saveOrderIntervalToStorage = (orderPlacedState: boolean, timeRemainingValue: number) => {
@@ -261,6 +266,9 @@ export default function ItemsPage() {
     const selectedTableId = localStorage.getItem('selectedTableId')
     const storedGuestCounts = JSON.parse(localStorage.getItem('guestCounts') || '{}')
     const sessionId = localStorage.getItem('sessionId')
+    const deviceId = localStorage.getItem('deviceId')
+    const groupType = localStorage.getItem('groupType') as 'different' | 'same'
+    const groupId = localStorage.getItem('groupId')
     
     if (!selectedTableId) {
       alert('Please select a table first before accessing the menu.')
@@ -269,7 +277,7 @@ export default function ItemsPage() {
     }
 
     // Check if session ID exists (required for multi-device sharing)
-    if (!sessionId) {
+    if (!sessionId || !deviceId) {
       alert('Session information is missing. Please return to the tables page and select a table.')
       router.push('/menu/tables')
       return
@@ -281,6 +289,43 @@ export default function ItemsPage() {
       alert('Guest information is missing. Please return to the tables page and enter guest information.')
       router.push('/menu/tables')
       return
+    }
+
+    // Initialize device session manager
+    if (groupType && sessionId && deviceId) {
+      const manager = new DeviceSessionManager(sessionId, deviceId, groupType, groupId || undefined)
+      setSessionManager(manager)
+      setIsGroupSynced(groupType === 'same')
+
+      // Start synchronization for same group
+      if (groupType === 'same' && groupId) {
+        manager.startSync((syncData) => {
+          // Update cart with synchronized data
+          if (syncData.sharedCart && Array.isArray(syncData.sharedCart)) {
+            // Only update if the cart is different to avoid unnecessary re-renders
+            const currentCartString = JSON.stringify(cart)
+            const syncCartString = JSON.stringify(syncData.sharedCart)
+            
+            if (currentCartString !== syncCartString) {
+              console.log('Updating cart from sync:', syncData.sharedCart)
+              setCart(syncData.sharedCart)
+              setProgressKey(prev => prev + 1) // Force progress component re-render
+            }
+          }
+          // Update orders if needed
+          if (syncData.sharedOrders) {
+            // Handle synchronized orders
+          }
+          // Update session timer if needed
+          if (syncData.sessionTimer) {
+            // Handle synchronized timer
+          }
+          // Update guest counts if changed
+          if (syncData.guestCounts) {
+            setProgressKey(prev => prev + 1) // Force progress component re-render to fetch new guest counts
+          }
+        }, 1000) // Reduced from 2000ms to 1000ms for faster updates
+      }
     }
 
     const fetchData = async () => {
@@ -326,6 +371,13 @@ export default function ItemsPage() {
       }
     }
     fetchData()
+
+    // Cleanup function
+    return () => {
+      if (sessionManager) {
+        sessionManager.stopSync()
+      }
+    }
   }, [])
 
   useEffect(() => {
@@ -393,7 +445,7 @@ export default function ItemsPage() {
     return () => clearInterval(interval)
   }, [timeRemaining])
 
-  const addToCart = (product: Product) => {
+  const addToCart = async (product: Product) => {
     // Check items limit before adding to cart
     const currentSession = getCurrentSession()
     if (!currentSession || !buffetSettings) {
@@ -401,11 +453,40 @@ export default function ItemsPage() {
       return
     }
 
-    // Get guest counts from localStorage
-    const storedGuestCounts = JSON.parse(localStorage.getItem('guestCounts') || '{}')
-    const adultCount = storedGuestCounts.adults || 0
-    const childCount = storedGuestCounts.children || 0
-    const infantCount = storedGuestCounts.infants || 0
+    // Get guest counts - prioritize synchronized group counts
+    let adultCount = 0
+    let childCount = 0
+    let infantCount = 0
+    
+    const groupType = localStorage.getItem('groupType')
+    const groupId = localStorage.getItem('groupId')
+    
+    if (groupType === 'same' && groupId) {
+      // Fetch combined guest counts from synchronized group
+      try {
+        const response = await fetch(`/api/synchronized-groups?groupId=${groupId}`)
+        const result = await response.json()
+        
+        if (result.success && result.data?.guestCounts) {
+          adultCount = result.data.guestCounts.adults || 0
+          childCount = result.data.guestCounts.children || 0
+          infantCount = result.data.guestCounts.infants || 0
+        }
+      } catch (error) {
+        console.error('Failed to fetch synchronized group guest counts:', error)
+        // Fallback to localStorage
+        const storedGuestCounts = JSON.parse(localStorage.getItem('guestCounts') || '{}')
+        adultCount = storedGuestCounts.adults || 0
+        childCount = storedGuestCounts.children || 0
+        infantCount = storedGuestCounts.infants || 0
+      }
+    } else {
+      // Use localStorage guest counts for non-synchronized groups
+      const storedGuestCounts = JSON.parse(localStorage.getItem('guestCounts') || '{}')
+      adultCount = storedGuestCounts.adults || 0
+      childCount = storedGuestCounts.children || 0
+      infantCount = storedGuestCounts.infants || 0
+    }
 
     if (adultCount === 0 && childCount === 0 && infantCount === 0) {
       alert('Guest information is missing. Please return to the tables page and enter guest information.')
@@ -442,23 +523,61 @@ export default function ItemsPage() {
       }
     }
 
-    setCart((prev) => {
-      const existingItem = prev.find((item) => item.menuItem.id === product.id)
-      if (existingItem) {
-        return prev.map((item) => (item.menuItem.id === product.id ? { ...item, quantity: item.quantity + 1 } : item))
-      }
-      return [...prev, { menuItem: product, quantity: 1 }]
-    })
+    // Update cart locally
+    const newCart = [...cart]
+    const existingItem = newCart.find((item) => item.menuItem.id === product.id)
+    if (existingItem) {
+      existingItem.quantity += 1
+    } else {
+      newCart.push({ menuItem: product, quantity: 1 })
+    }
+
+    setCart(newCart)
     setProgressKey(prev => prev + 1) // Force progress component re-render
+
+    // Sync with other devices if in same group
+    if (sessionManager && isGroupSynced) {
+      try {
+        console.log('Syncing cart update:', newCart)
+        const result = await sessionManager.updateCart(newCart)
+        if (result && !result.success) {
+          console.error('Sync failed:', result.error)
+          toast.error('Failed to sync cart with other devices')
+        } else {
+          console.log('Cart synced successfully')
+        }
+      } catch (error) {
+        console.error('Failed to sync cart:', error)
+        toast.error('Failed to sync cart with other devices')
+      }
+    }
   }
 
-  const removeFromCart = (menuItemId: string) => {
-    setCart((prev) => {
-      return prev
-        .map((item) => (item.menuItem.id === menuItemId ? { ...item, quantity: item.quantity - 1 } : item))
-        .filter((item) => item.quantity > 0)
-    })
+  const removeFromCart = async (menuItemId: string) => {
+    // Update cart locally
+    const newCart = cart
+      .map((item) => (item.menuItem.id === menuItemId ? { ...item, quantity: item.quantity - 1 } : item))
+      .filter((item) => item.quantity > 0)
+
+    setCart(newCart)
     setProgressKey(prev => prev + 1) // Force progress component re-render
+
+    // Sync with other devices if in same group
+    if (sessionManager && isGroupSynced) {
+      try {
+        console.log('Syncing cart removal:', newCart)
+        const result = await sessionManager.updateCart(newCart)
+        if (result && !result.success) {
+          console.error('Sync failed:', result.error)
+          toast.error('Failed to sync cart with other devices')
+        } else {
+          console.log('Cart removal synced successfully')
+        }
+      } catch (error) {
+        console.error('Failed to sync cart:', error)
+        toast.error('Failed to sync cart with other devices')
+      }
+    }
   }
 
   const getItemQuantity = (menuItemId: string) => {
@@ -537,6 +656,25 @@ export default function ItemsPage() {
       if (result.success) {
         console.log('Order created successfully:', result.orderId)
         setLastOrderId(result.orderId)
+        
+        // Sync order with other devices if in same group
+        if (sessionManager && isGroupSynced) {
+          try {
+            // Get current orders and add the new one
+            const newOrder = {
+              orderId: result.orderId,
+              items: cart,
+              timestamp: new Date().toISOString(),
+              status: 'pending'
+            }
+            
+            await sessionManager.updateOrders([newOrder])
+            toast.success('Order placed and synchronized with group!')
+          } catch (syncError) {
+            console.error('Failed to sync order:', syncError)
+            toast.warning('Order placed but failed to sync with other devices')
+          }
+        }
         
         // Print the order - IP-based printer (commented out for now)
         /*
@@ -694,7 +832,21 @@ export default function ItemsPage() {
 
   const currentSession = getCurrentSession()
 
-  const handleEndSession = () => {
+  const handleEndSession = async () => {
+    // End device session if synchronized
+    if (sessionManager) {
+      try {
+        await sessionManager.endSession()
+        
+        if (isGroupSynced) {
+          toast.success('Session ended and synchronized with group')
+        }
+      } catch (error) {
+        console.error('Failed to end device session:', error)
+        toast.error('Failed to end session properly')
+      }
+    }
+    
     router.push("/menu/session/orders")
   }
 
@@ -731,6 +883,17 @@ export default function ItemsPage() {
           </div>
 
           <div className="flex items-center gap-4">
+            {/* Synchronization Status Indicator */}
+            {isGroupSynced && (
+              <div className="flex items-center gap-2 bg-green-50 rounded-lg px-3 py-2 border border-green-200">
+                <Users className="h-4 w-4 text-green-600" />
+                <div className="text-sm">
+                  <div className="font-semibold text-green-900">Synchronized</div>
+                  <div className="text-xs text-green-700">Sharing with group</div>
+                </div>
+              </div>
+            )}
+
             {currentSession && (
               <div className="flex items-center gap-2 bg-blue-50 rounded-lg px-3 py-2 border border-blue-200">
                 <Clock className="h-4 w-4 text-blue-600" />

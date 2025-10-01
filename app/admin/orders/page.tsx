@@ -146,7 +146,7 @@ export default function OrdersPage() {
                     <div className="flex justify-between items-start mb-4">
                       <div className="flex items-center gap-4">
                         <div>
-                          <h3 className="font-semibold text-lg">Order #{order.orderId.split('_')[1]}</h3>
+                          <h3 className="font-semibold text-lg">Order #{order?.orderId?.split('_')[1]}</h3>
                           <p className="text-sm text-gray-600">
                             Table {order.tableNumber} • {new Date(order.timestamp || (order as SessionOrder).createdAt).toLocaleString()}
                           </p>
@@ -178,7 +178,7 @@ export default function OrdersPage() {
                             <DialogHeader>
                               <DialogTitle>Order Details</DialogTitle>
                               <DialogDescription>
-                                Order #{order.orderId.split('_')[1]} - Table {order.tableNumber}
+                                Order #{order?.orderId?.split('_')[1]} - Table {order.tableNumber}
                               </DialogDescription>
                             </DialogHeader>
                             <div className="space-y-4">

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { fetchTables, updateTableStatus, updateTableGuests, type Table } from "@/lib/api/tables";
 import { getBuffetSettings, type BuffetSettings } from "@/lib/api/settings";
+import { createDeviceSession, DeviceSessionManager } from "@/lib/api/device-sessions";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
@@ -18,12 +19,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
+import { TableInUseWarning } from "@/components/ui/table-in-use-warning";
+import { DeviceGroupSelection } from "@/components/ui/device-group-selection";
+import { WaiterPinVerification } from "@/components/ui/waiter-pin-verification";
 import { 
   generateSessionId, 
   setCurrentSessionId, 
   getRemainingCapacity, 
   canFitInTable,
-  hasActiveSessionForTable 
+  hasActiveSessionForTable,
+  generateDeviceId
 } from "@/lib/utils";
 
 interface GuestCounts {
@@ -43,6 +48,13 @@ export default function TablesPage() {
   const [showCapacityWarning, setShowCapacityWarning] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   const [isRefreshing, setIsRefreshing] = useState(false);
+  
+  // Multi-device modal states
+  const [showTableInUseWarning, setShowTableInUseWarning] = useState(false);
+  const [showDeviceGroupSelection, setShowDeviceGroupSelection] = useState(false);
+  const [showWaiterPinVerification, setShowWaiterPinVerification] = useState(false);
+  const [selectedGroupType, setSelectedGroupType] = useState<'different' | 'same' | null>(null);
+  
   const [guestCounts, setGuestCounts] = useState<GuestCounts>({
     adults: 1,
     children: 0,
@@ -168,11 +180,42 @@ export default function TablesPage() {
 
     if (isAvailable || hasCapacity || hasActiveSession) {
       setSelectedTable(table);
-      setShowCapacityWarning(!isAvailable && hasCapacity);
-      setIsModalOpen(true);
+      
+      // Check if table is already in use (not available but has capacity)
+      if (!isAvailable && hasCapacity) {
+        setShowTableInUseWarning(true);
+      } else {
+        setShowCapacityWarning(false);
+        setIsModalOpen(true);
+      }
     } else {
       toast.error(`Table ${table.number} is full and cannot accommodate more guests.`);
     }
+  };
+
+  // Multi-device flow handlers
+  const handleAddDevice = () => {
+    setShowTableInUseWarning(false);
+    setShowDeviceGroupSelection(true);
+  };
+
+  const handleSelectDifferentGroup = () => {
+    setSelectedGroupType('different');
+    setShowDeviceGroupSelection(false);
+    setShowCapacityWarning(true);
+    setIsModalOpen(true);
+  };
+
+  const handleSelectSameGroup = () => {
+    setSelectedGroupType('same');
+    setShowDeviceGroupSelection(false);
+    setShowWaiterPinVerification(true);
+  };
+
+  const handleWaiterPinVerified = () => {
+    setShowWaiterPinVerification(false);
+    setShowCapacityWarning(true);
+    setIsModalOpen(true);
   };
 
   const handleConfirm = async () => {
@@ -189,9 +232,28 @@ export default function TablesPage() {
           return;
         }
 
-        // Generate unique session ID
+        // Generate unique session ID and device ID
         const sessionId = generateSessionId(selectedTable.id);
+        const deviceId = generateDeviceId();
         
+        // Determine group type (default to 'different' if not set)
+        const groupType = selectedGroupType || 'different';
+        
+        // Create device session
+        const sessionResult = await createDeviceSession({
+          sessionId,
+          tableId: selectedTable.id,
+          deviceId,
+          groupType,
+          guestCounts,
+          waiterVerified: groupType === 'same'
+        });
+
+        if (!sessionResult.success) {
+          toast.error('Failed to create device session. Please try again.');
+          return;
+        }
+
         // Calculate new guest count (add only adults to existing currentGuests)
         const newTotalGuests = selectedTable.currentGuests + adultsCount;
         
@@ -209,14 +271,20 @@ export default function TablesPage() {
           )
         );
 
-        // Store complete session data in localStorage (preserve all guest types for later use)
+        // Store session data in localStorage
         localStorage.setItem("guestCounts", JSON.stringify(guestCounts));
         localStorage.setItem("selectedTableId", selectedTable.id);
-        localStorage.setItem("sessionId", sessionId); // Store as 'sessionId' to match items page expectation
+        localStorage.setItem("sessionId", sessionId);
+        localStorage.setItem("deviceId", deviceId);
+        localStorage.setItem("groupType", groupType);
+        localStorage.setItem("groupId", sessionResult.data?.groupId || '');
 
         setIsModalOpen(false);
         
-        if (showCapacityWarning) {
+        // Show appropriate success message
+        if (groupType === 'same') {
+          toast.success(`Joined Table ${selectedTable.number} as same group! Your orders will be synchronized.`);
+        } else if (showCapacityWarning) {
           toast.success(`Joined Table ${selectedTable.number}! You're sharing this table with other customers.`);
         } else {
           toast.success(`Table ${selectedTable.number} selected successfully!`);
@@ -234,6 +302,10 @@ export default function TablesPage() {
     setIsModalOpen(false);
     setSelectedTable(null);
     setShowCapacityWarning(false);
+    setShowTableInUseWarning(false);
+    setShowDeviceGroupSelection(false);
+    setShowWaiterPinVerification(false);
+    setSelectedGroupType(null);
     setGuestCounts({
       adults: 1,
       children: 0,
@@ -591,6 +663,33 @@ export default function TablesPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Multi-device modals */}
+      <TableInUseWarning
+        isOpen={showTableInUseWarning}
+        onClose={handleModalClose}
+        onAddDevice={handleAddDevice}
+        tableNumber={selectedTable?.number || 0}
+        currentGuests={selectedTable?.currentGuests || 0}
+        capacity={selectedTable?.capacity || 0}
+        remainingCapacity={getRemainingCapacity(selectedTable || { capacity: 0, currentGuests: 0 })}
+      />
+
+      <DeviceGroupSelection
+        isOpen={showDeviceGroupSelection}
+        onClose={handleModalClose}
+        onSelectDifferentGroup={handleSelectDifferentGroup}
+        onSelectSameGroup={handleSelectSameGroup}
+        tableNumber={selectedTable?.number || 0}
+      />
+
+      <WaiterPinVerification
+        isOpen={showWaiterPinVerification}
+        onClose={handleModalClose}
+        onVerified={handleWaiterPinVerified}
+        tableNumber={selectedTable?.number || 0}
+        tableId={selectedTable?.id || ''}
+      />
     </div>
   );
 }

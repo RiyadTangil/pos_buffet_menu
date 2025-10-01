@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Calendar, Clock, Users, CreditCard, Filter, Search, DollarSign } from 'lucide-react';
+import { Calendar, Clock, Users, CreditCard, Filter, Search, DollarSign, Edit, MoreHorizontal, Banknote, User } from 'lucide-react';
 import { Payment } from '@/lib/models/payment';
 import { canUserAccess } from '@/lib/userTypes';
 import { useSimpleRBAC } from '@/hooks/use-simple-rbac';
@@ -127,31 +127,31 @@ export default function MyPaymentsPage() {
   // Format currency
   const formatCurrency = (amount: number) => `£${amount.toFixed(2)}`;
 
-  // Get status badge variant
-  const getStatusBadgeVariant = (status: string) => {
+  // Get status color for cards
+  const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
-        return 'default';
+        return 'bg-green-100 text-green-800 border-green-200';
       case 'pending':
-        return 'secondary';
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       case 'failed':
-        return 'destructive';
+        return 'bg-red-100 text-red-800 border-red-200';
       default:
-        return 'outline';
+        return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
-  // Get session badge variant
-  const getSessionBadgeVariant = (session: string) => {
+  // Get session color for cards
+  const getSessionColor = (session: string) => {
     switch (session) {
       case 'breakfast':
-        return 'outline';
+        return 'bg-orange-100 text-orange-800 border-orange-200';
       case 'lunch':
-        return 'default';
+        return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'dinner':
-        return 'secondary';
+        return 'bg-purple-100 text-purple-800 border-purple-200';
       default:
-        return 'outline';
+        return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
@@ -285,118 +285,124 @@ export default function MyPaymentsPage() {
         </CardContent>
       </Card>
 
-      {/* Payments Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CreditCard className="h-5 w-5" />
-            My Payments ({pagination?.total || 0})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                <h3 className="text-lg font-medium mb-2">Loading payments...</h3>
-                <p className="text-muted-foreground">Please wait while we fetch your payment data.</p>
-              </div>
+      {/* Payments Cards Grid */}
+      <div>
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+              <h3 className="text-lg font-medium mb-2">Loading payments...</h3>
+              <p className="text-muted-foreground">Please wait while we fetch your payment data.</p>
             </div>
-          ) : payments.length === 0 ? (
-            <div className="text-center py-12">
-              <DollarSign className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium mb-2">No payments found</h3>
-              <p className="text-muted-foreground">No payments match your current filter criteria.</p>
-            </div>
-          ) : (
-            <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Payment ID</TableHead>
-                    <TableHead>Date & Time</TableHead>
-                    <TableHead>Table</TableHead>
-                    <TableHead>Session</TableHead>
-                    <TableHead>Guests</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Status</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {payments.map((payment) => (
-                    <TableRow key={payment.id}>
-                      <TableCell className="font-mono text-xs">
-                        {payment.paymentId}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-col">
-                          <span className="text-sm font-medium">{payment.paymentDate}</span>
-                          <span className="text-xs text-muted-foreground">{payment.paymentTime}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">Table {payment.tableNumber}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={getSessionBadgeVariant(payment.sessionType)}>
-                          {payment.sessionType.charAt(0).toUpperCase() + payment.sessionType.slice(1)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-xs">
-                          <div>Adults: {payment.sessionData.adults}</div>
-                          <div>Children: {payment.sessionData.children}</div>
-                          <div>Infants: {payment.sessionData.infants}</div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <span className="font-semibold text-green-600">
-                          {formatCurrency(payment.totalAmount)}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={getStatusBadgeVariant(payment.status)}>
-                          {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+          </div>
+        ) : payments.length === 0 ? (
+          <div className="text-center py-12">
+            <DollarSign className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-medium mb-2">No payments found</h3>
+            <p className="text-muted-foreground">No payments match your current filter criteria.</p>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {payments.map((payment) => (
+                <Card key={payment.id} className="hover:shadow-lg transition-all duration-200 border-l-4 border-l-blue-500">
+                  <CardContent className="p-4 space-y-3">
+                    {/* Header with Status and Table */}
+                    <div className="flex justify-between items-center">
+                      <Badge 
+                        className={`${getStatusColor(payment.status)} text-white font-medium px-2 py-1 text-xs`}
+                      >
+                        {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
+                      </Badge>
+                      <div className="text-lg font-bold text-gray-900">
+                        Table {payment.tableNumber || payment.tableId?.toString().slice(-2) || 'N/A'}
+                      </div>
+                    </div>
 
-              {/* Pagination */}
-              {pagination && pagination.totalPages > 1 && (
-                <div className="flex items-center justify-between mt-4">
-                  <div className="text-sm text-muted-foreground">
-                    Showing {((currentPage - 1) * pagination.limit) + 1} to {Math.min(currentPage * pagination.limit, pagination.total)} of {pagination.total} payments
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                      disabled={currentPage === 1}
-                    >
-                      Previous
-                    </Button>
-                    <span className="text-sm">
-                      Page {currentPage} of {pagination.totalPages}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCurrentPage(prev => Math.min(pagination.totalPages, prev + 1))}
-                      disabled={currentPage === pagination.totalPages}
-                    >
-                      Next
-                    </Button>
-                  </div>
+                    {/* Amount and Payment Method */}
+                    <div className="flex justify-between items-center">
+                      <div className="text-xl font-bold text-green-600">
+                        €{payment.totalAmount.toFixed(2)}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {payment.paymentMethod === 'cash' ? (
+                          <Banknote className="h-4 w-4 text-green-600" />
+                        ) : payment.paymentMethod === 'card' ? (
+                          <CreditCard className="h-4 w-4 text-blue-600" />
+                        ) : (
+                          <User className="h-4 w-4 text-gray-600" />
+                        )}
+                        <span className="text-xs text-gray-600 capitalize font-medium">
+                          {payment.paymentMethod || 'Waiter'}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Date and Session */}
+                    <div className="flex justify-between items-center text-xs text-gray-500">
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        <span>
+                          {new Date(payment.createdAt).toLocaleDateString('en-GB', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: '2-digit'
+                          })} {new Date(payment.createdAt).toLocaleTimeString('en-GB', {
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </span>
+                      </div>
+                      <Badge 
+                        variant="outline" 
+                        className={`${getSessionColor(payment.sessionType)} border-current text-xs px-2 py-0`}
+                      >
+                        {payment.sessionType.charAt(0).toUpperCase() + payment.sessionType.slice(1)}
+                      </Badge>
+                    </div>
+
+                    {/* Waiter Info */}
+                    <div className="flex items-center gap-1 text-xs text-gray-600 pt-1 border-t border-gray-100">
+                      <User className="h-3 w-3" />
+                      <span>Waiter {payment.waiterName || 'Unknown'}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {pagination && pagination.totalPages > 1 && (
+              <div className="flex items-center justify-between mt-6">
+                <div className="text-sm text-muted-foreground">
+                  Showing {((currentPage - 1) * pagination.limit) + 1} to {Math.min(currentPage * pagination.limit, pagination.total)} of {pagination.total} payments
                 </div>
-              )}
-            </>
-          )}
-        </CardContent>
-      </Card>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    Previous
+                  </Button>
+                  <span className="text-sm">
+                    Page {currentPage} of {pagination.totalPages}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(prev => Math.min(pagination.totalPages, prev + 1))}
+                    disabled={currentPage === pagination.totalPages}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }

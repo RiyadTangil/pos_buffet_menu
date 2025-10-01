@@ -5,9 +5,10 @@ import { useRouter } from "next/navigation"
 import { getOrders } from "@/lib/api/orders-client"
 import { fetchUsers } from "@/lib/api/users"
 import { getBuffetSettings } from "@/lib/api/settings"
+import { DeviceSessionManager } from "@/lib/api/device-sessions"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { CreditCard, Users, Coffee, CheckCircle, User, Banknote } from "lucide-react"
+import { CreditCard, Users, Coffee, CheckCircle, User, Banknote, ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
@@ -43,6 +44,10 @@ export default function SessionOrdersPage() {
   const [tableNumber, setTableNumber] = useState<any>()
   const [guestCounts, setGuestCounts] = useState({ adults: 2, children: 0, infants: 0 })
   const [buffetSettings, setBuffetSettings] = useState<any>(null)
+  
+  // Device session management
+  const [sessionManager, setSessionManager] = useState<DeviceSessionManager | null>(null)
+  const [isGroupSynced, setIsGroupSynced] = useState(false)
 
   // Get current session based on time
   const getCurrentSession = () => {
@@ -102,6 +107,9 @@ export default function SessionOrdersPage() {
         // Get table ID and session ID from localStorage
         const storedTableId = localStorage.getItem('selectedTableId')
         const sessionId = localStorage.getItem('sessionId')
+        const deviceId = localStorage.getItem('deviceId')
+        const groupType = localStorage.getItem('groupType') as 'different' | 'same'
+        const groupId = localStorage.getItem('groupId')
         
         if (storedTableId) {
           setTableNumber(storedTableId)
@@ -112,6 +120,24 @@ export default function SessionOrdersPage() {
           alert('Session information is missing. Please return to the tables page and select a table.')
           router.push('/menu/tables')
           return
+        }
+
+        // Initialize device session manager
+        if (groupType && sessionId && deviceId) {
+          const manager = new DeviceSessionManager(sessionId, deviceId, groupType, groupId || undefined)
+          setSessionManager(manager)
+          setIsGroupSynced(groupType === 'same')
+
+          // Start synchronization for same group
+          if (groupType === 'same' && groupId) {
+            manager.startSync((syncData) => {
+              // Update orders with synchronized data
+              if (syncData.sharedOrders && Array.isArray(syncData.sharedOrders)) {
+                console.log('Updating orders from sync:', syncData.sharedOrders)
+                setOrders(syncData.sharedOrders)
+              }
+            }, 1000) // Reduced from 2000ms to 1000ms for faster updates
+          }
         }
 
         // Get guest counts from localStorage
@@ -139,6 +165,13 @@ export default function SessionOrdersPage() {
     }
 
     loadData()
+
+    // Cleanup function
+    return () => {
+      if (sessionManager) {
+        sessionManager.stopSync()
+      }
+    }
   }, [])
 
   const calculateSessionTotal = () => {
@@ -269,6 +302,20 @@ export default function SessionOrdersPage() {
 
       console.log(`Payment of £${grandTotal} successfully recorded:`, result.data)
 
+      // End device session and sync with other devices
+      if (sessionManager) {
+        try {
+          await sessionManager.endSession()
+          
+          if (isGroupSynced) {
+            toast.success('Session ended and synchronized with all devices in group')
+          }
+        } catch (error) {
+          console.error('Failed to end device session:', error)
+          toast.warning('Payment successful but failed to sync session end with other devices')
+        }
+      }
+
       // Clear all localStorage data after successful payment
       localStorage.removeItem('tableId')
       localStorage.removeItem('guestCounts')
@@ -278,6 +325,11 @@ export default function SessionOrdersPage() {
       localStorage.removeItem('orders')
       localStorage.removeItem('currentSession')
       localStorage.removeItem('selectedWaiterId')
+      localStorage.removeItem('selectedTableId')
+      localStorage.removeItem('sessionId')
+      localStorage.removeItem('deviceId')
+      localStorage.removeItem('groupType')
+      localStorage.removeItem('groupId')
       
       // Clear any other session-related data
       localStorage.clear()
@@ -296,6 +348,18 @@ export default function SessionOrdersPage() {
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-6xl mx-auto space-y-6">
+        {/* Back Button */}
+        <div className="flex items-center justify-start">
+          <Button 
+            variant="outline" 
+            onClick={() => router.push('/menu/items')}
+            className="flex items-center gap-2 hover:bg-gray-100"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back to Menu
+          </Button>
+        </div>
+
         {/* Header */}
         <div className="text-center">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Session Orders</h1>
