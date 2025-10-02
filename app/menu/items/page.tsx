@@ -8,15 +8,18 @@ import { Badge } from "@/components/ui/badge"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { ItemsLimitProgress } from '@/components/ui/items-limit-progress'
 import { SessionCountdown } from '@/components/ui/session-countdown'
-import { ShoppingCart, Plus, Minus, Leaf, Flame, X, Clock, Users, Utensils, ChefHat, Coffee, Cake, DollarSign } from "lucide-react"
+import { ShoppingCart, Plus, Minus, Leaf, Flame, X, Clock, Users, Utensils, ChefHat, Coffee, Cake, DollarSign, Loader2 } from "lucide-react"
 import { type MenuCategory } from "@/lib/mockData"
 import { fetchCategories } from "@/lib/api/categories"
 import { fetchProducts, type Product } from "@/lib/api/products"
 import { getBuffetSettings, type BuffetSettings } from "@/lib/api/settings"
+import { getTableSession, setNextOrderAvailable, type TableSession } from "@/lib/api/table-sessions"
 import { saveOrder, type SessionOrder } from "@/lib/api/orders-client"
 import { usePrinting } from '@/hooks/usePrinting'
 import { PrintButton } from '@/components/printing/PrintButton'
 import { PrintJobStatus } from '@/components/printing/PrintJobStatus'
+import { initializeSocketClient, joinTableRoom, leaveTableRoom, onTableSessionUpdate, offTableSessionUpdate, onCartUpdate, offCartUpdate, emitCartUpdate } from '@/lib/socket-client'
+import { addToCartApi, updateCartApi, removeFromCartApi, clearCartApi, updateCartItemQuantityApi } from '@/lib/api/cart'
 import Confetti from "react-confetti"
 
 interface CartItem {
@@ -45,6 +48,9 @@ export default function ItemsPage() {
   const [orderPlaced, setOrderPlaced] = useState(false)
   const [timeRemaining, setTimeRemaining] = useState(0)
   const [sessionEnded, setSessionEnded] = useState(false)
+  const [isUpdating, setIsUpdating] = useState(false)
+  const [updatingItemId, setUpdatingItemId] = useState<string | null>(null)
+  const [updatingAction, setUpdatingAction] = useState<'add' | 'remove' | null>(null)
 
   // Helper functions for localStorage persistence
   const saveOrderIntervalToStorage = (orderPlacedState: boolean, timeRemainingValue: number) => {
@@ -87,6 +93,8 @@ export default function ItemsPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [categories, setCategories] = useState<any[]>([])
   const [products, setProducts] = useState<any[]>([])
+  const [tableSession, setTableSession] = useState<TableSession | null>(null)
+  const [deviceId, setDeviceId] = useState<string>('')
 
   // Local printer function
   const printToLocalPrinter = (orderData: {
@@ -260,6 +268,109 @@ export default function ItemsPage() {
     const fetchData = async () => {
       try {
         setLoading(true)
+        
+        // Load table session and device ID from localStorage (for backward compatibility)
+        const storedTableId = localStorage.getItem('selectedTableId')
+        const storedDeviceId = localStorage.getItem('deviceId')
+        const storedSession = localStorage.getItem('tableSession')
+        
+        if (!storedTableId || !storedDeviceId) {
+          alert('No table session found. Please return to the tables page.')
+          router.push('/menu/tables')
+          return
+        }
+        
+        setDeviceId(storedDeviceId)
+        
+        // Initialize Socket.IO client and join table room
+        const socket = initializeSocketClient()
+        
+        try {
+          await joinTableRoom(storedTableId)
+          console.log('✅ Successfully joined table room')
+        } catch (error) {
+          console.error('❌ Failed to join table room:', error)
+          // Continue with the rest of the initialization even if socket fails
+        }
+        
+        // Set up real-time table session updates
+        onTableSessionUpdate((updatedSessionData) => {
+          console.log('Received table session update:', updatedSessionData)
+          setTableSession(updatedSessionData)
+          // Update localStorage with fresh data
+          localStorage.setItem('tableSession', JSON.stringify(updatedSessionData))
+          // Update order countdown from session field for multi-device sync
+          // Only adjust countdown when the field is present to avoid clearing
+          // on partial updates that don't include nextOrderAvailableUntil
+          if (updatedSessionData?.nextOrderAvailableUntil) {
+            const untilMs = new Date(updatedSessionData.nextOrderAvailableUntil).getTime()
+            const remaining = Math.max(0, Math.floor((untilMs - Date.now()) / 1000))
+            setOrderPlaced(remaining > 0)
+            setTimeRemaining(remaining)
+          }
+        })
+
+        // Set up real-time cart synchronization
+        onCartUpdate((cartData) => {
+          console.log('Received cart update:', cartData)
+          if (cartData.tableId === storedTableId) {
+            // Convert database cart items to UI cart items
+            if (cartData.cartItems && productsData.length > 0) {
+              const convertedCartItems = cartData.cartItems.map((dbCartItem: any) => {
+                const product = productsData.find(p => p.id === dbCartItem.menuItemId)
+                if (product) {
+                  return {
+                    menuItem: product,
+                    quantity: dbCartItem.quantity
+                  }
+                }
+                return null
+              }).filter(Boolean) as CartItem[]
+              
+              setCart(convertedCartItems)
+            } else {
+              setCart([])
+            }
+          }
+        })
+        
+        // Try to get fresh session data from API, fallback to stored session
+        let sessionData: TableSession | null = null
+        try {
+          sessionData = await getTableSession(storedTableId)
+          if (sessionData) {
+            setTableSession(sessionData)
+            // Update localStorage with fresh data
+            localStorage.setItem('tableSession', JSON.stringify(sessionData))
+            // Initialize countdown from session field
+            if (sessionData.nextOrderAvailableUntil) {
+              const untilMs = new Date(sessionData.nextOrderAvailableUntil).getTime()
+              const remaining = Math.max(0, Math.floor((untilMs - Date.now()) / 1000))
+              setOrderPlaced(remaining > 0)
+              setTimeRemaining(remaining)
+            } else {
+              setOrderPlaced(false)
+              setTimeRemaining(0)
+            }
+          } else if (storedSession) {
+            // Fallback to stored session if API call fails
+            sessionData = JSON.parse(storedSession)
+            setTableSession(sessionData)
+            if (sessionData?.nextOrderAvailableUntil) {
+              const untilMs = new Date(sessionData.nextOrderAvailableUntil).getTime()
+              const remaining = Math.max(0, Math.floor((untilMs - Date.now()) / 1000))
+              setOrderPlaced(remaining > 0)
+              setTimeRemaining(remaining)
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching table session:', error)
+          if (storedSession) {
+            sessionData = JSON.parse(storedSession)
+            setTableSession(sessionData)
+          }
+        }
+        
         const [settingsResponse] = await Promise.all([
           getBuffetSettings()
         ])
@@ -282,23 +393,34 @@ export default function ItemsPage() {
         if (settingsResponse.success && settingsResponse.data) {
           setBuffetSettings(settingsResponse.data)
         }
+        
+        // Convert database cart items to UI cart items after products are loaded
+        if (sessionData && sessionData.cartItems && productsData.length > 0) {
+          const convertedCartItems = sessionData.cartItems.map((dbCartItem: any) => {
+            const product = productsData.find(p => p.id === dbCartItem.menuItemId)
+            if (product) {
+              return {
+                menuItem: product,
+                quantity: dbCartItem.quantity
+              }
+            }
+            return null
+          }).filter(Boolean) as CartItem[]
+          
+          setCart(convertedCartItems)
+        }
         // Set first category as selected by default
         if (categoriesData.length > 0) {
           setSelectedCategory(categoriesData[0].id)
         }
-
-        // Restore order interval state from localStorage after data is loaded
-        const storedOrderInterval = loadOrderIntervalFromStorage()
-        if (storedOrderInterval) {
-          setOrderPlaced(storedOrderInterval.orderPlaced)
-          setTimeRemaining(storedOrderInterval.timeRemaining)
-        }
+        // Countdown now derives from table session updates; no localStorage restore
       } catch (error) {
         console.error('Error fetching data:', error)
       } finally {
         setLoading(false)
       }
     }
+
     fetchData()
   }, [])
 
@@ -324,6 +446,14 @@ export default function ItemsPage() {
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload)
       window.removeEventListener("popstate", handlePopState)
+      
+      // Clean up Socket.IO connections
+      const storedTableId = localStorage.getItem('selectedTableId')
+      if (storedTableId) {
+        leaveTableRoom(storedTableId)
+      }
+      offTableSessionUpdate()
+      offCartUpdate()
     }
   }, [router])
 
@@ -351,12 +481,7 @@ export default function ItemsPage() {
         setTimeRemaining((prev) => {
           const newValue = prev <= 1 ? 0 : prev - 1
           const newOrderPlaced = newValue > 0
-          
-          // Update localStorage with current state
-          if (newValue > 0) {
-            saveOrderIntervalToStorage(newOrderPlaced, newValue)
-          } else {
-            clearOrderIntervalFromStorage()
+          if (newValue <= 0) {
             setOrderPlaced(false)
           }
           
@@ -367,7 +492,7 @@ export default function ItemsPage() {
     return () => clearInterval(interval)
   }, [timeRemaining])
 
-  const addToCart = (product: Product) => {
+  const addToCart = async (product: Product) => {
     // Check items limit before adding to cart
     const currentSession = getCurrentSession()
     if (!currentSession || !buffetSettings) {
@@ -375,11 +500,16 @@ export default function ItemsPage() {
       return
     }
 
-    // Get guest counts from localStorage
-    const storedGuestCounts = JSON.parse(localStorage.getItem('guestCounts') || '{}')
-    const adultCount = storedGuestCounts.adults || 0
-    const childCount = storedGuestCounts.children || 0
-    const infantCount = storedGuestCounts.infants || 0
+    // Get guest counts from table session instead of localStorage
+    if (!tableSession) {
+      alert('No table session found. Please return to the tables page.')
+      router.push('/menu/tables')
+      return
+    }
+
+    const adultCount = tableSession.guestCounts.adults || 0
+    const childCount = tableSession.guestCounts.children || 0
+    const infantCount = tableSession.guestCounts.infants || 0
 
     if (adultCount === 0 && childCount === 0 && infantCount === 0) {
       alert('Guest information is missing. Please return to the tables page and enter guest information.')
@@ -416,27 +546,123 @@ export default function ItemsPage() {
       }
     }
 
+    // Update local state first for immediate UI feedback
+    setUpdatingItemId(product.id)
+    setUpdatingAction('add')
+    setIsUpdating(true)
+    let updatedCart: CartItem[] = []
     setCart((prev) => {
-      const existingItem = prev.find((item) => item.menuItem.id === product.id)
+      const existingItem = prev.find((item) => item.menuItem?.id === product.id)
       if (existingItem) {
-        return prev.map((item) => (item.menuItem.id === product.id ? { ...item, quantity: item.quantity + 1 } : item))
+        updatedCart = prev.map((item) => (item.menuItem?.id === product.id ? { ...item, quantity: item.quantity + 1 } : item))
+      } else {
+        updatedCart = [...prev, { menuItem: product, quantity: 1 }]
       }
-      return [...prev, { menuItem: product, quantity: 1 }]
+      return updatedCart
     })
+
+    // Sync with database and emit real-time update
+    try {
+      const cartItem = { 
+        menuItemId: product.id, 
+        name: product.name,
+        price: product.price || 0,
+        quantity: 1,
+        categoryId: product.categoryId
+      }
+      const result = await addToCartApi(tableSession.tableId, cartItem)
+      
+      if (result.success) {
+        // Convert UI cart format to database format for real-time updates
+        const dbCartItems = updatedCart.map(item => ({
+          menuItemId: item.menuItem.id,
+          name: item.menuItem.name,
+          price: item.menuItem.price || 0,
+          quantity: item.quantity,
+          categoryId: item.menuItem.categoryId
+        }))
+        // Emit real-time update to other devices
+        emitCartUpdate(tableSession.tableId, dbCartItems)
+        setIsUpdating(false)
+        setUpdatingItemId(null)
+        setUpdatingAction(null)
+      } else {
+        console.error('Failed to sync cart with database:', result.error)
+        // Revert local state on failure
+        setCart((prev) => {
+          const existingItem = prev.find((item) => item.menuItem?.id === product.id)
+          if (existingItem && existingItem.quantity > 1) {
+            return prev.map((item) => (item.menuItem?.id === product.id ? { ...item, quantity: item.quantity - 1 } : item))
+          } else {
+            return prev.filter((item) => item.menuItem?.id !== product.id)
+          }
+        })
+        // Keep loader active until a success response (as requested)
+      }
+    } catch (error) {
+      console.error('Error syncing cart:', error)
+      // Keep loader active until a success response (as requested)
+    }
+
     setProgressKey(prev => prev + 1) // Force progress component re-render
   }
 
-  const removeFromCart = (menuItemId: string) => {
+  const removeFromCart = async (menuItemId: string) => {
+    if (!tableSession) return
+
+    // Update local state first for immediate UI feedback
+    setUpdatingItemId(menuItemId)
+    setUpdatingAction('remove')
+    setIsUpdating(true)
+    let updatedCart: CartItem[] = []
     setCart((prev) => {
-      return prev
-        .map((item) => (item.menuItem.id === menuItemId ? { ...item, quantity: item.quantity - 1 } : item))
+      updatedCart = prev
+        .map((item) => (item.menuItem?.id === menuItemId ? { ...item, quantity: item.quantity - 1 } : item))
         .filter((item) => item.quantity > 0)
+      return updatedCart
     })
+
+    // Sync with database and emit real-time update
+    try {
+      const result = await removeFromCartApi(tableSession.tableId, menuItemId)
+      
+      if (result.success) {
+        // Convert UI cart format to database format for real-time updates
+        const dbCartItems = updatedCart.map(item => ({
+          menuItemId: item.menuItem.id,
+          name: item.menuItem.name,
+          price: item.menuItem.price || 0,
+          quantity: item.quantity,
+          categoryId: item.menuItem.categoryId
+        }))
+        // Emit real-time update to other devices
+        emitCartUpdate(tableSession.tableId, dbCartItems)
+        setIsUpdating(false)
+        setUpdatingItemId(null)
+        setUpdatingAction(null)
+      } else {
+        console.error('Failed to sync cart removal with database:', result.error)
+        // Revert local state on failure
+        setCart((prev) => {
+          const existingItem = prev.find((item) => item.menuItem?.id === menuItemId)
+          if (existingItem) {
+            return prev.map((item) => (item.menuItem?.id === menuItemId ? { ...item, quantity: item.quantity + 1 } : item))
+          } else {
+            return [...prev, { menuItem: products.find(p => p.id === menuItemId)!, quantity: 1 }]
+          }
+        })
+        // Keep loader active until a success response (as requested)
+      }
+    } catch (error) {
+      console.error('Error syncing cart removal:', error)
+      // Keep loader active until a success response (as requested)
+    }
+
     setProgressKey(prev => prev + 1) // Force progress component re-render
   }
 
   const getItemQuantity = (menuItemId: string) => {
-    const cartItem = cart.find((item) => item.menuItem.id === menuItemId)
+    const cartItem = cart.find((item) => item.menuItem?.id === menuItemId)
     return cartItem?.quantity || 0
   }
 
@@ -457,19 +683,17 @@ export default function ItemsPage() {
         return
       }
 
-      // Get table ID and number from localStorage - ensure we use real values
-      const selectedTableId = localStorage.getItem('selectedTableId')
-      if (!selectedTableId) {
-        alert('No table selected. Please return to the tables page and select a table.')
+      // Get table ID from table session instead of localStorage
+      if (!tableSession) {
+        alert('No table session found. Please return to the tables page.')
         router.push('/menu/tables')
         return
       }
-     const storedGuestCounts = JSON.parse(localStorage.getItem('guestCounts') || '{}')
-       
+
+      const selectedTableId = tableSession.tableId
+      const guestCounts = tableSession.guestCounts
       
-      
-      // if (!storedGuestCounts.adults .children .infants && !childCount && !infantCount) {
-      if (!storedGuestCounts.adults &&storedGuestCounts.children &&storedGuestCounts.infants ) {
+      if (!guestCounts.adults && !guestCounts.children && !guestCounts.infants) {
         alert('Guest information is missing. Please return to the tables page and enter guest information.')
         router.push('/menu/tables')
         return
@@ -485,13 +709,13 @@ export default function ItemsPage() {
         // tableNumber,
         session: currentSession.key as 'breakfast' | 'lunch' | 'dinner',
         items: cart.map(item => ({
-          id: item.menuItem.id,
+          id: item.menuItem?.id,
           name: item.menuItem.name,
           price: item.menuItem.price || 0,
           quantity: item.quantity,
           category: item.menuItem.categoryId
         })),
-        storedGuestCounts
+        storedGuestCounts: guestCounts
       }
 
       // Send order to new API
@@ -513,7 +737,7 @@ export default function ItemsPage() {
         /*
         try {
           const orderItems = cart.map(item => ({
-            id: item.menuItem.id,
+            id: item.menuItem?.id,
             name: item.menuItem.name,
             quantity: item.quantity,
             price: item.menuItem.price || 0,
@@ -528,7 +752,7 @@ export default function ItemsPage() {
             orderId: result.orderId,
             orderItems,
             tableNumber: selectedTableId,
-            guestCount: (storedGuestCounts.adults || 0) + (storedGuestCounts.children || 0) + (storedGuestCounts.infants || 0),
+            guestCount: (guestCounts.adults || 0) + (guestCounts.children || 0) + (guestCounts.infants || 0),
             orderTime: new Date().toISOString()
           })
         } catch (printError) {
@@ -540,7 +764,7 @@ export default function ItemsPage() {
         // Print to local printer
         try {
           const orderItems = cart.map(item => ({
-            id: item.menuItem.id,
+            id: item.menuItem?.id,
             name: item.menuItem.name,
             quantity: item.quantity,
             price: item.menuItem.price || 0,
@@ -571,9 +795,21 @@ export default function ItemsPage() {
         const timingMinutes = currentSessionData?.data.nextOrderAvailableInMinutes || 1
         const timingInSeconds = Math.max(timingMinutes * 60, 60) // Ensure at least 60 seconds
         setTimeRemaining(timingInSeconds)
+        // Persist next-order availability to table session for multi-device sync
+        try {
+          const untilISO = new Date(Date.now() + timingInSeconds * 1000).toISOString()
+          await setNextOrderAvailable(tableSession.tableId, untilISO)
+        } catch (err) {
+          console.error('Failed to persist next order availability:', err)
+        }
         
-        // Save order interval state to localStorage when order is placed
-        saveOrderIntervalToStorage(true, timingInSeconds)
+        // Clear cart from database and local state
+        try {
+          await clearCartApi(tableSession.tableId)
+          emitCartUpdate(tableSession.tableId, [])
+        } catch (error) {
+          console.error('Error clearing cart from database:', error)
+        }
         
         setCart([])
         setIsCartOpen(false)
@@ -755,18 +991,18 @@ export default function ItemsPage() {
                       <div className="space-y-4 px-1">
                         {cart.map((item) => (
                           <div
-                            key={item.menuItem.id}
+                            key={item.menuItem?.id}
                             className="bg-white rounded-lg p-4 shadow-sm border border-orange-100"
                           >
                             <div className="flex items-start justify-between mb-3">
                               <div className="flex-1">
-                                <h4 className="font-semibold text-gray-900">{item.menuItem.name}</h4>
-                                <p className="text-sm text-gray-600 mt-1">{item.menuItem.description}</p>
-                                {item.menuItem.price && item.menuItem.price > 0 && (
+                                <h4 className="font-semibold text-gray-900">{item.menuItem?.name}</h4>
+                                <p className="text-sm text-gray-600 mt-1">{item.menuItem?.description}</p>
+                                {item.menuItem?.price && item.menuItem.price > 0 && (
                                   <div className="flex items-center gap-1 mt-1">
                                     <DollarSign className="w-3 h-3 text-green-600" />
                                     <span className="text-sm font-semibold text-green-600">
-                                      ${item.menuItem.price.toFixed(2)} each
+                                      ${item.menuItem?.price.toFixed(2)} each
                                     </span>
                                   </div>
                                 )}
@@ -774,10 +1010,15 @@ export default function ItemsPage() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => removeFromCart(item.menuItem.id)}
+                                onClick={() => removeFromCart(item.menuItem?.id)}
                                 className="text-gray-400 hover:text-red-500 flex-shrink-0"
+                                disabled={sessionEnded || isUpdating}
                               >
-                                <X className="w-4 h-4" />
+                                {updatingItemId === item.menuItem?.id && updatingAction === 'remove' ? (
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <X className="w-4 h-4" />
+                                )}
                               </Button>
                             </div>
                             <div className="flex items-center justify-between">
@@ -785,10 +1026,15 @@ export default function ItemsPage() {
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  onClick={() => removeFromCart(item.menuItem.id)}
+                                  onClick={() => removeFromCart(item.menuItem?.id)}
                                   className="w-8 h-8 p-0 border-orange-200 hover:bg-orange-50"
+                                  disabled={sessionEnded || isUpdating}
                                 >
-                                  <Minus className="w-4 h-4" />
+                                  {updatingItemId === item.menuItem?.id && updatingAction === 'remove' ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                  ) : (
+                                    <Minus className="w-4 h-4" />
+                                  )}
                                 </Button>
                                 <span className="w-12 text-center font-semibold text-lg">{item.quantity}</span>
                                 <Button
@@ -796,8 +1042,13 @@ export default function ItemsPage() {
                                   size="sm"
                                   onClick={() => addToCart(item.menuItem)}
                                   className="w-8 h-8 p-0 border-orange-200 hover:bg-orange-50"
+                                  disabled={sessionEnded || isUpdating}
                                 >
-                                  <Plus className="w-4 h-4" />
+                                  {updatingItemId === item.menuItem?.id && updatingAction === 'add' ? (
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                  ) : (
+                                    <Plus className="w-4 h-4" />
+                                  )}
                                 </Button>
                               </div>
                               <Badge variant="secondary" className="bg-orange-100 text-orange-800">
@@ -850,13 +1101,18 @@ export default function ItemsPage() {
       </div>
 
       {/* Items Limit Progress */}
-      {currentSession && buffetSettings && (
+      {currentSession && buffetSettings && tableSession && (
         <div className="bg-white border-b border-gray-200 px-6 py-3">
           <ItemsLimitProgress 
             key={progressKey}
             currentItems={getTotalItems()}
             buffetSettings={buffetSettings}
             currentSession={currentSession.key as 'breakfast' | 'lunch' | 'dinner'}
+            guestCounts={{
+              adults: tableSession.guestCounts.adults,
+              children: tableSession.guestCounts.children,
+              infants: tableSession.guestCounts.infants
+            }}
           />
         </div>
       )}
@@ -1014,9 +1270,13 @@ export default function ItemsPage() {
                                    size="sm"
                                    onClick={() => removeFromCart(item.id)}
                                    className="w-8 h-8 p-0 rounded-full hover:bg-orange-200 text-orange-700"
-                                   disabled={sessionEnded}
+                                   disabled={sessionEnded || isUpdating}
                                  >
-                                   <Minus className="w-4 h-4" />
+                                   {updatingItemId === item.id && updatingAction === 'remove' ? (
+                                     <Loader2 className="w-4 h-4 animate-spin" />
+                                   ) : (
+                                     <Minus className="w-4 h-4" />
+                                   )}
                                  </Button>
                                  <span className="w-8 text-center font-bold text-orange-900 text-lg">{quantity}</span>
                                  <Button
@@ -1024,9 +1284,13 @@ export default function ItemsPage() {
                                    size="sm"
                                    onClick={() => addToCart(item)}
                                    className="w-8 h-8 p-0 rounded-full hover:bg-orange-200 text-orange-700"
-                                   disabled={sessionEnded}
+                                   disabled={sessionEnded || isUpdating}
                                  >
-                                   <Plus className="w-4 h-4" />
+                                   {updatingItemId === item.id && updatingAction === 'add' ? (
+                                     <Loader2 className="w-4 h-4 animate-spin" />
+                                   ) : (
+                                     <Plus className="w-4 h-4" />
+                                   )}
                                  </Button>
                                </div>
                              ) : (
@@ -1034,8 +1298,13 @@ export default function ItemsPage() {
                                  onClick={() => addToCart(item)}
                                  size="sm"
                                  className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                                 disabled={sessionEnded || isUpdating}
                                >
-                                 <Plus className="w-4 h-4 mr-1" />
+                                 {updatingItemId === item.id && updatingAction === 'add' ? (
+                                   <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                                 ) : (
+                                   <Plus className="w-4 h-4 mr-1" />
+                                 )}
                                  Add to Cart
                                </Button>
                              )}

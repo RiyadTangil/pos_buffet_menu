@@ -1,6 +1,5 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { AlertTriangle, CheckCircle, Clock } from "lucide-react"
@@ -11,37 +10,11 @@ interface ItemsLimitProgressProps {
   currentItems: number
   buffetSettings: BuffetSettings
   currentSession: 'breakfast' | 'lunch' | 'dinner'
+  guestCounts: { adults: number; children: number; infants: number }
   className?: string
 }
 
-export function ItemsLimitProgress({ currentItems, buffetSettings, currentSession, className }: ItemsLimitProgressProps) {
-  const [guestCounts, setGuestCounts] = useState({ adults: 0, children: 0, infants: 0 })
-
-  // Update guest counts when localStorage changes
-  useEffect(() => {
-    const updateGuestCounts = () => {
-      const storedGuestCounts = JSON.parse(localStorage.getItem('guestCounts') || '{}')
-      setGuestCounts({
-        adults: storedGuestCounts.adults || 0,
-        children: storedGuestCounts.children || 0,
-        infants: storedGuestCounts.infants || 0
-      })
-    }
-
-    updateGuestCounts()
-    
-    // Listen for storage changes
-    window.addEventListener('storage', updateGuestCounts)
-    
-    // Custom event for same-tab localStorage changes
-    window.addEventListener('guestCountsUpdated', updateGuestCounts)
-    
-    return () => {
-      window.removeEventListener('storage', updateGuestCounts)
-      window.removeEventListener('guestCountsUpdated', updateGuestCounts)
-    }
-  }, [])
-
+export function ItemsLimitProgress({ currentItems, buffetSettings, currentSession, guestCounts, className }: ItemsLimitProgressProps) {
   // Calculate max items based on guest counts and session-specific limits
   const calculateMaxItems = () => {
     // Get items limit for current session
@@ -57,7 +30,7 @@ export function ItemsLimitProgress({ currentItems, buffetSettings, currentSessio
       return 0
     }
 
-    // Calculate maximum allowed items using state
+    // Calculate maximum allowed items using props
     return (
       (guestCounts.adults * itemsLimit.adultLimit) +
       (guestCounts.children * itemsLimit.childLimit) +

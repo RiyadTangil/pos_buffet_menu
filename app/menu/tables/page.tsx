@@ -4,6 +4,12 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { fetchTables, updateTableStatus, updateTableGuests, type Table } from "@/lib/api/tables";
 import { getBuffetSettings, type BuffetSettings } from "@/lib/api/settings";
+import { 
+  getTableSession, 
+  createOrJoinTableSession, 
+  generateDeviceId,
+  type TableSession 
+} from "@/lib/api/table-sessions";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
@@ -18,6 +24,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
+import { WaiterVerificationModal } from "@/components/ui/waiter-verification-modal";
+import { Users, Shield } from "lucide-react";
 
 interface GuestCounts {
   adults: number;
@@ -26,13 +34,22 @@ interface GuestCounts {
   includeDrinks: boolean;
 }
 
+interface TableWithSession extends Table {
+  session?: TableSession;
+  availableAdultCapacity?: number;
+}
+
 export default function TablesPage() {
   const router = useRouter();
-  const [tableStates, setTableStates] = useState<Table[]>([]);
-  const [selectedTable, setSelectedTable] = useState<Table | null>(null);
+  const [tableStates, setTableStates] = useState<TableWithSession[]>([]);
+  const [selectedTable, setSelectedTable] = useState<TableWithSession | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isWaiterModalOpen, setIsWaiterModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [buffetSettings, setBuffetSettings] = useState<BuffetSettings | null>(null);
+  const [deviceId] = useState(() => generateDeviceId());
+  const [isSecondaryDevice, setIsSecondaryDevice] = useState(false);
+  const [verifiedWaiter, setVerifiedWaiter] = useState<{ name: string; role: string } | null>(null);
   const [guestCounts, setGuestCounts] = useState<GuestCounts>({
     adults: 1,
     children: 0,
@@ -49,7 +66,33 @@ export default function TablesPage() {
           fetchTables(),
           getBuffetSettings()
         ]);
-        setTableStates(tablesData);
+        
+        // Enhance tables with session information
+        const tablesWithSessions = await Promise.all(
+          tablesData.map(async (table) => {
+            try {
+              const session = await getTableSession(table.id);
+              const availableAdultCapacity = session 
+                ? Math.max(0, table.capacity - session.guestCounts.adults)
+                : table.capacity;
+              
+              return {
+                ...table,
+                session,
+                availableAdultCapacity
+              };
+            } catch (error) {
+              console.error(`Error fetching session for table ${table.id}:`, error);
+              return {
+                ...table,
+                session: undefined,
+                availableAdultCapacity: table.capacity
+              };
+            }
+          })
+        );
+        
+        setTableStates(tablesWithSessions);
         setBuffetSettings(settingsData);
       } catch (error) {
         console.error('Failed to fetch data:', error);
@@ -110,41 +153,77 @@ export default function TablesPage() {
 
   const currentSession = getCurrentSession();
 
-  const handleTableClick = (table: Table) => {
-    if (table.status === "available") {
-      setSelectedTable(table);
-      setIsModalOpen(true);
+  const getTableStatus = (table: TableWithSession) => {
+    if (table.status === "available" && !table.session) {
+      return "Available";
+    } else if (table.session) {
+      if (table.availableAdultCapacity! > 0) {
+        return `Occupied (${table.availableAdultCapacity} adult spots left)`;
+      } else {
+        return "Full";
+      }
+    } else if (table.status === "selected") {
+      return "Selected";
+    } else if (table.status === "occupied") {
+      return "Occupied";
     }
+    return "Unavailable";
+  };
+
+  const isTableClickable = (table: TableWithSession) => {
+    return table.status === "available" || (table.session && table.availableAdultCapacity! > 0);
+  };
+
+  const handleTableClick = (table: TableWithSession) => {
+    // Check if table is available or has available adult capacity
+    if (table.status === "available" || (table.session && table.availableAdultCapacity! > 0)) {
+      setSelectedTable(table);
+      
+      // Determine if this is a secondary device joining an existing session
+      if (table.session) {
+        setIsSecondaryDevice(true);
+        setIsWaiterModalOpen(true);
+      } else {
+        setIsSecondaryDevice(false);
+        setIsModalOpen(true);
+      }
+    }
+  };
+
+  const handleWaiterVerified = (waiterInfo: { name: string; role: string }) => {
+    setVerifiedWaiter(waiterInfo);
+    setIsWaiterModalOpen(false);
+    setIsModalOpen(true);
   };
 
   const handleConfirm = async () => {
     if (selectedTable) {
       try {
-        const totalGuests = guestCounts.adults + guestCounts.children + guestCounts.infants;
-        
-        // Update table status to selected and set guest count
-        await updateTableStatus(selectedTable.id, "selected");
-        await updateTableGuests(selectedTable.id, totalGuests);
+        // Create or join table session using the new API
+        const sessionData = await createOrJoinTableSession({
+          tableId: selectedTable.id,
+          deviceId,
+          guestCounts,
+          waiterPin: verifiedWaiter ? '1234' : undefined, // In production, store actual PIN
+          isSecondaryDevice
+        });
 
-        // Update local state
-        setTableStates((prev) =>
-          prev.map((table) =>
-            table.id === selectedTable.id
-              ? { ...table, status: "selected" as const, currentGuests: totalGuests }
-              : table
-          )
-        );
-
-        // Store guest counts in localStorage for the items page
+        // Store session data in localStorage for backward compatibility
         localStorage.setItem("guestCounts", JSON.stringify(guestCounts));
         localStorage.setItem("selectedTableId", selectedTable.id);
+        localStorage.setItem("tableSession", JSON.stringify(sessionData));
+        localStorage.setItem("deviceId", deviceId);
 
         setIsModalOpen(false);
-        toast.success(`Table ${selectedTable.number} selected successfully!`);
+        toast.success(
+          isSecondaryDevice 
+            ? `Successfully joined Table ${selectedTable.number}!`
+            : `Table ${selectedTable.number} selected successfully!`
+        );
         router.push("/menu/items");
       } catch (error) {
-        console.error('Failed to select table:', error);
-        toast.error('Failed to select table. Please try again.');
+        console.error('Failed to select/join table:', error);
+        toast.error(error instanceof Error ? error.message : 'Failed to select table. Please try again.');
       }
     }
   };
@@ -212,24 +291,36 @@ export default function TablesPage() {
                 return (
                   <div key={table.id}>
                     <div
-                      onClick={() => handleTableClick(table)}
+                      onClick={() => isTableClickable(table) && handleTableClick(table)}
                       className={`
                         w-full h-20 sm:h-24 text-base sm:text-lg rounded-xl mb-2 p-2 sm:p-3 
                         flex flex-col justify-between transition-all duration-200 ease-in-out
                         ${
-                          isAvailable
+                          isTableClickable(table)
                             ? "cursor-pointer hover:shadow-md transform hover:scale-105 active:scale-95"
                             : "cursor-not-allowed"
                         }
                         ${getTableColors(table.status)}
                       `}
                     >
-                      <div className="text-base sm:text-lg font-bold">Table {table.number}</div>
-                      <div className="text-xs sm:text-sm opacity-75">
-                        {isAvailable
-                          ? `Capacity: ${table.capacity}`
-                          : `${table.status.charAt(0).toUpperCase() + table.status.slice(1)} - ${table.currentGuests}/${table.capacity} guests`}
+                      <div className="flex items-center justify-between">
+                        <div className="text-base sm:text-lg font-bold">Table {table.number}</div>
+                        {table.session && (
+                          <div className="flex items-center text-xs text-blue-600">
+                            <Users className="w-3 h-3 mr-1" />
+                            <span>{table.session.guestCounts.adults + table.session.guestCounts.children + table.session.guestCounts.infants}</span>
+                          </div>
+                        )}
                       </div>
+                      <div className="text-xs sm:text-sm opacity-75">
+                        {getTableStatus(table)}
+                      </div>
+                      {table.session && verifiedWaiter && (
+                        <div className="flex items-center text-xs text-blue-600">
+                          <Shield className="w-2 h-2 mr-1" />
+                          <span>Waiter: {verifiedWaiter.name}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
@@ -280,10 +371,13 @@ export default function TablesPage() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
-              Table {selectedTable?.number} - Guest Information
+              {isSecondaryDevice ? 'Join Table' : 'Table'} {selectedTable?.number} - Guest Information
             </DialogTitle>
             <DialogDescription>
-              Please specify the number of guests for your dining experience.
+              {isSecondaryDevice 
+                ? `Add additional guests to this table. Available adult capacity: ${selectedTable?.availableAdultCapacity}`
+                : 'Please specify the number of guests for your dining experience.'
+              }
             </DialogDescription>
           </DialogHeader>
 
@@ -358,96 +452,113 @@ export default function TablesPage() {
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <div className="flex justify-between items-center">
-                <Label htmlFor="adults">Adults</Label>
+                <Label htmlFor="adults">
+                  Adults {isSecondaryDevice && `(Max: ${selectedTable?.availableAdultCapacity})`}
+                </Label>
                 <span className="text-sm text-gray-500">
-                  {guestCounts.adults}/{selectedTable?.capacity} capacity
+                  {guestCounts.adults}/{isSecondaryDevice ? selectedTable?.availableAdultCapacity : selectedTable?.capacity} capacity
                 </span>
               </div>
               <Input
                 id="adults"
                 type="number"
                 min="1"
-                max={selectedTable?.capacity || 8}
+                max={isSecondaryDevice ? selectedTable?.availableAdultCapacity : selectedTable?.capacity || 8}
                 value={guestCounts.adults}
                 onChange={(e) => {
                   const value = Number.parseInt(e.target.value) || 1;
-                  const maxCapacity = selectedTable?.capacity || 8;
+                  const maxCapacity = isSecondaryDevice ? selectedTable?.availableAdultCapacity || 0 : selectedTable?.capacity || 8;
                   setGuestCounts((prev) => ({
                     ...prev,
                     adults: Math.max(1, Math.min(value, maxCapacity)),
                   }));
                 }}
-                className={guestCounts.adults >= (selectedTable?.capacity || 8) ? "border-red-300" : ""}
+                className={guestCounts.adults >= (isSecondaryDevice ? selectedTable?.availableAdultCapacity || 0 : selectedTable?.capacity || 8) ? "border-red-300" : ""}
               />
               <Progress 
-                value={(guestCounts.adults / (selectedTable?.capacity || 8)) * 100} 
+                value={(guestCounts.adults / (isSecondaryDevice ? selectedTable?.availableAdultCapacity || 1 : selectedTable?.capacity || 8)) * 100} 
                 className="h-2"
               />
-              {guestCounts.adults >= (selectedTable?.capacity || 8) && (
+              {guestCounts.adults >= (isSecondaryDevice ? selectedTable?.availableAdultCapacity || 0 : selectedTable?.capacity || 8) && (
                 <p className="text-sm text-red-600">Table capacity reached</p>
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="children">Children (3-12 years)</Label>
-              <Input
-                id="children"
-                type="number"
-                min="0"
-                value={guestCounts.children}
-                onChange={(e) =>
-                  setGuestCounts((prev) => ({
-                    ...prev,
-                    children: Math.max(0, Number.parseInt(e.target.value) || 0),
-                  }))
-                }
-              />
-            </div>
+            {/* Always show all form fields for both primary and secondary devices */}
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="children">Children (3-12 years)</Label>
+                <Input
+                  id="children"
+                  type="number"
+                  min="0"
+                  value={guestCounts.children}
+                  onChange={(e) =>
+                    setGuestCounts((prev) => ({
+                      ...prev,
+                      children: Math.max(0, Number.parseInt(e.target.value) || 0),
+                    }))
+                  }
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="infants">Infants (under 3 years)</Label>
-              <Input
-                id="infants"
-                type="number"
-                min="0"
-                value={guestCounts.infants}
-                onChange={(e) =>
-                  setGuestCounts((prev) => ({
-                    ...prev,
-                    infants: Math.max(0, Number.parseInt(e.target.value) || 0),
-                  }))
-                }
-              />
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="infants">Infants (under 3 years)</Label>
+                <Input
+                  id="infants"
+                  type="number"
+                  min="0"
+                  value={guestCounts.infants}
+                  onChange={(e) =>
+                    setGuestCounts((prev) => ({
+                      ...prev,
+                      infants: Math.max(0, Number.parseInt(e.target.value) || 0),
+                    }))
+                  }
+                />
+              </div>
 
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="drinks"
-                checked={guestCounts.includeDrinks}
-                onCheckedChange={(checked) =>
-                  setGuestCounts((prev) => ({
-                    ...prev,
-                    includeDrinks: checked as boolean,
-                  }))
-                }
-              />
-              <Label
-                htmlFor="drinks"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                Include drinks package
-              </Label>
-            </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="drinks"
+                  checked={guestCounts.includeDrinks}
+                  onCheckedChange={(checked) =>
+                    setGuestCounts((prev) => ({
+                      ...prev,
+                      includeDrinks: checked as boolean,
+                    }))
+                  }
+                />
+                <Label
+                  htmlFor="drinks"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  Include drinks package
+                </Label>
+              </div>
+            </>
           </div>
 
           <DialogFooter>
             <Button variant="outline" onClick={handleModalClose}>
               Cancel
             </Button>
-            <Button onClick={handleConfirm}>Confirm Selection</Button>
+            <Button 
+              onClick={handleConfirm}
+              disabled={guestCounts.adults === 0}
+            >
+              {isSecondaryDevice ? 'Join Table' : 'Confirm Selection'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Waiter Verification Modal */}
+      <WaiterVerificationModal
+        isOpen={isWaiterModalOpen}
+        onClose={() => setIsWaiterModalOpen(false)}
+        onVerified={handleWaiterVerified}
+      />
     </div>
   );
 }

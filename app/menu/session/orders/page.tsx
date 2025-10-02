@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { getOrders } from "@/lib/api/orders-client"
 import { fetchUsers } from "@/lib/api/users"
 import { getBuffetSettings } from "@/lib/api/settings"
+import { getTableSession, type TableSession } from "@/lib/api/table-sessions"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { CreditCard, Users, Coffee, CheckCircle, User } from "lucide-react"
@@ -39,7 +40,7 @@ export default function SessionOrdersPage() {
   const [validatedWaiter, setValidatedWaiter] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [tableNumber, setTableNumber] = useState<any>()
-  const [guestCounts, setGuestCounts] = useState({ adults: 2, children: 0, infants: 0 })
+  const [guestCounts, setGuestCounts] = useState({ adults: 0, children: 0, infants: 0, includeDrinks: false })
   const [buffetSettings, setBuffetSettings] = useState<any>(null)
 
   // Get current session based on time
@@ -105,11 +106,22 @@ export default function SessionOrdersPage() {
           setTableNumber(storedTableId)
         }
 
-        // Get guest counts from localStorage
-      
-        const storedGuestCounts = JSON.parse(localStorage.getItem('guestCounts') || '{}')
-       
-        setGuestCounts(storedGuestCounts)
+        // Fetch guest counts from DB table session (no localStorage)
+        if (storedTableId) {
+          try {
+            const session: TableSession | null = await getTableSession(storedTableId)
+            if (session?.guestCounts) {
+              setGuestCounts({
+                adults: session.guestCounts.adults || 0,
+                children: session.guestCounts.children || 0,
+                infants: session.guestCounts.infants || 0,
+                includeDrinks: session.guestCounts.includeDrinks || false
+              })
+            }
+          } catch (err) {
+            console.error('Failed to load table session for guest counts:', err)
+          }
+        }
 
         // Fetch buffet settings
         const settings = await getBuffetSettings()

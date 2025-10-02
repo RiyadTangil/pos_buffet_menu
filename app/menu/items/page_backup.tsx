@@ -128,9 +128,9 @@ export default function ItemsPage() {
 
   const addToCart = (menuItem: MenuItem) => {
     setCart((prev) => {
-      const existingItem = prev.find((item) => item.menuItem.id === menuItem.id)
+      const existingItem = prev.find((item) => item.menuItem?.id === menuItem.id)
       if (existingItem) {
-        return prev.map((item) => (item.menuItem.id === menuItem.id ? { ...item, quantity: item.quantity + 1 } : item))
+        return prev.map((item) => (item.menuItem?.id === menuItem.id ? { ...item, quantity: item.quantity + 1 } : item))
       }
       return [...prev, { menuItem, quantity: 1 }]
     })
@@ -139,13 +139,13 @@ export default function ItemsPage() {
   const removeFromCart = (menuItemId: string) => {
     setCart((prev) => {
       return prev
-        .map((item) => (item.menuItem.id === menuItemId ? { ...item, quantity: item.quantity - 1 } : item))
+        .map((item) => (item.menuItem?.id === menuItemId ? { ...item, quantity: item.quantity - 1 } : item))
         .filter((item) => item.quantity > 0)
     })
   }
 
   const getItemQuantity = (menuItemId: string) => {
-    const cartItem = cart.find((item) => item.menuItem.id === menuItemId)
+    const cartItem = cart.find((item) => item.menuItem?.id === menuItemId)
     return cartItem?.quantity || 0
   }
 
@@ -233,18 +233,18 @@ export default function ItemsPage() {
                       <div className="space-y-4 px-1">
                         {cart.map((item) => (
                           <div
-                            key={item.menuItem.id}
+                            key={item.menuItem?.id}
                             className="bg-white rounded-lg p-4 shadow-sm border border-orange-100"
                           >
                             <div className="flex items-start justify-between mb-3">
                               <div className="flex-1">
-                                <h4 className="font-semibold text-gray-900">{item.menuItem.name}</h4>
-                                <p className="text-sm text-gray-600 mt-1">{item.menuItem.description}</p>
+                                <h4 className="font-semibold text-gray-900">{item.menuItem?.name}</h4>
+                                <p className="text-sm text-gray-600 mt-1">{item.menuItem?.description}</p>
                               </div>
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => removeFromCart(item.menuItem.id)}
+                                onClick={() => removeFromCart(item.menuItem?.id)}
                                 className="text-gray-400 hover:text-red-500 flex-shrink-0"
                               >
                                 <X className="w-4 h-4" />
@@ -255,7 +255,7 @@ export default function ItemsPage() {
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  onClick={() => removeFromCart(item.menuItem.id)}
+                                  onClick={() => removeFromCart(item.menuItem?.id)}
                                   className="w-8 h-8 p-0 border-orange-200 hover:bg-orange-50"
                                 >
                                   <Minus className="w-4 h-4" />
