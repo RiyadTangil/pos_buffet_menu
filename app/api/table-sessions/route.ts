@@ -65,6 +65,7 @@ export async function GET(request: NextRequest) {
       guestCounts: session.guestCounts,
       cartItems: session.cartItems || [], // Include cartItems, default to empty array for backward compatibility
       nextOrderAvailableUntil: session.nextOrderAvailableUntil,
+      sessionEnded: session.sessionEnded || false,
       status: session.status,
       createdAt: session.createdAt,
       updatedAt: session.updatedAt,
@@ -84,15 +85,35 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// PATCH - Update next order availability time for an active table session
+// PATCH - Update table session fields (nextOrderAvailableUntil, sessionEnded)
 export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json()
-    const { tableId, nextOrderAvailableUntil } = body
+    const { tableId, nextOrderAvailableUntil, sessionEnded } = body
 
-    if (!tableId || !nextOrderAvailableUntil) {
+    if (!tableId) {
       return NextResponse.json(
-        { success: false, error: 'Table ID and nextOrderAvailableUntil are required' },
+        { success: false, error: 'Table ID is required' },
+        { status: 400 }
+      )
+    }
+
+    // Build update object dynamically
+    const updateFields: any = {
+      updatedAt: new Date()
+    }
+
+    if (nextOrderAvailableUntil !== undefined) {
+      updateFields.nextOrderAvailableUntil = nextOrderAvailableUntil
+    }
+
+    if (sessionEnded !== undefined) {
+      updateFields.sessionEnded = sessionEnded
+    }
+
+    if (Object.keys(updateFields).length === 1) { // Only updatedAt
+      return NextResponse.json(
+        { success: false, error: 'At least one field to update is required' },
         { status: 400 }
       )
     }
@@ -100,12 +121,7 @@ export async function PATCH(request: NextRequest) {
     const db = await getDatabase()
     const result = await db.collection('table_sessions').findOneAndUpdate(
       { tableId, status: 'active' },
-      {
-        $set: {
-          nextOrderAvailableUntil,
-          updatedAt: new Date()
-        }
-      },
+      { $set: updateFields },
       { returnDocument: 'after' }
     )
 
@@ -123,6 +139,7 @@ export async function PATCH(request: NextRequest) {
       guestCounts: result.guestCounts,
       cartItems: result.cartItems || [],
       nextOrderAvailableUntil: result.nextOrderAvailableUntil,
+      sessionEnded: result.sessionEnded || false,
       status: result.status,
       createdAt: result.createdAt,
       updatedAt: result.updatedAt,
@@ -134,9 +151,9 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json({ success: true, data: sessionData })
   } catch (error) {
-    console.error('Error updating next order availability:', error)
+    console.error('Error updating table session:', error)
     return NextResponse.json(
-      { success: false, error: 'Failed to update next order availability' },
+      { success: false, error: 'Failed to update table session' },
       { status: 500 }
     )
   }

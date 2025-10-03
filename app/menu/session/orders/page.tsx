@@ -6,6 +6,7 @@ import { getOrders } from "@/lib/api/orders-client"
 import { fetchUsers } from "@/lib/api/users"
 import { getBuffetSettings } from "@/lib/api/settings"
 import { getTableSession, type TableSession } from "@/lib/api/table-sessions"
+import { initializeSocketClient, joinTableRoom, onTableSessionUpdate, offTableSessionUpdate } from "@/lib/socket-client"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { CreditCard, Users, Coffee, CheckCircle, User } from "lucide-react"
@@ -28,6 +29,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
+import SessionEndedModal from "@/components/SessionEndedModal"
 
 export default function SessionOrdersPage() {
   const router = useRouter()
@@ -42,6 +44,7 @@ export default function SessionOrdersPage() {
   const [tableNumber, setTableNumber] = useState<any>()
   const [guestCounts, setGuestCounts] = useState({ adults: 0, children: 0, infants: 0, includeDrinks: false })
   const [buffetSettings, setBuffetSettings] = useState<any>(null)
+  const [showSessionEndedModal, setShowSessionEndedModal] = useState(false)
 
   // Get current session based on time
   const getCurrentSession = () => {
@@ -110,6 +113,13 @@ export default function SessionOrdersPage() {
         if (storedTableId) {
           try {
             const session: TableSession | null = await getTableSession(storedTableId)
+            
+            // Check if session has ended (either sessionEnded flag is true OR session is null)
+            if (session?.sessionEnded || session === null) {
+              setShowSessionEndedModal(true)
+              return // Don't continue loading if session has ended
+            }
+            
             if (session?.guestCounts) {
               setGuestCounts({
                 adults: session.guestCounts.adults || 0,
@@ -147,6 +157,42 @@ export default function SessionOrdersPage() {
     }
 
     loadData()
+  }, [])
+
+  // Socket connection for real-time updates
+  useEffect(() => {
+    const storedTableId = localStorage.getItem('selectedTableId')
+    if (!storedTableId) return
+
+    // Initialize socket and join table room
+    initializeSocketClient()
+    joinTableRoom(storedTableId)
+
+    // Listen for table session updates
+    const handleSessionUpdate = (updatedSession: TableSession | null) => {
+      // Check if session has ended (either sessionEnded flag is true OR session is null)
+      if (updatedSession?.sessionEnded || updatedSession === null) {
+        setShowSessionEndedModal(true)
+        return // Don't continue processing if session has ended
+      }
+      
+      // Update guest counts if changed
+      if (updatedSession.guestCounts) {
+        setGuestCounts({
+          adults: updatedSession.guestCounts.adults || 0,
+          children: updatedSession.guestCounts.children || 0,
+          infants: updatedSession.guestCounts.infants || 0,
+          includeDrinks: updatedSession.guestCounts.includeDrinks || false
+        })
+      }
+    }
+
+    onTableSessionUpdate(handleSessionUpdate)
+
+    // Cleanup on unmount
+    return () => {
+      offTableSessionUpdate(handleSessionUpdate)
+    }
   }, [])
 
   const calculateSessionTotal = () => {
@@ -556,6 +602,12 @@ export default function SessionOrdersPage() {
           </CardContent>
         </Card>
       </div>
+      
+      {/* Session Ended Modal */}
+      <SessionEndedModal 
+        isOpen={showSessionEndedModal} 
+        tableNumber={tableNumber} 
+      />
     </div>
   )
 }

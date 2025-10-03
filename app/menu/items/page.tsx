@@ -20,7 +20,9 @@ import { PrintButton } from '@/components/printing/PrintButton'
 import { PrintJobStatus } from '@/components/printing/PrintJobStatus'
 import { initializeSocketClient, joinTableRoom, leaveTableRoom, onTableSessionUpdate, offTableSessionUpdate, onCartUpdate, offCartUpdate, emitCartUpdate } from '@/lib/socket-client'
 import { addToCartApi, updateCartApi, removeFromCartApi, clearCartApi, updateCartItemQuantityApi } from '@/lib/api/cart'
+
 import Confetti from "react-confetti"
+import SessionEndedModal from "@/components/SessionEndedModal"
 
 interface CartItem {
   menuItem: Product
@@ -48,6 +50,7 @@ export default function ItemsPage() {
   const [orderPlaced, setOrderPlaced] = useState(false)
   const [timeRemaining, setTimeRemaining] = useState(0)
   const [sessionEnded, setSessionEnded] = useState(false)
+  const [showSessionEndedModal, setShowSessionEndedModal] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
   const [updatingItemId, setUpdatingItemId] = useState<string | null>(null)
   const [updatingAction, setUpdatingAction] = useState<'add' | 'remove' | null>(null)
@@ -296,6 +299,13 @@ export default function ItemsPage() {
         // Set up real-time table session updates
         onTableSessionUpdate((updatedSessionData) => {
           console.log('Received table session update:', updatedSessionData)
+          
+          // Check if session has ended (either sessionEnded flag or null session)
+          if (updatedSessionData?.sessionEnded || updatedSessionData === null) {
+            setShowSessionEndedModal(true)
+            return
+          }
+          
           setTableSession(updatedSessionData)
           // Update localStorage with fresh data
           localStorage.setItem('tableSession', JSON.stringify(updatedSessionData))
@@ -338,6 +348,13 @@ export default function ItemsPage() {
         let sessionData: TableSession | null = null
         try {
           sessionData = await getTableSession(storedTableId)
+          
+          // Check if session has ended (either sessionEnded flag or null session)
+          if (sessionData?.sessionEnded || sessionData === null) {
+            setShowSessionEndedModal(true)
+            return
+          }
+          
           if (sessionData) {
             setTableSession(sessionData)
             // Update localStorage with fresh data
@@ -1319,6 +1336,12 @@ export default function ItemsPage() {
           })()}
         </div>
       </div>
+      
+      {/* Session Ended Modal */}
+      <SessionEndedModal 
+        isOpen={showSessionEndedModal}
+        tableNumber={tableSession?.tableId || localStorage.getItem('selectedTableId') || 'Unknown'}
+      />
     </div>
   )
 }

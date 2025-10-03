@@ -22,6 +22,7 @@ export interface TableSession {
   }
   cartItems: CartItem[]
   nextOrderAvailableUntil?: string
+  sessionEnded?: boolean
   status: 'active' | 'completed' | 'cancelled'
   createdAt: string
   updatedAt: string

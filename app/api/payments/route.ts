@@ -135,6 +135,27 @@ export async function POST(request: NextRequest) {
     }
 
     const db = await getDatabase()
+    
+    // First, set sessionEnded=true for all table sessions on this table
+    try {
+      await db.collection('table_sessions').updateMany(
+        { tableId, status: 'active' },
+        { 
+          $set: { 
+            sessionEnded: true,
+            updatedAt: now.toISOString()
+          }
+        }
+      )
+    } catch (sessionUpdateError) {
+      console.error('Error updating table sessions:', sessionUpdateError)
+      return NextResponse.json(
+        { success: false, error: 'Failed to update table sessions' },
+        { status: 500 }
+      )
+    }
+
+    // Create the payment record
     const result = await db.collection(COLLECTIONS.PAYMENTS).insertOne(payment)
 
     if (!result.insertedId) {
@@ -159,6 +180,36 @@ export async function POST(request: NextRequest) {
     } catch (tableUpdateError) {
       console.error('Error updating table status:', tableUpdateError)
       // Don't fail the payment if table update fails, just log the error
+    }
+
+    // Clear all table session data for this table after successful payment
+    try {
+      await db.collection('table_sessions').deleteMany({ tableId })
+      
+      // Broadcast session deletion to all connected clients
+      try {
+        const response = await fetch(`${process.env.API_BASE_URL || 'http://localhost:3002/api'}/socket`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            action: 'broadcast',
+            room: `table-${tableId}`,
+            event: 'tableSessionUpdate',
+            data: null // Send null to indicate session has been cleared
+          })
+        })
+        
+        if (!response.ok) {
+          console.error('Failed to broadcast session deletion')
+        }
+      } catch (broadcastError) {
+        console.error('Error broadcasting session deletion:', broadcastError)
+      }
+    } catch (sessionDeleteError) {
+      console.error('Error clearing table sessions:', sessionDeleteError)
+      // Don't fail the payment if session cleanup fails, just log the error
     }
 
     // Return the created payment with formatted id
