@@ -45,7 +45,7 @@ export interface MongoPayment {
   paymentDate: string
   paymentTime: string
   status: 'completed' | 'pending' | 'failed'
-  paymentMethod: 'waiter' // Can be extended later for other methods
+  paymentMethod: 'cash' | 'card'
   createdAt: string
   updatedAt: string
 }
@@ -95,7 +95,7 @@ export interface Payment {
   paymentDate: string
   paymentTime: string
   status: 'completed' | 'pending' | 'failed'
-  paymentMethod: 'waiter'
+  paymentMethod: 'cash' | 'card'
   createdAt: string
   updatedAt: string
 }
@@ -107,6 +107,7 @@ export interface CreatePaymentRequest {
   waiterId: string
   waiterName: string
   totalAmount: number
+  paymentMethod?: 'cash' | 'card'
   sessionType: 'breakfast' | 'lunch' | 'dinner'
   sessionData: {
     adults: number

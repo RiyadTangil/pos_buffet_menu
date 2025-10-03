@@ -48,8 +48,25 @@ export async function GET(request: NextRequest) {
       .limit(limit)
       .toArray()
 
+    // Ensure tableNumber is numeric by resolving via tableId when needed
+    const tablesCollection = db.collection(COLLECTIONS.TABLES)
+    const enrichedPayments = await Promise.all(payments.map(async (payment: any) => {
+      const hasValidNumber = typeof payment.tableNumber === 'number' && Number.isFinite(payment.tableNumber)
+      if ((!hasValidNumber) && payment.tableId) {
+        try {
+          const tbl = await tablesCollection.findOne({ _id: new ObjectId(payment.tableId) })
+          if (tbl && typeof tbl.number === 'number') {
+            payment.tableNumber = tbl.number
+          }
+        } catch (err) {
+          console.warn('Failed to enrich tableNumber for payment', payment._id?.toString())
+        }
+      }
+      return payment
+    }))
+
     // Convert MongoDB _id to id for frontend compatibility
-    const formattedPayments = payments.map(payment => ({
+    const formattedPayments = enrichedPayments.map(payment => ({
       id: payment._id.toString(),
       paymentId: payment.paymentId,
       tableId: payment.tableId,
@@ -96,6 +113,7 @@ export async function POST(request: NextRequest) {
       waiterId,
       waiterName,
       totalAmount,
+      paymentMethod,
       sessionType,
       sessionData
     } = body
@@ -118,10 +136,24 @@ export async function POST(request: NextRequest) {
     const now = new Date()
     const paymentId = `PAY-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
     
+    // Resolve table number using tableId when not provided or invalid
+    const db = await getDatabase()
+    let resolvedTableNumber: number | undefined = tableNumber
+    if (typeof resolvedTableNumber !== 'number' || !Number.isFinite(resolvedTableNumber)) {
+      try {
+        const tableDoc = await db.collection(COLLECTIONS.TABLES).findOne({ _id: new ObjectId(tableId) })
+        if (tableDoc && typeof tableDoc.number === 'number') {
+          resolvedTableNumber = tableDoc.number
+        }
+      } catch (lookupErr) {
+        console.warn('Unable to resolve table number from tableId:', tableId, lookupErr)
+      }
+    }
+
     const payment: MongoPayment = {
       paymentId,
       tableId,
-      tableNumber,
+      tableNumber: resolvedTableNumber as number,
       waiterId,
       waiterName,
       totalAmount,
@@ -130,12 +162,11 @@ export async function POST(request: NextRequest) {
       paymentDate: now.toISOString().split('T')[0], // YYYY-MM-DD format
       paymentTime: now.toTimeString().split(' ')[0], // HH:MM:SS format
       status: 'completed',
-      paymentMethod: 'waiter',
+      paymentMethod: paymentMethod === 'card' ? 'card' : 'cash',
       createdAt: now.toISOString(),
       updatedAt: now.toISOString()
     }
-
-    const db = await getDatabase()
+    
     
     // First, set sessionEnded=true for all table sessions on this table
     try {

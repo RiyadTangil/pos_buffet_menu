@@ -3,6 +3,7 @@ import { getDatabase, COLLECTIONS } from '@/lib/mongodb'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { MongoPayment } from '@/lib/models/payment'
+import { ObjectId } from 'mongodb'
 
 // GET - Fetch payments for the logged-in waiter with filtering
 export async function GET(request: NextRequest) {
@@ -36,6 +37,7 @@ export async function GET(request: NextRequest) {
     const startDate = searchParams.get('startDate')
     const endDate = searchParams.get('endDate')
     const status = searchParams.get('status')
+    const paymentMethod = searchParams.get('paymentMethod')
 
     // Build filter query - always filter by the logged-in waiter's ID
     const filter: any = {
@@ -45,6 +47,7 @@ export async function GET(request: NextRequest) {
     if (sessionType && sessionType !== 'all') filter.sessionType = sessionType
     if (tableId && tableId !== 'all') filter.tableId = tableId
     if (status && status !== 'all') filter.status = status
+    if (paymentMethod && paymentMethod !== 'all') filter.paymentMethod = paymentMethod
     
     if (startDate || endDate) {
       filter.paymentDate = {}
@@ -66,8 +69,25 @@ export async function GET(request: NextRequest) {
       .limit(limit)
       .toArray()
 
+    // Enrich tableNumber using tableId when it's missing or invalid (e.g., stored as tableId string)
+    const tablesCollection = db.collection(COLLECTIONS.TABLES)
+    const enrichedPayments = await Promise.all(payments.map(async (payment) => {
+      const hasValidNumber = typeof payment.tableNumber === 'number' && Number.isFinite(payment.tableNumber)
+      if ((!hasValidNumber) && payment.tableId) {
+        try {
+          const tbl = await tablesCollection.findOne({ _id: new ObjectId(payment.tableId) })
+          if (tbl && typeof tbl.number === 'number') {
+            payment.tableNumber = tbl.number
+          }
+        } catch (err) {
+          console.warn('Failed to enrich tableNumber for payment', payment._id?.toString())
+        }
+      }
+      return payment
+    }))
+
     // Convert MongoDB _id to id for frontend compatibility
-    const formattedPayments = payments.map(payment => ({
+    const formattedPayments = enrichedPayments.map(payment => ({
       id: payment._id.toString(),
       paymentId: payment.paymentId,
       tableId: payment.tableId,

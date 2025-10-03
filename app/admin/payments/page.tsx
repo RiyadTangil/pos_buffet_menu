@@ -8,6 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import PaymentRow from '@/components/payments/PaymentRow';
+import PrintPaymentsTableButton from '@/components/payments/PrintPaymentsTableButton';
+import SendPaymentsToPrintersButton from '@/components/payments/SendPaymentsToPrintersButton';
 import { Calendar, Clock, Users, CreditCard, Filter, Search, DollarSign } from 'lucide-react';
 import { Payment } from '@/lib/models/payment';
 
@@ -291,10 +294,16 @@ export default function PaymentsPage() {
       {/* Payments Table */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CreditCard className="h-5 w-5" />
-            Payments ({pagination?.total || 0})
-          </CardTitle>
+          <div className="flex items-center justify-between w-full">
+            <CardTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5" />
+              Payments ({pagination?.total || 0})
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              <PrintPaymentsTableButton payments={payments} variant="outline" size="sm" />
+              <SendPaymentsToPrintersButton payments={payments} />
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -328,48 +337,7 @@ export default function PaymentsPage() {
                 </TableHeader>
                 <TableBody>
                   {payments.map((payment) => (
-                    <TableRow key={payment.id}>
-                      <TableCell className="font-mono text-xs">
-                        {payment.paymentId}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-col">
-                          <span className="text-sm font-medium">{payment.paymentDate}</span>
-                          <span className="text-xs text-muted-foreground">{payment.paymentTime}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">Table {payment.tableNumber}</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={getSessionBadgeVariant(payment.sessionType)}>
-                          {payment.sessionType.charAt(0).toUpperCase() + payment.sessionType.slice(1)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-col">
-                          <span className="text-sm font-medium">{payment.waiterName}</span>
-                          <span className="text-xs text-muted-foreground font-mono">{payment.waiterId}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-xs">
-                          <div>Adults: {payment.sessionData.adults}</div>
-                          <div>Children: {payment.sessionData.children}</div>
-                          <div>Infants: {payment.sessionData.infants}</div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <span className="font-semibold text-green-600">
-                          {formatCurrency(payment.totalAmount)}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={getStatusBadgeVariant(payment.status)}>
-                          {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
+                    <PaymentRow key={payment.id} payment={payment} />
                   ))}
                 </TableBody>
               </Table>

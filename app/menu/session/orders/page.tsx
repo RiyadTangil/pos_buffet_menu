@@ -9,7 +9,7 @@ import { getTableSession, type TableSession } from "@/lib/api/table-sessions"
 import { initializeSocketClient, joinTableRoom, onTableSessionUpdate, offTableSessionUpdate } from "@/lib/socket-client"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { CreditCard, Users, Coffee, CheckCircle, User } from "lucide-react"
+import { CreditCard, Users, Coffee, CheckCircle, User, DollarSign } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -288,6 +288,7 @@ export default function SessionOrdersPage() {
          tableNumber: tableNumber,
          waiterId: waiter.id,
          waiterName: waiter.name,
+         paymentMethod: paymentMethod,
         totalAmount: grandTotal,
         sessionType: currentSession?.key || 'lunch',
         sessionData: {
@@ -345,6 +346,9 @@ export default function SessionOrdersPage() {
       setPinError(`Payment failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
+
+  // Payment method selection (cash default)
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card'>('cash')
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
@@ -591,6 +595,29 @@ export default function SessionOrdersPage() {
                           {validatedWaiter && (
                             <p className="text-sm text-green-600 mt-1">✓ Validated: {validatedWaiter.name}</p>
                           )}
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label>Payment Method</Label>
+                          <div className="grid grid-cols-2 gap-2">
+                            <Button
+                              type="button"
+                              variant={paymentMethod === 'cash' ? 'default' : 'outline'}
+                              className={paymentMethod === 'cash' ? 'bg-amber-600 hover:bg-amber-700 text-white' : ''}
+                              onClick={() => setPaymentMethod('cash')}
+                              aria-pressed={paymentMethod === 'cash'}
+                            >
+                              <DollarSign className="w-4 h-4 mr-2" /> Cash
+                            </Button>
+                            <Button
+                              type="button"
+                              variant={paymentMethod === 'card' ? 'default' : 'outline'}
+                              onClick={() => setPaymentMethod('card')}
+                              aria-pressed={paymentMethod === 'card'}
+                            >
+                              <CreditCard className="w-4 h-4 mr-2" /> Card
+                            </Button>
+                          </div>
                         </div>
                       </div>
 
