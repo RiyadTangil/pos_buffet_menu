@@ -32,7 +32,7 @@ const fetchTables = async () => {
   }
 };
 
-// Fetch payments from API
+// Fetch payments from API auto printer add done
 const fetchPayments = async (filters: {
   startDate?: string;
   endDate?: string;
