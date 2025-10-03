@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { fetchTables, updateTableStatus, updateTableGuests, type Table } from "@/lib/api/tables";
+import { initializeSocketClient, joinTablesRoom, leaveTablesRoom, onTablesUpdate, offTablesUpdate } from "@/lib/socket-client";
 import { getBuffetSettings, type BuffetSettings } from "@/lib/api/settings";
 import { 
   getTableSession, 
@@ -57,52 +58,71 @@ export default function TablesPage() {
     includeDrinks: false,
   });
 
+  // Shared loader to fetch tables and settings
+  const loadData = async () => {
+    try {
+      setIsLoading(true);
+      const [tablesData, settingsData] = await Promise.all([
+        fetchTables(),
+        getBuffetSettings()
+      ]);
+      
+      // Enhance tables with session information
+      const tablesWithSessions = await Promise.all(
+        tablesData.map(async (table) => {
+          try {
+            const session = await getTableSession(table.id);
+            const availableAdultCapacity = session 
+              ? Math.max(0, table.capacity - session.guestCounts.adults)
+              : table.capacity;
+            
+            return {
+              ...table,
+              session,
+              availableAdultCapacity
+            };
+          } catch (error) {
+            console.error(`Error fetching session for table ${table.id}:`, error);
+            return {
+              ...table,
+              session: undefined,
+              availableAdultCapacity: table.capacity
+            };
+          }
+        })
+      );
+      
+      setTableStates(tablesWithSessions);
+      setBuffetSettings(settingsData);
+    } catch (error) {
+      console.error('Failed to fetch data:', error);
+      toast.error('Failed to load data. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Fetch tables and settings data on component mount
   useEffect(() => {
-    const loadData = async () => {
-      try {
-        setIsLoading(true);
-        const [tablesData, settingsData] = await Promise.all([
-          fetchTables(),
-          getBuffetSettings()
-        ]);
-        
-        // Enhance tables with session information
-        const tablesWithSessions = await Promise.all(
-          tablesData.map(async (table) => {
-            try {
-              const session = await getTableSession(table.id);
-              const availableAdultCapacity = session 
-                ? Math.max(0, table.capacity - session.guestCounts.adults)
-                : table.capacity;
-              
-              return {
-                ...table,
-                session,
-                availableAdultCapacity
-              };
-            } catch (error) {
-              console.error(`Error fetching session for table ${table.id}:`, error);
-              return {
-                ...table,
-                session: undefined,
-                availableAdultCapacity: table.capacity
-              };
-            }
-          })
-        );
-        
-        setTableStates(tablesWithSessions);
-        setBuffetSettings(settingsData);
-      } catch (error) {
-        console.error('Failed to fetch data:', error);
-        toast.error('Failed to load data. Please try again.');
-      } finally {
-        setIsLoading(false);
-      }
+    loadData();
+  }, []);
+
+  // Socket: join tables room and refresh on updates
+  useEffect(() => {
+    initializeSocketClient();
+    joinTablesRoom();
+
+    const handleTablesUpdate = () => {
+      // Refresh tables data on any update
+      loadData();
     };
 
-    loadData();
+    onTablesUpdate(handleTablesUpdate);
+
+    return () => {
+      offTablesUpdate();
+      leaveTablesRoom();
+    };
   }, []);
 
   const getStatusColor = (status: Table["status"]) => {
@@ -190,7 +210,7 @@ export default function TablesPage() {
     }
   };
 
-  const handleWaiterVerified = (waiterInfo: { name: string; role: string }) => {
+  const handleWaiterVerified = (waiterInfo: { name: string; role: string; pin: string }) => {
     setVerifiedWaiter(waiterInfo);
     setIsWaiterModalOpen(false);
     setIsModalOpen(true);
@@ -204,7 +224,7 @@ export default function TablesPage() {
           tableId: selectedTable.id,
           deviceId,
           guestCounts,
-          waiterPin: verifiedWaiter ? '1234' : undefined, // In production, store actual PIN
+          waiterPin: verifiedWaiter?.pin,
           isSecondaryDevice
         });
 
@@ -545,7 +565,7 @@ export default function TablesPage() {
             </Button>
             <Button 
               onClick={handleConfirm}
-              disabled={guestCounts.adults === 0}
+              disabled={guestCounts.adults === 0 || (isSecondaryDevice && !verifiedWaiter)}
             >
               {isSecondaryDevice ? 'Join Table' : 'Confirm Selection'}
             </Button>

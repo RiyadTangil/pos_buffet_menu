@@ -98,6 +98,37 @@ export function leaveTableRoom(tableId: string): void {
   }
 }
 
+// Join the global tables room to receive table list updates
+export function joinTablesRoom(): Promise<void> {
+  return new Promise((resolve) => {
+    if (typeof window === 'undefined') {
+      console.log('🚫 Cannot join tables room - running on server-side')
+      resolve()
+      return
+    }
+
+    const client = initializeSocketClient()
+    if (!client) {
+      console.warn('Socket client not initialized; cannot join tables room')
+      resolve()
+      return
+    }
+
+    client.emit('join-tables')
+    console.log('🏠 Joined tables room')
+    resolve()
+  })
+}
+
+// Leave the global tables room
+export function leaveTablesRoom(): void {
+  if (typeof window === 'undefined') return
+  const client = getSocket()
+  if (!client) return
+  client.emit('leave-tables')
+  console.log('🚪 Left tables room')
+}
+
 export function onTableSessionUpdate(callback: (sessionData: any) => void): void {
   // Only run on client-side
   if (typeof window === 'undefined') {
@@ -128,6 +159,40 @@ export function offTableSessionUpdate(): void {
     socket.off('tableSessionUpdate')
   } else {
     console.warn('⚠️ Cannot remove listener - socket not initialized')
+  }
+}
+
+// Listen for tables list/status updates (global room)
+export function onTablesUpdate(callback: (update: any) => void): void {
+  // Only run on client-side
+  if (typeof window === 'undefined') {
+    console.log('🚫 Cannot set up tables listener - running on server-side')
+    return
+  }
+
+  if (socket) {
+    console.log('👂 Setting up tablesUpdate listener')
+    socket.on('tablesUpdate', (update) => {
+      console.log('📨 Received tablesUpdate:', update)
+      callback(update)
+    })
+  } else {
+    console.warn('⚠️ Cannot set up tables listener - socket not initialized')
+  }
+}
+
+export function offTablesUpdate(): void {
+  // Only run on client-side
+  if (typeof window === 'undefined') {
+    console.log('🚫 Cannot remove tables listener - running on server-side')
+    return
+  }
+
+  if (socket) {
+    console.log('🔇 Removing tablesUpdate listener')
+    socket.off('tablesUpdate')
+  } else {
+    console.warn('⚠️ Cannot remove tables listener - socket not initialized')
   }
 }
 

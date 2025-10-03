@@ -19,7 +19,7 @@ import { verifyWaiterPin } from "@/lib/api/table-sessions"
 interface WaiterVerificationModalProps {
   isOpen: boolean
   onClose: () => void
-  onVerified: (waiterInfo: { name: string; role: string }) => void
+  onVerified: (waiterInfo: { name: string; role: string; pin: string }) => void
   title?: string
   description?: string
 }
@@ -46,7 +46,7 @@ export function WaiterVerificationModal({
 
     try {
       const waiterInfo = await verifyWaiterPin(pin)
-      onVerified(waiterInfo)
+      onVerified({ name: waiterInfo.name, role: waiterInfo.role, pin })
       handleClose()
     } catch (error) {
       setError(error instanceof Error ? error.message : "Invalid PIN")
@@ -105,14 +105,7 @@ export function WaiterVerificationModal({
             </Alert>
           )}
 
-          <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
-            <p className="font-medium mb-1">Demo PINs:</p>
-            <ul className="space-y-1 text-xs">
-              <li>• 1234 - John Doe (Waiter)</li>
-              <li>• 5678 - Jane Smith (Senior Waiter)</li>
-              <li>• 9999 - Manager</li>
-            </ul>
-          </div>
+          {/* Demo PINs removed. PINs are now validated against the database. */}
         </div>
 
         <DialogFooter>

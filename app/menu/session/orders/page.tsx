@@ -350,9 +350,14 @@ export default function SessionOrdersPage() {
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Session Orders</h1>
-          <p className="text-gray-600">Review all orders placed during this session</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Session Orders</h1>
+            <p className="text-gray-600">Review all orders placed during this session</p>
+          </div>
+          <Button variant="outline" onClick={() => router.back()} aria-label="Go back">
+            Back
+          </Button>
         </div>
 
         {/* Session Info */}

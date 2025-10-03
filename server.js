@@ -45,11 +45,25 @@ app.prepare().then(() => {
       console.log(`👥 Clients in table-${tableId}:`, io.sockets.adapter.rooms.get(`table-${tableId}`)?.size || 0)
     })
 
+    // Join global tables room
+    socket.on('join-tables', () => {
+      socket.join('tables')
+      console.log(`🏠 Socket ${socket.id} joined tables room`)
+      console.log(`👥 Clients in tables room:`, io.sockets.adapter.rooms.get('tables')?.size || 0)
+    })
+
     // Leave table room
     socket.on('leave-table', (tableId) => {
       socket.leave(`table-${tableId}`)
       console.log(`🚪 Socket ${socket.id} left table-${tableId}`)
       console.log(`👥 Remaining clients in table-${tableId}:`, io.sockets.adapter.rooms.get(`table-${tableId}`)?.size || 0)
+    })
+
+    // Leave global tables room
+    socket.on('leave-tables', () => {
+      socket.leave('tables')
+      console.log(`🚪 Socket ${socket.id} left tables room`)
+      console.log(`👥 Clients in tables room:`, io.sockets.adapter.rooms.get('tables')?.size || 0)
     })
 
     // Handle cart updates
@@ -73,6 +87,14 @@ app.prepare().then(() => {
     console.log(`📋 Session data:`, JSON.stringify(sessionData, null, 2))
     console.log(`👥 Broadcasting to ${io.sockets.adapter.rooms.get(`table-${tableId}`)?.size || 0} clients`)
     io.to(`table-${tableId}`).emit('tableSessionUpdate', sessionData)
+  }
+
+  // Broadcast updates to all clients in the tables room
+  global.broadcastTablesUpdate = (update) => {
+    console.log(`📡 Broadcasting tables update`)
+    console.log(`📋 Update data:`, JSON.stringify(update, null, 2))
+    console.log(`👥 Broadcasting to ${io.sockets.adapter.rooms.get('tables')?.size || 0} clients`)
+    io.to('tables').emit('tablesUpdate', update)
   }
 
   httpServer

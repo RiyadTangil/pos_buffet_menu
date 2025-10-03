@@ -12,6 +12,18 @@ export function broadcastTableSessionUpdate(tableId: string, sessionData: any) {
   }
 }
 
+// Broadcast global tables updates (create/update/delete/status changes)
+export function broadcastTablesUpdate(update: any) {
+  if (global.io) {
+    console.log('📡 API Broadcasting tables update')
+    console.log('📋 API Update data:', JSON.stringify(update, null, 2))
+    console.log(`👥 API Broadcasting to ${global.io.sockets.adapter.rooms.get('tables')?.size || 0} clients`)
+    global.io.to('tables').emit('tablesUpdate', update)
+  } else {
+    console.warn('Socket.IO server not initialized')
+  }
+}
+
 // GET endpoint to get Socket.IO status
 export async function GET(request: NextRequest) {
   return NextResponse.json({

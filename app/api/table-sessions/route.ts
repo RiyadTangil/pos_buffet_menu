@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getDatabase } from '@/lib/mongodb'
 import { ObjectId } from 'mongodb'
-import { broadcastTableSessionUpdate } from '@/app/api/socket/route'
+import { broadcastTableSessionUpdate, broadcastTablesUpdate } from '@/app/api/socket/route'
 
 export interface CartItem {
   menuItemId: string
@@ -211,17 +211,26 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      // Verify waiter PIN if provided
-      if (waiterPin) {
-        // For now, we'll use a simple PIN validation
-        // In production, you'd validate against a waiter database
-        const validPins = ['1234', '5678', '9999'] // Demo pins
-        if (!validPins.includes(waiterPin)) {
-          return NextResponse.json(
-            { success: false, error: 'Invalid waiter PIN' },
-            { status: 401 }
-          )
-        }
+      // Require valid waiter PIN for secondary device join
+      if (!waiterPin || !/^\d{4}$/.test(waiterPin)) {
+        return NextResponse.json(
+          { success: false, error: 'Valid 4-digit waiter PIN is required' },
+          { status: 401 }
+        )
+      }
+
+      // Validate waiter PIN against database
+      const waiter = await db.collection('users').findOne({ 
+        pin: waiterPin, 
+        role: 'waiter', 
+        status: 'active' 
+      })
+
+      if (!waiter) {
+        return NextResponse.json(
+          { success: false, error: 'Invalid waiter PIN or waiter not found' },
+          { status: 401 }
+        )
       }
 
       // Get table capacity to check if additional adults can be accommodated
@@ -329,6 +338,9 @@ export async function POST(request: NextRequest) {
         }
       )
 
+      // Notify all devices watching the tables list
+      broadcastTablesUpdate({ type: 'refresh' })
+
       // Broadcast the new session to all devices on this table
       const sessionData = {
         id: result.insertedId.toString(),
@@ -392,6 +404,9 @@ export async function DELETE(request: NextRequest) {
         }
       }
     )
+
+    // Notify all devices watching the tables list
+    broadcastTablesUpdate({ type: 'refresh' })
 
     return NextResponse.json({
       success: true,

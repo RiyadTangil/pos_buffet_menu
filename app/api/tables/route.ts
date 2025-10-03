@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import {  getDatabase } from '@/lib/mongodb'
+import { broadcastTablesUpdate } from '@/app/api/socket/route'
 import { ObjectId } from 'mongodb'
 
 // GET - Fetch all tables
@@ -87,6 +88,9 @@ export async function POST(request: NextRequest) {
       id: result.insertedId.toString(),
       ...newTable
     }
+
+    // Notify all devices watching the tables list
+    broadcastTablesUpdate({ type: 'refresh' })
 
     return NextResponse.json({
       success: true,

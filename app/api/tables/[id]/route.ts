@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import {  getDatabase } from '@/lib/mongodb'
+import { broadcastTablesUpdate } from '@/app/api/socket/route'
 import { ObjectId } from 'mongodb'
 
 // GET - Fetch a single table by ID
@@ -170,6 +171,9 @@ export async function PUT(
       updatedAt: updatedTable!.updatedAt
     }
 
+    // Notify all devices watching the tables list
+    broadcastTablesUpdate({ type: 'refresh' })
+
     return NextResponse.json({
       success: true,
       data: formattedTable
@@ -222,6 +226,9 @@ export async function DELETE(
         { status: 404 }
       )
     }
+
+    // Notify all devices watching the tables list
+    broadcastTablesUpdate({ type: 'refresh' })
 
     return NextResponse.json({
       success: true,

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getDatabase, COLLECTIONS } from '@/lib/mongodb'
 import { ObjectId } from 'mongodb'
 import { MongoPayment, CreatePaymentRequest } from '@/lib/models/payment'
+import { broadcastTablesUpdate } from '@/app/api/socket/route'
 
 // GET - Fetch all payments with optional filtering
 export async function GET(request: NextRequest) {
@@ -177,6 +178,9 @@ export async function POST(request: NextRequest) {
           }
         }
       )
+
+      // Notify all devices watching the tables list
+      broadcastTablesUpdate({ type: 'refresh' })
     } catch (tableUpdateError) {
       console.error('Error updating table status:', tableUpdateError)
       // Don't fail the payment if table update fails, just log the error
@@ -206,6 +210,13 @@ export async function POST(request: NextRequest) {
         }
       } catch (broadcastError) {
         console.error('Error broadcasting session deletion:', broadcastError)
+      }
+
+      // Also broadcast a global tables update so /menu/tables auto-refreshes
+      try {
+        broadcastTablesUpdate({ type: 'refresh' })
+      } catch (broadcastTablesError) {
+        console.error('Error broadcasting global tables update:', broadcastTablesError)
       }
     } catch (sessionDeleteError) {
       console.error('Error clearing table sessions:', sessionDeleteError)
