@@ -11,6 +11,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import PaymentRow from '@/components/payments/PaymentRow';
 import PrintPaymentsTableButton from '@/components/payments/PrintPaymentsTableButton';
 import SendPaymentsToPrintersButton from '@/components/payments/SendPaymentsToPrintersButton';
+import SendPaymentsToBluetoothPrintersButton from '@/components/payments/SendPaymentsToBluetoothPrintersButton';
+import SendPaymentsToUSBPrintersButton from '@/components/payments/SendPaymentsToUSBPrintersButton';
 import { Calendar, Clock, Users, CreditCard, Filter, Search, DollarSign } from 'lucide-react';
 import { Payment } from '@/lib/models/payment';
 
@@ -302,6 +304,8 @@ export default function PaymentsPage() {
             <div className="flex items-center gap-2">
               <PrintPaymentsTableButton payments={payments} variant="outline" size="sm" />
               <SendPaymentsToPrintersButton payments={payments} />
+              <SendPaymentsToBluetoothPrintersButton payments={payments} />
+              <SendPaymentsToUSBPrintersButton payments={payments} />
             </div>
           </div>
         </CardHeader>

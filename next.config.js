@@ -16,7 +16,7 @@ const nextConfig = {
     return config
   },
   experimental: {
-    serverComponentsExternalPackages: ['mongodb']
+    serverComponentsExternalPackages: ['mongodb', 'serialport', 'pdf-to-printer', 'pdf-lib']
   }
 }
 

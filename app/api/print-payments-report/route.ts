@@ -1,8 +1,10 @@
-'use server'
+// Ensure Node.js runtime so we can use TCP sockets
+export const runtime = "nodejs"
 
 import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
+import net from 'net'
 
 // Minimal models to avoid deep imports
 type PrintJobStatus = 'pending' | 'printing' | 'completed' | 'failed'
@@ -59,6 +61,16 @@ function writeJson<T>(filePath: string, data: T) {
   }
 }
 
+function updatePrintJob(jobId: string, updater: (job: PrintJob) => void) {
+  const jobs = readJson<PrintJob[]>(PRINT_JOBS_FILE, [])
+  const idx = jobs.findIndex(j => j.id === jobId)
+  if (idx !== -1) {
+    updater(jobs[idx])
+    jobs[idx].updatedAt = new Date().toISOString()
+    writeJson(PRINT_JOBS_FILE, jobs)
+  }
+}
+
 function generateId() {
   return Math.random().toString(36).slice(2) + Date.now().toString(36)
 }
@@ -82,6 +94,80 @@ function simulatePrintJobProcessing(jobId: string) {
       writeJson(PRINT_JOBS_FILE, jobs2)
     }, 1200)
   }, 600)
+}
+
+// Build very simple ESC/POS payload from text items
+function buildEscPosPayload(items: PrintJobItem[]): Buffer {
+  const cmds: number[] = []
+  // Initialize printer
+  cmds.push(0x1B, 0x40)
+  for (const item of items) {
+    if (item.type === 'line') {
+      // Separator line
+      const line = item.content || '--------------------------------'
+      cmds.push(...Buffer.from(line + "\n", 'ascii'))
+    } else {
+      const text = (item.content || '') + "\n"
+      cmds.push(...Buffer.from(text, 'ascii'))
+    }
+  }
+  // Feed and partial cut (GS V 1) — some printers may ignore cut
+  cmds.push(0x1D, 0x56, 0x01)
+  return Buffer.from(cmds)
+}
+
+async function sendToNetworkPrinter(printer: PrinterConfig, items: PrintJobItem[], timeoutMs = 5000): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const socket = new net.Socket()
+    let settled = false
+
+    const timer = setTimeout(() => {
+      if (!settled) {
+        settled = true
+        socket.destroy()
+        reject(new Error('Printer connection timeout'))
+      }
+    }, timeoutMs)
+
+    socket.once('error', (err) => {
+      if (!settled) {
+        settled = true
+        clearTimeout(timer)
+        reject(err)
+      }
+    })
+
+    socket.connect(printer.port, printer.ipAddress, () => {
+      try {
+        const payload = buildEscPosPayload(items)
+        socket.write(payload, (writeErr) => {
+          if (writeErr && !settled) {
+            settled = true
+            clearTimeout(timer)
+            socket.destroy()
+            reject(writeErr)
+            return
+          }
+          // Give the printer a short moment to accept data
+          setTimeout(() => {
+            if (!settled) {
+              settled = true
+              clearTimeout(timer)
+              socket.end()
+              resolve()
+            }
+          }, 300)
+        })
+      } catch (e) {
+        if (!settled) {
+          settled = true
+          clearTimeout(timer)
+          socket.destroy()
+          reject(e as Error)
+        }
+      }
+    })
+  })
 }
 
 export async function POST(request: NextRequest) {
@@ -153,13 +239,31 @@ export async function POST(request: NextRequest) {
     existingJobs.unshift(printJob)
     writeJson(PRINT_JOBS_FILE, existingJobs)
 
-    simulatePrintJobProcessing(printJob.id)
-
-    return NextResponse.json({
-      success: true,
-      data: [printJob],
-      message: 'Payments report sent to printer'
-    })
+    // Attempt actual network printing if printer is thermal and has IP:PORT
+    try {
+      updatePrintJob(printJob.id, (j) => { j.status = 'printing' })
+      if (selectedPrinter.type === 'thermal' && selectedPrinter.ipAddress && selectedPrinter.port) {
+        await sendToNetworkPrinter(selectedPrinter, printJob.items)
+        updatePrintJob(printJob.id, (j) => { j.status = 'completed' })
+      } else {
+        // Fallback to simulation for non-network printers
+        simulatePrintJobProcessing(printJob.id)
+      }
+      return NextResponse.json({
+        success: true,
+        data: [printJob],
+        message: 'Payments report sent to printer'
+      })
+    } catch (err: any) {
+      updatePrintJob(printJob.id, (j) => {
+        j.status = 'failed'
+        j.error = err?.message || 'Printer error'
+      })
+      return NextResponse.json({
+        success: false,
+        error: `Failed to send to printer: ${err?.message || 'Unknown error'}`
+      }, { status: 502 })
+    }
   } catch (error) {
     console.error('Error printing payments report:', error)
     return NextResponse.json(
