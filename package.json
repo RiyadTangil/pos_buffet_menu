@@ -70,6 +70,8 @@
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
     "sonner": "^1.7.4",
+    "i18next": "^23.11.5",
+    "react-i18next": "^14.1.2",
     "svelte": "latest",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",

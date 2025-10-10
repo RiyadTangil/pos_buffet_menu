@@ -1,0 +1,15 @@
+{
+  "login.header_line1": "ENTER REGISTERED",
+  "login.header_line2": "Table Number & Password",
+  "login.table_number": "Table Number",
+  "login.password": "PASSWORD",
+  "login.placeholder_table": "Enter table number",
+  "login.error_invalid": "Invalid number or password. Please try again.",
+  "login.signing_in": "SIGNING IN...",
+  "login.login": "LOGIN",
+  "login.demo_credentials": "Demo Credentials:",
+  "login.demo_email": "Table: 101",
+  "login.demo_password": "Password: admin123",
+  "language.english": "English",
+  "language.german": "German"
+}

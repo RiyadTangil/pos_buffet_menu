@@ -23,6 +23,7 @@ import { addToCartApi, updateCartApi, removeFromCartApi, clearCartApi, updateCar
 
 import Confetti from "react-confetti"
 import SessionEndedModal from "@/components/SessionEndedModal"
+import OrderPrinter from "@/components/printing/OrderPrinter"
 
 interface CartItem {
   menuItem: Product
@@ -54,6 +55,8 @@ export default function ItemsPage() {
   const [isUpdating, setIsUpdating] = useState(false)
   const [updatingItemId, setUpdatingItemId] = useState<string | null>(null)
   const [updatingAction, setUpdatingAction] = useState<'add' | 'remove' | null>(null)
+  const [lastOrderId, setLastOrderId] = useState<string | null>(null)
+  const [shouldPrintOrder, setShouldPrintOrder] = useState(false)
 
   // Helper functions for localStorage persistence
   const saveOrderIntervalToStorage = (orderPlacedState: boolean, timeRemainingValue: number) => {
@@ -264,7 +267,6 @@ export default function ItemsPage() {
   const [buffetSettings, setBuffetSettings] = useState<any>(null)
   const [progressKey, setProgressKey] = useState(0)
   const [currentTime, setCurrentTime] = useState(new Date())
-  const [lastOrderId, setLastOrderId] = useState<string | null>(null)
 
   // Fetch categories, products, and buffet settings on component mount
   useEffect(() => {
@@ -750,8 +752,12 @@ export default function ItemsPage() {
         console.log('Order created successfully:', result.orderId)
         setLastOrderId(result.orderId)
         
-        // Print the order - IP-based printer (commented out for now)
+        // Trigger automatic printing with OrderPrinter component
+        setShouldPrintOrder(true)
+        
+        // Remove old printing code - now handled by OrderPrinter component
         /*
+        // Print the order - IP-based printer (commented out for now)
         try {
           const orderItems = cart.map(item => ({
             id: item.menuItem?.id,
@@ -776,7 +782,6 @@ export default function ItemsPage() {
           console.error('Print error:', printError)
           // Don't block the order flow if printing fails
         }
-        */
 
         // Print to local printer
         try {
@@ -804,6 +809,7 @@ export default function ItemsPage() {
           console.error('Local print error:', printError)
           // Don't block the order flow if printing fails
         }
+        */
         
         setShowConfetti(true)
         setOrderPlaced(true)
@@ -1342,6 +1348,32 @@ export default function ItemsPage() {
         isOpen={showSessionEndedModal}
         tableNumber={tableSession?.tableId || localStorage.getItem('selectedTableId') || 'Unknown'}
       />
+
+      {/* Order Printer Component - Handles automatic printing */}
+      {shouldPrintOrder && lastOrderId && (
+        <OrderPrinter
+          orderId={lastOrderId}
+          orderItems={cart.map(item => ({
+            id: item.menuItem?.id,
+            name: item.menuItem.name,
+            quantity: item.quantity,
+            price: item.menuItem.price || 0,
+            categoryId: item.menuItem.categoryId,
+            category: {
+              id: item.menuItem.categoryId,
+              name: categories.find(cat => cat.id === item.menuItem.categoryId)?.name || 'Unknown'
+            }
+          }))}
+          tableNumber={tableSession?.tableId}
+          guestCount={(tableSession?.guestCounts.adults || 0) + (tableSession?.guestCounts.children || 0) + (tableSession?.guestCounts.infants || 0)}
+          orderTime={new Date().toISOString()}
+          onPrintComplete={(success, errors) => {
+            console.log('Print completed:', success, errors)
+            setShouldPrintOrder(false) // Reset print trigger
+          }}
+          autoPrint={true}
+        />
+      )}
     </div>
   )
 }

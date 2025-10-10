@@ -2,38 +2,40 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Users, Package, Calendar, ShoppingCart, BarChart3, TrendingUp } from "lucide-react"
+import { useEffect, useState } from "react"
+import { toast } from "@/components/ui/use-toast"
 
 export default function DashboardPage() {
-  const stats = [
-    {
-      title: "Total Users",
-      value: "24",
-      description: "Active staff members",
-      icon: Users,
-      trend: "+2 from last month"
-    },
-    {
-      title: "Menu Items",
-      value: "156",
-      description: "Available products",
-      icon: Package,
-      trend: "+12 new items"
-    },
-    {
-      title: "Today's Orders",
-      value: "89",
-      description: "Orders processed",
-      icon: ShoppingCart,
-      trend: "+15% from yesterday"
-    },
-    {
-      title: "Bookings",
-      value: "32",
-      description: "Table reservations",
-      icon: Calendar,
-      trend: "8 for today"
+  const [stats, setStats] = useState([
+    { title: "Total Users", value: "-", description: "Active staff members", icon: Users, trend: "" },
+    { title: "Menu Items", value: "-", description: "Available products", icon: Package, trend: "" },
+    { title: "Today's Orders", value: "-", description: "Orders processed", icon: ShoppingCart, trend: "" },
+    { title: "Bookings", value: "-", description: "Table reservations", icon: Calendar, trend: "" }
+  ])
+
+  useEffect(() => {
+    let isMounted = true
+    const load = async () => {
+      try {
+        const res = await fetch('/api/admin-dashboard')
+        const json = await res.json()
+        if (!json?.success) throw new Error(json?.error || 'Failed to load dashboard metrics')
+        const { totalUsers, menuItems, todaysOrders, bookings } = json.data || {}
+        if (!isMounted) return
+        setStats([
+          { title: "Total Users", value: String(totalUsers ?? 0), description: "Active staff members", icon: Users, trend: "" },
+          { title: "Menu Items", value: String(menuItems ?? 0), description: "Available products", icon: Package, trend: "" },
+          { title: "Today's Orders", value: String(todaysOrders ?? 0), description: "Orders processed", icon: ShoppingCart, trend: "" },
+          { title: "Bookings", value: String(bookings ?? 0), description: "Table reservations", icon: Calendar, trend: "" }
+        ])
+      } catch (e: any) {
+        console.error('Failed to load dashboard metrics', e)
+        toast?.({ title: 'Dashboard error', description: e?.message || 'Unable to load metrics', variant: 'destructive' })
+      }
     }
-  ]
+    load()
+    return () => { isMounted = false }
+  }, [])
 
   return (
     <div className="space-y-6">
@@ -57,10 +59,6 @@ export default function DashboardPage() {
               <CardContent>
                 <div className="text-2xl font-bold">{stat.value}</div>
                 <p className="text-xs text-gray-600 mt-1">{stat.description}</p>
-                <p className="text-xs text-green-600 mt-2 flex items-center">
-                  <TrendingUp className="h-3 w-3 mr-1" />
-                  {stat.trend}
-                </p>
               </CardContent>
             </Card>
           )

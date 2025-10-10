@@ -72,10 +72,11 @@ export default function TablesPage() {
         tablesData.map(async (table) => {
           try {
             const session = await getTableSession(table.id);
-            const availableAdultCapacity = session 
-              ? Math.max(0, table.capacity - session.guestCounts.adults)
-              : table.capacity;
-            
+            const totalGuests = session 
+              ? (session.guestCounts.adults + session.guestCounts.children + session.guestCounts.infants)
+              : 0;
+            const availableAdultCapacity = Math.max(0, table.capacity - totalGuests);
+
             return {
               ...table,
               session,
@@ -173,12 +174,27 @@ export default function TablesPage() {
 
   const currentSession = getCurrentSession();
 
+  // Derive a visual status for color mapping based on session/capacity
+  const getVisualStatus = (table: TableWithSession) => {
+    if (table.status === "cleaning") return "cleaning";
+    // If a session exists, prioritize occupancy colors over the raw status
+    if (table.session) {
+      const remaining = table.availableAdultCapacity ?? 0;
+      if (remaining > 0) return "partial"; // seats left
+      return "full"; // no capacity
+    }
+    if (table.status === "available") return "available";
+    if (table.status === "selected") return "selected";
+    if (table.status === "occupied") return "full";
+    return "unavailable";
+  };
+
   const getTableStatus = (table: TableWithSession) => {
     if (table.status === "available" && !table.session) {
       return "Available";
     } else if (table.session) {
       if (table.availableAdultCapacity! > 0) {
-        return `Occupied (${table.availableAdultCapacity} adult spots left)`;
+        return `Occupied (${table.availableAdultCapacity} spots left)`;
       } else {
         return "Full";
       }
@@ -293,11 +309,13 @@ export default function TablesPage() {
             ) : (
               tableStates.map((table) => {
                 const isAvailable = table.status === "available";
-                const getTableColors = (status: string) => {
-                  switch (status) {
+                const getTableColors = (visualStatus: string) => {
+                  switch (visualStatus) {
                     case 'available':
                       return 'bg-green-100 border-2 border-green-300 text-green-800 hover:bg-green-200';
-                    case 'occupied':
+                    case 'partial':
+                      return 'bg-amber-100 border-2 border-amber-300 text-amber-800';
+                    case 'full':
                       return 'bg-red-100 border-2 border-red-300 text-red-800';
                     case 'cleaning':
                       return 'bg-yellow-100 border-2 border-yellow-300 text-yellow-800';
@@ -320,7 +338,7 @@ export default function TablesPage() {
                             ? "cursor-pointer hover:shadow-md transform hover:scale-105 active:scale-95"
                             : "cursor-not-allowed"
                         }
-                        ${getTableColors(table.status)}
+                        ${getTableColors(getVisualStatus(table))}
                       `}
                     >
                       <div className="flex items-center justify-between">
@@ -358,17 +376,17 @@ export default function TablesPage() {
             <div className="w-4 h-4 bg-green-100 border-2 border-green-300 rounded"></div>
             <span className="text-green-800 font-medium">Available</span>
           </div>
-          {/* <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-amber-100 border-2 border-amber-300 rounded"></div>
+            <span className="text-amber-800 font-medium">Partially Full</span>
+          </div>
+          <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-red-100 border-2 border-red-300 rounded"></div>
-            <span className="text-red-800 font-medium">Occupied</span>
-          </div> */}
-          {/* <div className="flex items-center gap-2">
+            <span className="text-red-800 font-medium">Full</span>
+          </div>
+          <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-yellow-100 border-2 border-yellow-300 rounded"></div>
             <span className="text-yellow-800 font-medium">Cleaning</span>
-          </div> */}
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-blue-100 border-2 border-blue-300 rounded"></div>
-            <span className="text-blue-800 font-medium">Selected</span>
           </div>
         </div>
       </div>
@@ -482,15 +500,16 @@ export default function TablesPage() {
               <Input
                 id="adults"
                 type="number"
-                min="1"
+                min={isSecondaryDevice ? 0 : 1}
                 max={isSecondaryDevice ? selectedTable?.availableAdultCapacity : selectedTable?.capacity || 8}
                 value={guestCounts.adults}
                 onChange={(e) => {
-                  const value = Number.parseInt(e.target.value) || 1;
+                  const value = Number.parseInt(e.target.value) || 0;
                   const maxCapacity = isSecondaryDevice ? selectedTable?.availableAdultCapacity || 0 : selectedTable?.capacity || 8;
+                  const minValue = isSecondaryDevice ? 0 : 1;
                   setGuestCounts((prev) => ({
                     ...prev,
-                    adults: Math.max(1, Math.min(value, maxCapacity)),
+                    adults: Math.max(minValue, Math.min(value, maxCapacity)),
                   }));
                 }}
                 className={guestCounts.adults >= (isSecondaryDevice ? selectedTable?.availableAdultCapacity || 0 : selectedTable?.capacity || 8) ? "border-red-300" : ""}
@@ -565,7 +584,7 @@ export default function TablesPage() {
             </Button>
             <Button 
               onClick={handleConfirm}
-              disabled={guestCounts.adults === 0 || (isSecondaryDevice && !verifiedWaiter)}
+              disabled={(!isSecondaryDevice && guestCounts.adults === 0) || (isSecondaryDevice && !verifiedWaiter)}
             >
               {isSecondaryDevice ? 'Join Table' : 'Confirm Selection'}
             </Button>

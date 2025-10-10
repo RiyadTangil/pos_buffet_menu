@@ -179,7 +179,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (guestCounts.adults < 1) {
+    // Primary device must include at least one adult; allow zero for secondary device sync
+    if (!isSecondaryDevice && guestCounts.adults < 1) {
       return NextResponse.json(
         { success: false, error: 'At least one adult is required' },
         { status: 400 }
@@ -257,12 +258,15 @@ export async function POST(request: NextRequest) {
       }
 
       // Update existing session with additional guests
-      const updatedGuestCounts = {
-        adults: totalAdults,
-        children: existingSession.guestCounts.children + guestCounts.children,
-        infants: existingSession.guestCounts.infants + guestCounts.infants,
-        includeDrinks: existingSession.guestCounts.includeDrinks || guestCounts.includeDrinks
-      }
+      const addedTotal = (guestCounts.adults || 0) + (guestCounts.children || 0) + (guestCounts.infants || 0)
+      const updatedGuestCounts = addedTotal > 0
+        ? {
+            adults: totalAdults,
+            children: existingSession.guestCounts.children + (guestCounts.children || 0),
+            infants: existingSession.guestCounts.infants + (guestCounts.infants || 0),
+            includeDrinks: existingSession.guestCounts.includeDrinks || !!guestCounts.includeDrinks
+          }
+        : existingSession.guestCounts
 
       const updateResult = await db.collection('table_sessions').updateOne(
         { _id: existingSession._id },
@@ -283,15 +287,17 @@ export async function POST(request: NextRequest) {
       }
 
       // Update table guest count
-      await db.collection('tables').updateOne(
-        { _id: new ObjectId(tableId) },
-        {
-          $set: {
-            currentGuests: updatedGuestCounts.adults + updatedGuestCounts.children + updatedGuestCounts.infants,
-            updatedAt: new Date()
+      if (addedTotal > 0) {
+        await db.collection('tables').updateOne(
+          { _id: new ObjectId(tableId) },
+          {
+            $set: {
+              currentGuests: updatedGuestCounts.adults + updatedGuestCounts.children + updatedGuestCounts.infants,
+              updatedAt: new Date()
+            }
           }
-        }
-      )
+        )
+      }
 
       // Broadcast the session update to all devices on this table
       const sessionData = {

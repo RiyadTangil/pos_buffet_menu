@@ -1,0 +1,15 @@
+{
+  "login.header_line1": "REGISTRIERT EINGEBEN",
+  "login.header_line2": "Tischnummer & Passwort",
+  "login.table_number": "Tischnummer",
+  "login.password": "PASSWORT",
+  "login.placeholder_table": "Tischnummer eingeben",
+  "login.error_invalid": "Ungültige Nummer oder Passwort. Bitte versuche es erneut.",
+  "login.signing_in": "ANMELDUNG...",
+  "login.login": "ANMELDEN",
+  "login.demo_credentials": "Demo-Zugangsdaten:",
+  "login.demo_email": "Tisch: 101",
+  "login.demo_password": "Passwort: admin123",
+  "language.english": "Englisch",
+  "language.german": "Deutsch"
+}

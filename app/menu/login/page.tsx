@@ -8,6 +8,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
+import I18nProvider from "@/components/providers/i18n-provider"
+import LanguageSwitcher from "@/components/ui/language-switcher"
+import { useTranslation } from "react-i18next"
 
 // Mock login credentials
 const MOCK_CREDENTIALS = {
@@ -21,6 +24,7 @@ export default function LoginPage() {
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const { t } = useTranslation()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -34,18 +38,23 @@ export default function LoginPage() {
     if (number === MOCK_CREDENTIALS.number && password === MOCK_CREDENTIALS.password) {
       router.push("/menu/tables")
     } else {
-      setError("Invalid number or password. Please try again.")
+      setError(t('login.error_invalid'))
     }
 
     setIsLoading(false)
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 px-4">
+    <I18nProvider>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 px-4 relative">
+      {/* Language Switcher Top Right */}
+      <div className="absolute top-4 right-4">
+        <LanguageSwitcher />
+      </div>
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">ENTER REGISTERED</h1>
-          <h2 className="text-2xl font-bold text-gray-800">Table Number & Password</h2>
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">{t('login.header_line1')}</h1>
+          <h2 className="text-2xl font-bold text-gray-800">{t('login.header_line2')}</h2>
         </div>
         
         <div className="bg-white rounded-2xl shadow-lg p-8">
@@ -58,13 +67,13 @@ export default function LoginPage() {
                   </svg>
                 </div>
                 <Label htmlFor="number" className="text-sm font-medium text-gray-600 uppercase tracking-wide">
-                  Table Number
+                  {t('login.table_number')}
                 </Label>
               </div>
               <Input
                 id="number"
                 type="text"
-                placeholder="Enter table number"
+                placeholder={t('login.placeholder_table')}
                 value={number}
                 onChange={(e) => setNumber(e.target.value)}
                 required
@@ -80,7 +89,7 @@ export default function LoginPage() {
                   </svg>
                 </div>
                 <Label htmlFor="password" className="text-sm font-medium text-gray-600 uppercase tracking-wide">
-                  PASSWORD
+                  {t('login.password')}
                 </Label>
               </div>
               <Input
@@ -103,17 +112,18 @@ export default function LoginPage() {
               className="w-full h-12 bg-gradient-to-r from-orange-400 to-yellow-400 hover:from-orange-500 hover:to-yellow-500 text-white font-semibold rounded-lg shadow-lg transition-all duration-200 transform hover:scale-[1.02]" 
               disabled={isLoading}
             >
-              {isLoading ? "SIGNING IN..." : "LOGIN"}
+              {isLoading ? t('login.signing_in') : t('login.login')}
             </Button>
           </form>
 
           <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <p className="text-xs text-gray-600 font-medium mb-1">Demo Credentials:</p>
-            <p className="text-xs text-gray-500">Email: 101</p>
-            <p className="text-xs text-gray-500">Password: admin123</p>
+            <p className="text-xs text-gray-600 font-medium mb-1">{t('login.demo_credentials')}</p>
+            <p className="text-xs text-gray-500">{t('login.demo_email')}</p>
+            <p className="text-xs text-gray-500">{t('login.demo_password')}</p>
           </div>
         </div>
       </div>
     </div>
+    </I18nProvider>
   )
 }
