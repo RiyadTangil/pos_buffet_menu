@@ -92,10 +92,10 @@ export default function OrderPrinter({
         }
       }
 
-      // Fallback to USB/local printing if IP printing failed or no IP printers
+      // Fallback to USB/backend printing if IP printing failed or no IP printers
       if (!printSuccess && state.defaultPrinter) {
         try {
-          await printToLocalPrinter({
+          await printOrderViaUsb({
             orderId,
             orderItems,
             tableNumber,
@@ -103,10 +103,10 @@ export default function OrderPrinter({
             orderTime
           })
           printSuccess = true
-          toast.success('Order printed to local printer')
+          toast.success('Order sent to USB printer')
         } catch (error) {
-          console.error('Local printing failed:', error)
-          errors.push('Local printer failed')
+          console.error('USB printing failed:', error)
+          errors.push('USB printer failed')
         }
       }
 
@@ -260,3 +260,21 @@ export default function OrderPrinter({
     </button>
   )
 }
+  const printOrderViaUsb = async (orderData: {
+    orderId: string
+    orderItems: any[]
+    tableNumber?: string | number
+    guestCount?: number
+    orderTime?: string
+  }) => {
+    const response = await fetch('/api/print-order-usb', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(orderData)
+    })
+
+    const result = await response.json()
+    if (!response.ok || !result?.success) {
+      throw new Error(result?.error || 'Failed to print order via USB')
+    }
+  }
