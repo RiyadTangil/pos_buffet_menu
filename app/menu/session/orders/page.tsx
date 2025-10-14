@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import SessionEndedModal from "@/components/SessionEndedModal"
+import SplitBillModal from "@/components/SplitBillModal"
 
 export default function SessionOrdersPage() {
   const router = useRouter()
@@ -45,6 +46,10 @@ export default function SessionOrdersPage() {
   const [guestCounts, setGuestCounts] = useState({ adults: 0, children: 0, infants: 0, includeDrinks: false })
   const [buffetSettings, setBuffetSettings] = useState<any>(null)
   const [showSessionEndedModal, setShowSessionEndedModal] = useState(false)
+  const [showSplitBill, setShowSplitBill] = useState(false)
+  const [splitBills, setSplitBills] = useState<any[]>([])
+  const [currentSplitIndex, setCurrentSplitIndex] = useState(0)
+  const [isSecondaryDevice, setIsSecondaryDevice] = useState<boolean>(false)
 
   // Get current session based on time
   const getCurrentSession = () => {
@@ -97,6 +102,8 @@ export default function SessionOrdersPage() {
     },
   }
 
+  // Note: Split Bill is gated by table session's isSecondaryDevice
+
   // Load real data on component mount
   useEffect(() => {
     const loadData = async () => {
@@ -119,6 +126,8 @@ export default function SessionOrdersPage() {
               setShowSessionEndedModal(true)
               return // Don't continue loading if session has ended
             }
+            // Track whether this table session is connected to a secondary device
+            setIsSecondaryDevice(!!session?.isSecondaryDevice)
             
             if (session?.guestCounts) {
               setGuestCounts({
@@ -279,15 +288,126 @@ export default function SessionOrdersPage() {
       }
 
       const waiter = pinResult.data
-       setValidatedWaiter(waiter)
+      setValidatedWaiter(waiter)
+      setIsProcessing(false)
 
+      // Show split bill modal after PIN validation
+      if(isSecondaryDevice)
+     { setShowSplitBill(true)}
+    } catch (error) {
+      console.error('PIN validation error:', error)
+      setIsProcessing(false)
+      setPinError(`Validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+  }
+
+  const handleSplitBillConfirm = (splits: any[]) => {
+    setSplitBills(splits)
+    setShowSplitBill(false)
+    setCurrentSplitIndex(0)
+    
+    // Process first split payment
+    if (splits.length > 0) {
+      processPayment(splits[0], 0)
+    }
+  }
+
+  const processPayment = async (splitData: any, splitIndex: number) => {
+    setIsProcessing(true)
+
+    try {
+      const selectedTableId = localStorage.getItem('selectedTableId')
+      const paymentData = {
+        tableId: selectedTableId || `table-${tableNumber}`,
+        tableNumber: tableNumber,
+        waiterId: validatedWaiter.id,
+        waiterName: validatedWaiter.name,
+        paymentMethod: paymentMethod,
+        totalAmount: splitData.total,
+        sessionType: currentSession?.key || 'lunch',
+        sessionData: {
+          adults: splitData.sessionCharges.adults,
+          children: splitData.sessionCharges.children,
+          infants: splitData.sessionCharges.infants,
+          extraDrinks: sessionData.extraDrinks,
+          adultPrice: sessionData.adultPrice,
+          childPrice: sessionData.childPrice,
+          infantPrice: sessionData.infantPrice,
+          drinkPrice: sessionData.drinkPrice
+        },
+        splitInfo: {
+          customerName: splitData.customerName,
+          splitIndex: splitIndex + 1,
+          totalSplits: splitBills.length,
+          items: splitData.items
+        }
+      }
+
+      // Call payment API
+      const response = await fetch('/api/payments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(paymentData)
+      })
+
+      const result = await response.json()
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Payment failed')
+      }
+
+      console.log(`Payment ${splitIndex + 1}/${splitBills.length} of £${splitData.total} successfully recorded for ${splitData.customerName}:`, result.data)
+
+      // Check if there are more splits to process
+      if (splitIndex + 1 < splitBills.length) {
+        setCurrentSplitIndex(splitIndex + 1)
+        // Process next split after a short delay
+        setTimeout(() => {
+          processPayment(splitBills[splitIndex + 1], splitIndex + 1)
+        }, 1000)
+      } else {
+        // All payments completed
+        setIsProcessing(false)
+        setPaymentComplete(true)
+
+        // Clear all localStorage data after successful payment
+        localStorage.removeItem('tableId')
+        localStorage.removeItem('guestCounts')
+        localStorage.removeItem('sessionData')
+        localStorage.removeItem('buffetSettings')
+        localStorage.removeItem('waiters')
+        localStorage.removeItem('orders')
+        localStorage.removeItem('currentSession')
+        localStorage.removeItem('selectedWaiterId')
+        
+        // Clear any other session-related data
+        localStorage.clear()
+
+        // Redirect to tables page after 2 seconds
+        setTimeout(() => {
+          router.push("/menu/tables")
+        }, 2000)
+      }
+    } catch (error) {
+      console.error('Payment error:', error)
+      setIsProcessing(false)
+      setPinError(`Payment failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
+  }
+
+  const handleSinglePayment = async () => {
+    setIsProcessing(true)
+
+    try {
        // Prepare payment data
        const selectedTableId = localStorage.getItem('selectedTableId')
        const paymentData = {
          tableId: selectedTableId || `table-${tableNumber}`,
          tableNumber: tableNumber,
-         waiterId: waiter.id,
-         waiterName: waiter.name,
+         waiterId: validatedWaiter.id,
+         waiterName: validatedWaiter.name,
          paymentMethod: paymentMethod,
         totalAmount: grandTotal,
         sessionType: currentSession?.key || 'lunch',
@@ -621,10 +741,31 @@ export default function SessionOrdersPage() {
                         </div>
                       </div>
 
-                      <DialogFooter>
-                        <Button onClick={handlePayment} disabled={!waiterPin || waiterPin.length !== 4 || isProcessing} className="w-full">
-                          {isProcessing ? "Validating..." : `Pay £${grandTotal}`}
-                        </Button>
+                      <DialogFooter className="flex-col gap-2">
+                        {validatedWaiter ? (
+                          <>
+                            {isSecondaryDevice && (
+                              <Button 
+                                onClick={() => setShowSplitBill(true)} 
+                                variant="outline" 
+                                className="w-full"
+                              >
+                                Split Bill
+                              </Button>
+                            )}
+                            <Button 
+                              onClick={handleSinglePayment} 
+                              disabled={isProcessing} 
+                              className="w-full"
+                            >
+                              {isProcessing ? "Processing..." : `Pay Full Amount £${grandTotal}`}
+                            </Button>
+                          </>
+                        ) : (
+                          <Button onClick={handlePayment} disabled={!waiterPin || waiterPin.length !== 4 || isProcessing} className="w-full">
+                            {isProcessing ? "Validating..." : "Validate PIN"}
+                          </Button>
+                        )}
                       </DialogFooter>
                     </>
                   )}
@@ -639,6 +780,16 @@ export default function SessionOrdersPage() {
       <SessionEndedModal 
         isOpen={showSessionEndedModal} 
         tableNumber={tableNumber} 
+      />
+
+      {/* Split Bill Modal */}
+      <SplitBillModal
+        isOpen={showSplitBill}
+        onClose={() => setShowSplitBill(false)}
+        onConfirm={handleSplitBillConfirm}
+        orders={orders}
+        sessionData={sessionData}
+        totalAmount={grandTotal}
       />
     </div>
   )

@@ -62,6 +62,7 @@ export async function GET(request: NextRequest) {
       id: session._id.toString(),
       tableId: session.tableId,
       deviceId: session.deviceId,
+      secondaryDeviceId: session.secondaryDeviceId,
       guestCounts: session.guestCounts,
       cartItems: session.cartItems || [], // Include cartItems, default to empty array for backward compatibility
       nextOrderAvailableUntil: session.nextOrderAvailableUntil,
@@ -274,7 +275,8 @@ export async function POST(request: NextRequest) {
           $set: {
             guestCounts: updatedGuestCounts,
             updatedAt: new Date(),
-            secondaryDeviceId: deviceId
+            secondaryDeviceId: deviceId,
+            isSecondaryDevice: true
           }
         }
       )
@@ -304,6 +306,7 @@ export async function POST(request: NextRequest) {
         id: existingSession._id.toString(),
         tableId,
         deviceId,
+        secondaryDeviceId: deviceId,
         guestCounts: updatedGuestCounts,
         status: 'active',
         isSecondaryDevice: true,

@@ -14,6 +14,7 @@ export interface TableSession {
   id: string
   tableId: string
   deviceId: string
+  secondaryDeviceId?: string
   guestCounts: {
     adults: number
     children: number
