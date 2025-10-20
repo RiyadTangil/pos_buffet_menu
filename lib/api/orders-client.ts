@@ -91,6 +91,7 @@ export async function getOrders(filters?: {
   date?: string
   session?: string
   type?: 'session' | 'checkout'
+  groupType?: string
 }): Promise<Order[]> {
   try {
     const params = new URLSearchParams()
@@ -100,6 +101,7 @@ export async function getOrders(filters?: {
     if (filters?.date) params.append('date', filters.date)
     if (filters?.session) params.append('session', filters.session)
     if (filters?.type) params.append('type', filters.type)
+    if (filters?.groupType) params.append('groupType', filters.groupType)
     
     const response = await fetch(`/api/orders?${params.toString()}`)
     const data = await response.json()

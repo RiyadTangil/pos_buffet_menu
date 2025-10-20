@@ -39,7 +39,7 @@ export function getSocket(): Socket | null {
   return socket
 }
 
-export function joinTableRoom(tableId: string): Promise<void> {
+export function joinTableRoom(tableId: string, groupType?: string): Promise<void> {
   return new Promise((resolve, reject) => {
     // Only run on client-side
     if (typeof window === 'undefined') {
@@ -54,9 +54,13 @@ export function joinTableRoom(tableId: string): Promise<void> {
       return
     }
 
+    // Create room name based on tableId and groupType
+    const roomData = { tableId, groupType }
+    const roomName = groupType ? `table-${tableId}-${groupType}` : `table-${tableId}`
+
     if (socket.connected) {
-      socket.emit('join-table', tableId)
-      console.log(`🏠 Client joined table room: table-${tableId}`)
+      socket.emit('join-table', roomData)
+      console.log(`🏠 Client joined table room: ${roomName}`)
       resolve()
     } else {
       console.log('⏳ Waiting for socket connection before joining table room...')
@@ -69,8 +73,8 @@ export function joinTableRoom(tableId: string): Promise<void> {
 
       socket.once('connect', () => {
         clearTimeout(timeout)
-        socket.emit('join-table', tableId)
-        console.log(`🏠 Client joined table room: table-${tableId}`)
+        socket.emit('join-table', roomData)
+        console.log(`🏠 Client joined table room: ${roomName}`)
         resolve()
       })
 
@@ -83,7 +87,7 @@ export function joinTableRoom(tableId: string): Promise<void> {
   })
 }
 
-export function leaveTableRoom(tableId: string): void {
+export function leaveTableRoom(tableId: string, groupType?: string): void {
   // Only run on client-side
   if (typeof window === 'undefined') {
     console.log('🚫 Cannot leave table room - running on server-side')
@@ -91,8 +95,10 @@ export function leaveTableRoom(tableId: string): void {
   }
 
   if (socket && socket.connected) {
-    socket.emit('leave-table', tableId)
-    console.log(`🚪 Client left table room: table-${tableId}`)
+    const roomData = { tableId, groupType }
+    const roomName = groupType ? `table-${tableId}-${groupType}` : `table-${tableId}`
+    socket.emit('leave-table', roomData)
+    console.log(`🚪 Client left table room: ${roomName}`)
   } else {
     console.warn('⚠️ Cannot leave table room - socket not connected')
   }
@@ -230,7 +236,7 @@ export function offCartUpdate(): void {
   }
 }
 
-export function emitCartUpdate(tableId: string, cartItems: any[]): void {
+export function emitCartUpdate(tableId: string, cartItems: any[], groupType?: string): void {
   // Only run on client-side
   if (typeof window === 'undefined') {
     console.log('🚫 Cannot emit cart update - running on server-side')
@@ -238,10 +244,59 @@ export function emitCartUpdate(tableId: string, cartItems: any[]): void {
   }
 
   if (socket && socket.connected) {
-    socket.emit('cart-update', { tableId, cartItems })
-    console.log(`🛒 Emitted cart update for table ${tableId}:`, cartItems)
+    socket.emit('cart-update', { tableId, cartItems, groupType })
+    console.log(`🛒 Emitted cart update for table ${tableId} (${groupType || 'no group'}):`, cartItems)
   } else {
     console.warn('⚠️ Cannot emit cart update - socket not connected')
+  }
+}
+
+// Order confirmation synchronization events
+export function onOrderConfirmation(callback: (orderData: any) => void): void {
+  // Only run on client-side
+  if (typeof window === 'undefined') {
+    console.log('🚫 Cannot set up order confirmation listener - running on server-side')
+    return
+  }
+
+  if (socket) {
+    console.log('📋 Setting up orderConfirmation listener')
+    socket.on('orderConfirmation', (orderData) => {
+      console.log('✅ Received orderConfirmation:', orderData)
+      callback(orderData)
+    })
+  } else {
+    console.warn('⚠️ Cannot set up order confirmation listener - socket not initialized')
+  }
+}
+
+export function offOrderConfirmation(): void {
+  // Only run on client-side
+  if (typeof window === 'undefined') {
+    console.log('🚫 Cannot remove order confirmation listener - running on server-side')
+    return
+  }
+
+  if (socket) {
+    console.log('🔇 Removing orderConfirmation listener')
+    socket.off('orderConfirmation')
+  } else {
+    console.warn('⚠️ Cannot remove order confirmation listener - socket not initialized')
+  }
+}
+
+export function emitOrderConfirmation(tableId: string, orderData: any, groupType?: string): void {
+  // Only run on client-side
+  if (typeof window === 'undefined') {
+    console.log('🚫 Cannot emit order confirmation - running on server-side')
+    return
+  }
+
+  if (socket && socket.connected) {
+    socket.emit('order-confirmation', { tableId, orderData, groupType })
+    console.log(`📋 Emitted order confirmation for table ${tableId} (${groupType || 'no group'}):`, orderData)
+  } else {
+    console.warn('⚠️ Cannot emit order confirmation - socket not connected')
   }
 }
 

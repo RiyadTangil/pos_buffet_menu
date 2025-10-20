@@ -8,7 +8,7 @@ import { CartItem } from '../route'
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json()
-    const { tableId, cartItems } = body
+    const { tableId, cartItems, groupType } = body
 
     if (!tableId || !Array.isArray(cartItems)) {
       return NextResponse.json(
@@ -29,12 +29,17 @@ export async function PUT(request: NextRequest) {
 
     const db = await getDatabase()
     
-    // Find and update the active table session
+    // Find and update the active table session with groupType filter
+    const query: any = { 
+      tableId, 
+      status: 'active' 
+    }
+    if (groupType) {
+      query.groupType = groupType
+    }
+    
     const result = await db.collection('table_sessions').findOneAndUpdate(
-      { 
-        tableId, 
-        status: 'active' 
-      },
+      query,
       {
         $set: {
           cartItems,
@@ -61,11 +66,12 @@ export async function PUT(request: NextRequest) {
       nextOrderAvailableUntil: result.nextOrderAvailableUntil,
       status: result.status,
       updatedAt: result.updatedAt,
-      isSecondaryDevice: result.isSecondaryDevice || false
+      isSecondaryDevice: result.isSecondaryDevice || false,
+      groupType: result.groupType || 'same'
     }
 
     // Broadcast cart update to all devices on this table
-    broadcastTableSessionUpdate(tableId, sessionData)
+    broadcastTableSessionUpdate(tableId, sessionData, sessionData.groupType)
 
     return NextResponse.json({
       success: true,
@@ -84,7 +90,7 @@ export async function PUT(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { tableId, cartItem, isAdd, action } = body
+    const { tableId, cartItem, isAdd, action, groupType } = body
 
     if (!tableId || !cartItem) {
       return NextResponse.json(
@@ -106,11 +112,16 @@ export async function POST(request: NextRequest) {
 
     const db = await getDatabase()
     
-    // Find the active table session
-    const session = await db.collection('table_sessions').findOne({
+    // Find the active table session with groupType filter
+    const query: any = {
       tableId,
       status: 'active'
-    })
+    }
+    if (groupType) {
+      query.groupType = groupType
+    }
+    
+    const session = await db.collection('table_sessions').findOne(query)
 
     if (!session) {
       return NextResponse.json(
@@ -161,7 +172,9 @@ export async function POST(request: NextRequest) {
     const result = await db.collection('table_sessions').findOneAndUpdate(
       { 
         tableId, 
-        status: 'active' 
+        status: 'active',
+         groupType
+ 
       },
       {
         $set: {
@@ -189,11 +202,12 @@ export async function POST(request: NextRequest) {
       nextOrderAvailableUntil: result.nextOrderAvailableUntil,
       status: result.status,
       updatedAt: result.updatedAt,
-      isSecondaryDevice: result.isSecondaryDevice || false
+      isSecondaryDevice: result.isSecondaryDevice || false,
+      groupType: result.groupType || 'same'
     }
 
     // Broadcast cart update to all devices on this table
-    broadcastTableSessionUpdate(tableId, sessionData)
+    broadcastTableSessionUpdate(tableId, sessionData, sessionData.groupType)
 
     return NextResponse.json({
       success: true,
@@ -214,6 +228,7 @@ export async function DELETE(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const tableId = searchParams.get('tableId')
     const menuItemId = searchParams.get('menuItemId')
+    const groupType = searchParams.get('groupType')
 
     if (!tableId) {
       return NextResponse.json(
@@ -224,11 +239,16 @@ export async function DELETE(request: NextRequest) {
 
     const db = await getDatabase()
     
-    // Find the active table session
-    const session = await db.collection('table_sessions').findOne({
+    // Find the active table session with groupType filter
+    const query: any = {
       tableId,
       status: 'active'
-    })
+    }
+    if (groupType) {
+      query.groupType = groupType
+    }
+    
+    const session = await db.collection('table_sessions').findOne(query)
 
     if (!session) {
       return NextResponse.json(
@@ -280,11 +300,12 @@ export async function DELETE(request: NextRequest) {
       cartItems: result.cartItems,
       status: result.status,
       updatedAt: result.updatedAt,
-      isSecondaryDevice: result.isSecondaryDevice || false
+      isSecondaryDevice: result.isSecondaryDevice || false,
+      groupType: result.groupType || 'same'
     }
 
     // Broadcast cart update to all devices on this table
-    broadcastTableSessionUpdate(tableId, sessionData)
+    broadcastTableSessionUpdate(tableId, sessionData, sessionData.groupType)
 
     return NextResponse.json({
       success: true,

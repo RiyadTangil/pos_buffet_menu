@@ -10,6 +10,7 @@ export interface MongoPayment {
   waiterName: string
   totalAmount: number
   sessionType: 'breakfast' | 'lunch' | 'dinner'
+  groupType?: string
   sessionData: {
     adults: number
     children: number
@@ -109,6 +110,7 @@ export interface CreatePaymentRequest {
   totalAmount: number
   paymentMethod?: 'cash' | 'card'
   sessionType: 'breakfast' | 'lunch' | 'dinner'
+  groupType?: string
   sessionData: {
     adults: number
     children: number

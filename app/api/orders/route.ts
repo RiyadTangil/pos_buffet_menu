@@ -26,6 +26,8 @@ interface Order {
     children: number
     infants: number
   }
+  groupType?: string
+  tableSessionId?: string
 }
 
 // File path for storing orders
@@ -75,6 +77,7 @@ export async function GET(request: NextRequest) {
     const tableId = searchParams.get('tableId')
     const session = searchParams.get('session')
     const date = searchParams.get('date')
+    const groupType = searchParams.get('groupType')
     
     let orders = loadOrders()
     
@@ -93,6 +96,9 @@ export async function GET(request: NextRequest) {
     }
     if (date) {
       orders = orders.filter(order => order.date === date)
+    }
+    if (groupType) {
+      orders = orders.filter(order => order.groupType === groupType)
     }
     
     // Sort by date and time (newest first)
@@ -147,7 +153,9 @@ export async function POST(request: NextRequest) {
       })),
       totalAmount,
       status: 'pending',
-      guestCount: orderData.guestCount
+      guestCount: orderData.guestCount,
+      groupType: orderData.groupType,
+      tableSessionId: orderData.tableSessionId
     }
     
     // Load existing orders and add new one

@@ -7,7 +7,7 @@ export interface CartApiResponse {
 }
 
 // Add item to cart
-export async function addToCartApi(tableId: string, cartItem: CartItem): Promise<CartApiResponse> {
+export async function addToCartApi(tableId: string, cartItem: CartItem, groupType?: string): Promise<CartApiResponse> {
   try {
     const response = await fetch('/api/table-sessions/cart', {
       method: 'POST',
@@ -16,7 +16,8 @@ export async function addToCartApi(tableId: string, cartItem: CartItem): Promise
       },
       body: JSON.stringify({
         tableId,
-        cartItem
+        cartItem,
+        groupType
       })
     })
 
@@ -32,7 +33,7 @@ export async function addToCartApi(tableId: string, cartItem: CartItem): Promise
 }
 
 // Update entire cart
-export async function updateCartApi(tableId: string, cartItems: CartItem[]): Promise<CartApiResponse> {
+export async function updateCartApi(tableId: string, cartItems: CartItem[], groupType?: string): Promise<CartApiResponse> {
   try {
     const response = await fetch('/api/table-sessions/cart', {
       method: 'PUT',
@@ -41,7 +42,8 @@ export async function updateCartApi(tableId: string, cartItems: CartItem[]): Pro
       },
       body: JSON.stringify({
         tableId,
-        cartItems
+        cartItems,
+        groupType
       })
     })
 
@@ -57,7 +59,7 @@ export async function updateCartApi(tableId: string, cartItems: CartItem[]): Pro
 }
 
 // Remove item from cart
-export async function removeFromCartApi(tableId: string, menuItemId: string): Promise<CartApiResponse> {
+export async function removeFromCartApi(tableId: string, menuItemId: string, groupType?: string): Promise<CartApiResponse> {
   try {
     // Use POST with isAdd=false to decrement quantity by 1
     const response = await fetch('/api/table-sessions/cart', {
@@ -71,7 +73,8 @@ export async function removeFromCartApi(tableId: string, menuItemId: string): Pr
           menuItemId,
           quantity: 1
         },
-        isAdd: false
+        isAdd: false,
+        groupType
       })
     })
 
@@ -87,9 +90,15 @@ export async function removeFromCartApi(tableId: string, menuItemId: string): Pr
 }
 
 // Clear entire cart
-export async function clearCartApi(tableId: string): Promise<CartApiResponse> {
+export async function clearCartApi(tableId: string, groupType?: string): Promise<CartApiResponse> {
   try {
-    const response = await fetch(`/api/table-sessions/cart?tableId=${tableId}`, {
+    const url = new URL('/api/table-sessions/cart', window.location.origin)
+    url.searchParams.set('tableId', tableId)
+    if (groupType) {
+      url.searchParams.set('groupType', groupType)
+    }
+    
+    const response = await fetch(url.toString(), {
       method: 'DELETE'
     })
 
@@ -109,7 +118,8 @@ export async function updateCartItemQuantityApi(
   tableId: string, 
   menuItemId: string, 
   newQuantity: number,
-  currentCartItems: CartItem[]
+  currentCartItems: CartItem[],
+  groupType?: string
 ): Promise<CartApiResponse> {
   try {
     const updatedCartItems = currentCartItems.map(item => 
@@ -118,7 +128,7 @@ export async function updateCartItemQuantityApi(
         : item
     ).filter(item => item.quantity > 0) // Remove items with 0 quantity
 
-    return await updateCartApi(tableId, updatedCartItems)
+    return await updateCartApi(tableId, updatedCartItems, groupType)
   } catch (error) {
     console.error('Error updating item quantity:', error)
     return {

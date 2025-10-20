@@ -29,6 +29,7 @@ export interface TableSession {
   updatedAt: string
   waiterPin?: string
   isSecondaryDevice?: boolean
+  groupType?: 'same' | 'different'
 }
 
 // GET - Fetch table session by tableId
@@ -36,6 +37,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const tableId = searchParams.get('tableId')
+    const groupType = searchParams.get('groupType')
     
     if (!tableId) {
       return NextResponse.json(
@@ -45,11 +47,11 @@ export async function GET(request: NextRequest) {
     }
 
     const db = await getDatabase()
-    const session = await db.collection('table_sessions')
-      .findOne({ 
-        tableId, 
-        status: 'active' 
-      })
+    const query: any = { tableId, status: 'active' }
+    if (groupType) {
+      query.groupType = groupType
+    }
+    const session = await db.collection('table_sessions').findOne(query)
     
     if (!session) {
       return NextResponse.json({
@@ -70,7 +72,8 @@ export async function GET(request: NextRequest) {
       status: session.status,
       createdAt: session.createdAt,
       updatedAt: session.updatedAt,
-      isSecondaryDevice: session.isSecondaryDevice || false
+      isSecondaryDevice: session.isSecondaryDevice || false,
+      groupType: session.groupType || 'same'
     }
 
     return NextResponse.json({
@@ -144,11 +147,12 @@ export async function PATCH(request: NextRequest) {
       status: result.status,
       createdAt: result.createdAt,
       updatedAt: result.updatedAt,
-      isSecondaryDevice: result.isSecondaryDevice || false
+      isSecondaryDevice: result.isSecondaryDevice || false,
+      groupType: result.groupType || 'same'
     }
 
     // Broadcast the update to all devices on this table
-    broadcastTableSessionUpdate(tableId, sessionData)
+    broadcastTableSessionUpdate(tableId, sessionData, sessionData.groupType)
 
     return NextResponse.json({ success: true, data: sessionData })
   } catch (error) {
@@ -169,7 +173,8 @@ export async function POST(request: NextRequest) {
       deviceId, 
       guestCounts, 
       waiterPin, 
-      isSecondaryDevice = false 
+      isSecondaryDevice = false ,
+      groupType = "same" ,
     } = body
 
     // Validation
@@ -244,8 +249,77 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      const currentAdults = existingSession.guestCounts.adults
       const newAdults = guestCounts.adults
+
+      if (groupType === 'different') {
+        // Capacity check across all active sessions at this table
+        const activeSessions = await db.collection('table_sessions').find({ tableId, status: 'active' }).toArray()
+        const currentAdultsTotal = activeSessions.reduce((acc: number, s: any) => acc + ((s.guestCounts?.adults) || 0), 0)
+        const totalAdults = currentAdultsTotal + newAdults
+
+        if (totalAdults > table.capacity) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: `Cannot accommodate ${newAdults} more adults. Table capacity: ${table.capacity}, Current adults: ${currentAdultsTotal}`
+            },
+            { status: 400 }
+          )
+        }
+
+        // Create a separate session for the different group
+        const newSession = {
+          tableId,
+          deviceId,
+          guestCounts,
+          cartItems: [],
+          status: 'active',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          isSecondaryDevice: true,
+          groupType: 'different'
+        }
+
+        const insertResult = await db.collection('table_sessions').insertOne(newSession)
+
+        // Update table currentGuests to reflect all active sessions
+        const activeSessionsAll = await db.collection('table_sessions').find({ tableId, status: 'active' }).toArray()
+        const currentGuestsTotal = activeSessionsAll.reduce((acc: number, s: any) => {
+          const gc = s.guestCounts || { adults: 0, children: 0, infants: 0 }
+          return acc + (gc.adults || 0) + (gc.children || 0) + (gc.infants || 0)
+        }, 0)
+
+        await db.collection('tables').updateOne(
+          { _id: new ObjectId(tableId) },
+          {
+            $set: {
+              currentGuests: currentGuestsTotal,
+              updatedAt: new Date()
+            }
+          }
+        )
+
+        // Notify tables list and broadcast new session
+        broadcastTablesUpdate({ type: 'refresh' })
+
+        const sessionData = {
+          id: insertResult.insertedId.toString(),
+          tableId,
+          deviceId,
+          guestCounts,
+          status: 'active',
+          isSecondaryDevice: true,
+          groupType: 'different',
+          message: 'Successfully created different group session'
+        }
+
+        broadcastTableSessionUpdate(tableId, sessionData, 'different')
+
+        return NextResponse.json({ success: true, data: sessionData })
+      }
+
+      // SAME group handling: join existing session
+      const currentAdults = existingSession.guestCounts.adults
       const totalAdults = currentAdults + newAdults
 
       if (totalAdults > table.capacity) {
@@ -276,7 +350,8 @@ export async function POST(request: NextRequest) {
             guestCounts: updatedGuestCounts,
             updatedAt: new Date(),
             secondaryDeviceId: deviceId,
-            isSecondaryDevice: true
+            isSecondaryDevice: true,
+            groupType: 'same'
           }
         }
       )
@@ -310,10 +385,11 @@ export async function POST(request: NextRequest) {
         guestCounts: updatedGuestCounts,
         status: 'active',
         isSecondaryDevice: true,
+        groupType: 'same',
         message: 'Successfully joined table session'
       }
       
-      broadcastTableSessionUpdate(tableId, sessionData)
+      broadcastTableSessionUpdate(tableId, sessionData, 'same')
 
       return NextResponse.json({
         success: true,
@@ -329,7 +405,8 @@ export async function POST(request: NextRequest) {
         status: 'active',
         createdAt: new Date(),
         updatedAt: new Date(),
-        isSecondaryDevice: false
+        isSecondaryDevice: false,
+        groupType
       }
 
       const result = await db.collection('table_sessions').insertOne(newSession)
@@ -357,10 +434,11 @@ export async function POST(request: NextRequest) {
         deviceId,
         guestCounts,
         status: 'active',
-        isSecondaryDevice: false
+        isSecondaryDevice: false,
+        groupType
       }
       
-      broadcastTableSessionUpdate(tableId, sessionData)
+      broadcastTableSessionUpdate(tableId, sessionData, sessionData.groupType)
 
       return NextResponse.json({
         success: true,

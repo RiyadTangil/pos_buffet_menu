@@ -39,10 +39,24 @@ app.prepare().then(() => {
     console.log('📊 Total connected clients:', io.engine.clientsCount)
 
     // Join table room for real-time updates
-    socket.on('join-table', (tableId) => {
-      socket.join(`table-${tableId}`)
-      console.log(`🏠 Socket ${socket.id} joined table-${tableId}`)
-      console.log(`👥 Clients in table-${tableId}:`, io.sockets.adapter.rooms.get(`table-${tableId}`)?.size || 0)
+    socket.on('join-table', (roomData) => {
+      // Handle both old format (string) and new format (object with tableId and groupType)
+      let tableId, groupType, roomName
+      
+      if (typeof roomData === 'string') {
+        // Legacy support for old format
+        tableId = roomData
+        roomName = `table-${tableId}`
+      } else {
+        // New format with groupType
+        tableId = roomData.tableId
+        groupType = roomData.groupType
+        roomName = groupType ? `table-${tableId}-${groupType}` : `table-${tableId}`
+      }
+      
+      socket.join(roomName)
+      console.log(`🏠 Socket ${socket.id} joined ${roomName}`)
+      console.log(`👥 Clients in ${roomName}:`, io.sockets.adapter.rooms.get(roomName)?.size || 0)
     })
 
     // Join global tables room
@@ -53,10 +67,24 @@ app.prepare().then(() => {
     })
 
     // Leave table room
-    socket.on('leave-table', (tableId) => {
-      socket.leave(`table-${tableId}`)
-      console.log(`🚪 Socket ${socket.id} left table-${tableId}`)
-      console.log(`👥 Remaining clients in table-${tableId}:`, io.sockets.adapter.rooms.get(`table-${tableId}`)?.size || 0)
+    socket.on('leave-table', (roomData) => {
+      // Handle both old format (string) and new format (object with tableId and groupType)
+      let tableId, groupType, roomName
+      
+      if (typeof roomData === 'string') {
+        // Legacy support for old format
+        tableId = roomData
+        roomName = `table-${tableId}`
+      } else {
+        // New format with groupType
+        tableId = roomData.tableId
+        groupType = roomData.groupType
+        roomName = groupType ? `table-${tableId}-${groupType}` : `table-${tableId}`
+      }
+      
+      socket.leave(roomName)
+      console.log(`🚪 Socket ${socket.id} left ${roomName}`)
+      console.log(`👥 Remaining clients in ${roomName}:`, io.sockets.adapter.rooms.get(roomName)?.size || 0)
     })
 
     // Leave global tables room
@@ -68,11 +96,22 @@ app.prepare().then(() => {
 
     // Handle cart updates
     socket.on('cart-update', (data) => {
-      const { tableId, cartItems } = data
-      console.log(`🛒 Received cart update for table-${tableId}:`, cartItems)
-      // Broadcast to all other clients in the same table room
-      socket.to(`table-${tableId}`).emit('cartUpdate', { tableId, cartItems })
-      console.log(`📡 Broadcasted cart update to table-${tableId}`)
+      const { tableId, cartItems, groupType } = data
+      const roomName = groupType ? `table-${tableId}-${groupType}` : `table-${tableId}`
+      console.log(`🛒 Received cart update for ${roomName}:`, cartItems)
+      // Broadcast to all other clients in the same table-group room
+      socket.to(roomName).emit('cartUpdate', { tableId, cartItems, groupType })
+      console.log(`📡 Broadcasted cart update to ${roomName}`)
+    })
+
+    // Handle order confirmation updates
+    socket.on('order-confirmation', (data) => {
+      const { tableId, orderData, groupType } = data
+      const roomName = groupType ? `table-${tableId}-${groupType}` : `table-${tableId}`
+      console.log(`📋 Received order confirmation for ${roomName}:`, orderData)
+      // Broadcast to all other clients in the same table-group room
+      socket.to(roomName).emit('orderConfirmation', { tableId, orderData, groupType })
+      console.log(`📡 Broadcasted order confirmation to ${roomName}`)
     })
 
     socket.on('disconnect', () => {
@@ -82,11 +121,12 @@ app.prepare().then(() => {
   })
 
   // Add global broadcast function for debugging
-  global.broadcastTableSessionUpdate = (tableId, sessionData) => {
-    console.log(`📡 Broadcasting table session update for table-${tableId}`)
+  global.broadcastTableSessionUpdate = (tableId, sessionData, groupType) => {
+    const roomName = groupType ? `table-${tableId}-${groupType}` : `table-${tableId}`
+    console.log(`📡 Broadcasting table session update for ${roomName}`)
     console.log(`📋 Session data:`, JSON.stringify(sessionData, null, 2))
-    console.log(`👥 Broadcasting to ${io.sockets.adapter.rooms.get(`table-${tableId}`)?.size || 0} clients`)
-    io.to(`table-${tableId}`).emit('tableSessionUpdate', sessionData)
+    console.log(`👥 Broadcasting to ${io.sockets.adapter.rooms.get(roomName)?.size || 0} clients`)
+    io.to(roomName).emit('tableSessionUpdate', sessionData)
   }
 
   // Broadcast updates to all clients in the tables room

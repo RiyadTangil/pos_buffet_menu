@@ -28,6 +28,7 @@ export interface TableSession {
   createdAt: string
   updatedAt: string
   isSecondaryDevice?: boolean
+  groupType?: 'same' | 'different'
 }
 
 export interface CreateSessionData {
@@ -41,6 +42,7 @@ export interface CreateSessionData {
   }
   waiterPin?: string
   isSecondaryDevice?: boolean
+  groupType?: 'same' | 'different'
 }
 
 export interface ApiResponse<T> {
@@ -89,9 +91,11 @@ export function generateDeviceId(): string {
 }
 
 // Get table session by table ID
-export async function getTableSession(tableId: string): Promise<TableSession | null> {
+export async function getTableSession(tableId: string, groupType?: string): Promise<TableSession | null> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/table-sessions?tableId=${tableId}`)
+    const query = new URLSearchParams({ tableId })
+    if (groupType) query.append('groupType', groupType)
+    const response = await fetch(`${API_BASE_URL}/api/table-sessions?${query.toString()}`)
     const result: ApiResponse<TableSession> = await response.json()
     
     if (!result.success) {

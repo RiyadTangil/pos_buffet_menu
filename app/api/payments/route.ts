@@ -115,7 +115,8 @@ export async function POST(request: NextRequest) {
       totalAmount,
       paymentMethod,
       sessionType,
-      sessionData
+      sessionData,
+      groupType
     } = body
 
     // Validation
@@ -159,6 +160,7 @@ export async function POST(request: NextRequest) {
       totalAmount,
       sessionType,
       sessionData,
+      groupType,
       paymentDate: now.toISOString().split('T')[0], // YYYY-MM-DD format
       paymentTime: now.toTimeString().split(' ')[0], // HH:MM:SS format
       status: 'completed',
@@ -168,10 +170,15 @@ export async function POST(request: NextRequest) {
     }
     
     
-    // First, set sessionEnded=true for all table sessions on this table
+    // First, set sessionEnded=true for table sessions on this table with the same groupType
     try {
+      const sessionFilter: any = { tableId, status: 'active' }
+      if (groupType) {
+        sessionFilter.groupType = groupType
+      }
+      
       await db.collection('table_sessions').updateMany(
-        { tableId, status: 'active' },
+        sessionFilter,
         { 
           $set: { 
             sessionEnded: true,
@@ -217,12 +224,18 @@ export async function POST(request: NextRequest) {
       // Don't fail the payment if table update fails, just log the error
     }
 
-    // Clear all table session data for this table after successful payment
+    // Clear table session data for this table and groupType after successful payment
     try {
-      await db.collection('table_sessions').deleteMany({ tableId })
+      const sessionDeleteFilter: any = { tableId }
+      if (groupType) {
+        sessionDeleteFilter.groupType = groupType
+      }
       
-      // Broadcast session deletion to all connected clients
+      await db.collection('table_sessions').deleteMany(sessionDeleteFilter)
+      
+      // Broadcast session deletion to the specific group room
       try {
+        const roomName = groupType ? `table-${tableId}-${groupType}` : `table-${tableId}`
         const response = await fetch(`${process.env.API_BASE_URL || 'http://localhost:3002/api'}/socket`, {
           method: 'POST',
           headers: {
@@ -230,7 +243,7 @@ export async function POST(request: NextRequest) {
           },
           body: JSON.stringify({
             action: 'broadcast',
-            room: `table-${tableId}`,
+            room: roomName,
             event: 'tableSessionUpdate',
             data: null // Send null to indicate session has been cleared
           })

@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 // Broadcast table session updates to all devices on the same table
-export function broadcastTableSessionUpdate(tableId: string, sessionData: any) {
+export function broadcastTableSessionUpdate(tableId: string, sessionData: any, groupType?: string) {
   if (global.io) {
-    console.log(`📡 API Broadcasting table session update for table-${tableId}`)
+    const roomName = groupType ? `table-${tableId}-${groupType}` : `table-${tableId}`
+    console.log(`📡 API Broadcasting table session update for ${roomName}`)
     console.log(`📋 API Session data:`, JSON.stringify(sessionData, null, 2))
-    console.log(`👥 API Broadcasting to ${global.io.sockets.adapter.rooms.get(`table-${tableId}`)?.size || 0} clients`)
-    global.io.to(`table-${tableId}`).emit('tableSessionUpdate', sessionData)
+    console.log(`👥 API Broadcasting to ${global.io.sockets.adapter.rooms.get(roomName)?.size || 0} clients`)
+    global.io.to(roomName).emit('tableSessionUpdate', sessionData)
   } else {
     console.warn('Socket.IO server not initialized')
   }

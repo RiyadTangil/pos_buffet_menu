@@ -18,7 +18,7 @@ import { saveOrder, type SessionOrder } from "@/lib/api/orders-client"
 import { usePrinting } from '@/hooks/usePrinting'
 import { PrintButton } from '@/components/printing/PrintButton'
 import { PrintJobStatus } from '@/components/printing/PrintJobStatus'
-import { initializeSocketClient, joinTableRoom, leaveTableRoom, onTableSessionUpdate, offTableSessionUpdate, onCartUpdate, offCartUpdate, emitCartUpdate } from '@/lib/socket-client'
+import { initializeSocketClient, joinTableRoom, leaveTableRoom, onTableSessionUpdate, offTableSessionUpdate, onCartUpdate, offCartUpdate, emitCartUpdate, onOrderConfirmation, offOrderConfirmation, emitOrderConfirmation } from '@/lib/socket-client'
 import { addToCartApi, updateCartApi, removeFromCartApi, clearCartApi, updateCartItemQuantityApi } from '@/lib/api/cart'
 
 import Confetti from "react-confetti"
@@ -274,24 +274,22 @@ export default function ItemsPage() {
       try {
         setLoading(true)
         
-        // Load table session and device ID from localStorage (for backward compatibility)
+        // Load table session and group type from localStorage
         const storedTableId = localStorage.getItem('selectedTableId')
-        const storedDeviceId = localStorage.getItem('deviceId')
+        const storedGroupType = localStorage.getItem('groupType')
         const storedSession = localStorage.getItem('tableSession')
         
-        if (!storedTableId || !storedDeviceId) {
+        if (!storedTableId || !storedGroupType) {
           alert('No table session found. Please return to the tables page.')
           router.push('/menu/tables')
           return
         }
         
-        setDeviceId(storedDeviceId)
-        
         // Initialize Socket.IO client and join table room
         const socket = initializeSocketClient()
         
         try {
-          await joinTableRoom(storedTableId)
+          await joinTableRoom(storedTableId, storedGroupType)
           console.log('✅ Successfully joined table room')
         } catch (error) {
           console.error('❌ Failed to join table room:', error)
@@ -345,11 +343,34 @@ export default function ItemsPage() {
             }
           }
         })
+
+        // Set up real-time order confirmation synchronization
+        onOrderConfirmation((orderData) => {
+          console.log('Received order confirmation:', orderData)
+          if (orderData.tableId === storedTableId) {
+            // Sync order confirmation state with other devices in same group
+            setShowConfetti(true)
+            setOrderPlaced(true)
+            
+            // Use timing from the order data or default
+            const timingInSeconds = orderData.orderData?.timingInSeconds || 60
+            setTimeRemaining(timingInSeconds)
+            
+            // Clear cart when order is confirmed by another device
+            setCart([])
+            setIsCartOpen(false)
+
+            // Hide confetti after 3 seconds
+            setTimeout(() => {
+              setShowConfetti(false)
+            }, 3000)
+          }
+        })
         
         // Try to get fresh session data from API, fallback to stored session
         let sessionData: TableSession | null = null
         try {
-          sessionData = await getTableSession(storedTableId)
+          sessionData = await getTableSession(storedTableId, storedGroupType || undefined)
           
           // Check if session has ended (either sessionEnded flag or null session)
           if (sessionData?.sessionEnded || sessionData === null) {
@@ -468,11 +489,13 @@ export default function ItemsPage() {
       
       // Clean up Socket.IO connections
       const storedTableId = localStorage.getItem('selectedTableId')
+      const storedGroupType = localStorage.getItem('groupType')
       if (storedTableId) {
-        leaveTableRoom(storedTableId)
+        leaveTableRoom(storedTableId, storedGroupType || undefined)
       }
       offTableSessionUpdate()
       offCartUpdate()
+      offOrderConfirmation()
     }
   }, [router])
 
@@ -589,7 +612,8 @@ export default function ItemsPage() {
         quantity: 1,
         categoryId: product.categoryId
       }
-      const result = await addToCartApi(tableSession.tableId, cartItem)
+      const groupTypeLocal= localStorage.getItem('groupType') 
+      const result = await addToCartApi(tableSession.tableId, cartItem, groupTypeLocal)
       
       if (result.success) {
         // Convert UI cart format to database format for real-time updates
@@ -601,7 +625,7 @@ export default function ItemsPage() {
           categoryId: item.menuItem.categoryId
         }))
         // Emit real-time update to other devices
-        emitCartUpdate(tableSession.tableId, dbCartItems)
+        emitCartUpdate(tableSession.tableId, dbCartItems, tableSession.groupType)
         setIsUpdating(false)
         setUpdatingItemId(null)
         setUpdatingAction(null)
@@ -643,7 +667,7 @@ export default function ItemsPage() {
 
     // Sync with database and emit real-time update
     try {
-      const result = await removeFromCartApi(tableSession.tableId, menuItemId)
+      const result = await removeFromCartApi(tableSession.tableId, menuItemId, tableSession.groupType)
       
       if (result.success) {
         // Convert UI cart format to database format for real-time updates
@@ -655,7 +679,7 @@ export default function ItemsPage() {
           categoryId: item.menuItem.categoryId
         }))
         // Emit real-time update to other devices
-        emitCartUpdate(tableSession.tableId, dbCartItems)
+        emitCartUpdate(tableSession.tableId, dbCartItems, tableSession.groupType)
         setIsUpdating(false)
         setUpdatingItemId(null)
         setUpdatingAction(null)
@@ -734,7 +758,9 @@ export default function ItemsPage() {
           quantity: item.quantity,
           category: item.menuItem.categoryId
         })),
-        storedGuestCounts: guestCounts
+        storedGuestCounts: guestCounts,
+        groupType: tableSession.groupType,
+        tableSessionId: tableSession.id
       }
 
       // Send order to new API
@@ -828,11 +854,18 @@ export default function ItemsPage() {
         
         // Clear cart from database and local state
         try {
-          await clearCartApi(tableSession.tableId)
-          emitCartUpdate(tableSession.tableId, [])
+          await clearCartApi(tableSession.tableId, tableSession.groupType)
+          emitCartUpdate(tableSession.tableId, [], tableSession.groupType)
         } catch (error) {
           console.error('Error clearing cart from database:', error)
         }
+        
+        // Emit order confirmation to sync with other devices in same group
+        emitOrderConfirmation(tableSession.tableId, {
+          orderId: result.orderId,
+          timingInSeconds,
+          orderData: orderData
+        }, tableSession.groupType)
         
         setCart([])
         setIsCartOpen(false)

@@ -119,7 +119,8 @@ export default function SessionOrdersPage() {
         // Fetch guest counts from DB table session (no localStorage)
         if (storedTableId) {
           try {
-            const session: TableSession | null = await getTableSession(storedTableId)
+            const groupType = localStorage.getItem('groupType') || undefined
+            const session: TableSession | null = await getTableSession(storedTableId, groupType)
             
             // Check if session has ended (either sessionEnded flag is true OR session is null)
             if (session?.sessionEnded || session === null) {
@@ -150,11 +151,13 @@ export default function SessionOrdersPage() {
 
         // Fetch orders for this table - only today's orders using API-level filtering
         const selectedTableId = localStorage.getItem('selectedTableId') || `table-${tableNumber}`
+        const storedGroupType = localStorage.getItem('groupType')
         const today = new Date().toISOString().split('T')[0] // YYYY-MM-DD format
         
         const tableOrders = await getOrders({
           tableId: selectedTableId,
-          date: today
+          date: today,
+          groupType: storedGroupType || undefined
         })
         setOrders(tableOrders)
 
@@ -171,11 +174,12 @@ export default function SessionOrdersPage() {
   // Socket connection for real-time updates
   useEffect(() => {
     const storedTableId = localStorage.getItem('selectedTableId')
+    const groupType = localStorage.getItem('groupType')
     if (!storedTableId) return
 
     // Initialize socket and join table room
     initializeSocketClient()
-    joinTableRoom(storedTableId)
+    joinTableRoom(storedTableId, groupType || undefined)
 
     // Listen for table session updates
     const handleSessionUpdate = (updatedSession: TableSession | null) => {
@@ -317,6 +321,7 @@ export default function SessionOrdersPage() {
 
     try {
       const selectedTableId = localStorage.getItem('selectedTableId')
+      const storedGroupType = localStorage.getItem('groupType')
       const paymentData = {
         tableId: selectedTableId || `table-${tableNumber}`,
         tableNumber: tableNumber,
@@ -325,6 +330,7 @@ export default function SessionOrdersPage() {
         paymentMethod: paymentMethod,
         totalAmount: splitData.total,
         sessionType: currentSession?.key || 'lunch',
+        groupType: storedGroupType || undefined,
         sessionData: {
           adults: splitData.sessionCharges.adults,
           children: splitData.sessionCharges.children,
@@ -403,6 +409,7 @@ export default function SessionOrdersPage() {
     try {
        // Prepare payment data
        const selectedTableId = localStorage.getItem('selectedTableId')
+       const storedGroupType = localStorage.getItem('groupType')
        const paymentData = {
          tableId: selectedTableId || `table-${tableNumber}`,
          tableNumber: tableNumber,
@@ -411,6 +418,7 @@ export default function SessionOrdersPage() {
          paymentMethod: paymentMethod,
         totalAmount: grandTotal,
         sessionType: currentSession?.key || 'lunch',
+        groupType: storedGroupType || undefined,
         sessionData: {
           adults: sessionData.adults,
           children: sessionData.children,

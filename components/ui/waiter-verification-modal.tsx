@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -19,7 +19,7 @@ import { verifyWaiterPin } from "@/lib/api/table-sessions"
 interface WaiterVerificationModalProps {
   isOpen: boolean
   onClose: () => void
-  onVerified: (waiterInfo: { name: string; role: string; pin: string }) => void
+  onVerified: (waiterInfo: { name: string; role: string; pin: string; groupType: 'same' | 'different' }) => void
   title?: string
   description?: string
 }
@@ -29,11 +29,13 @@ export function WaiterVerificationModal({
   onClose,
   onVerified,
   title = "Waiter Verification Required",
-  description = "Please enter your waiter PIN to proceed with joining this table."
+  description = "Please enter your waiter PIN and select group option to proceed."
 }: WaiterVerificationModalProps) {
   const [pin, setPin] = useState("")
   const [isVerifying, setIsVerifying] = useState(false)
   const [error, setError] = useState("")
+  const sameRef = useRef<HTMLInputElement>(null)
+  const differentRef = useRef<HTMLInputElement>(null)
 
   const handleVerify = async () => {
     if (!pin.trim()) {
@@ -46,12 +48,15 @@ export function WaiterVerificationModal({
 
     try {
       const waiterInfo = await verifyWaiterPin(pin)
-      onVerified({ name: waiterInfo.name, role: waiterInfo.role, pin })
+      const selectedGroupType: 'same' | 'different' = differentRef.current?.checked ? 'different' : 'same'
+      onVerified({ name: waiterInfo.name, role: waiterInfo.role, pin, groupType: selectedGroupType })
       handleClose()
     } catch (error) {
       setError(error instanceof Error ? error.message : "Invalid PIN")
     } finally {
       setIsVerifying(false)
+      // removed groupType state reset; now using refs
+      onClose()
     }
   }
 
@@ -96,6 +101,33 @@ export function WaiterVerificationModal({
               disabled={isVerifying}
               autoFocus
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Group Selection</Label>
+            <div className="flex items-center gap-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="groupType"
+                  value="same"
+                  defaultChecked
+                  ref={sameRef}
+                  disabled={isVerifying}
+                />
+                <span className="text-sm">Join existing group</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="groupType"
+                  value="different"
+                  ref={differentRef}
+                  disabled={isVerifying}
+                />
+                <span className="text-sm">Start separate group</span>
+              </label>
+            </div>
           </div>
 
           {error && (

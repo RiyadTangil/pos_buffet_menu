@@ -50,7 +50,8 @@ export default function TablesPage() {
   const [buffetSettings, setBuffetSettings] = useState<BuffetSettings | null>(null);
   const [deviceId] = useState(() => generateDeviceId());
   const [isSecondaryDevice, setIsSecondaryDevice] = useState(false);
-  const [verifiedWaiter, setVerifiedWaiter] = useState<{ name: string; role: string } | null>(null);
+  const [verifiedWaiter, setVerifiedWaiter] = useState<{ name: string; role: string; pin: string } | null>(null);
+  const [groupType, setGroupType] = useState<'same' | 'different'>('same');
   const [guestCounts, setGuestCounts] = useState<GuestCounts>({
     adults: 1,
     children: 0,
@@ -226,8 +227,9 @@ export default function TablesPage() {
     }
   };
 
-  const handleWaiterVerified = (waiterInfo: { name: string; role: string; pin: string }) => {
-    setVerifiedWaiter(waiterInfo);
+  const handleWaiterVerified = (waiterInfo: { name: string; role: string; pin: string; groupType: 'same' | 'different' }) => {
+    setVerifiedWaiter({ name: waiterInfo.name, role: waiterInfo.role, pin: waiterInfo.pin });
+    setGroupType(waiterInfo.groupType);
     setIsWaiterModalOpen(false);
     setIsModalOpen(true);
   };
@@ -241,13 +243,15 @@ export default function TablesPage() {
           deviceId,
           guestCounts,
           waiterPin: verifiedWaiter?.pin,
-          isSecondaryDevice
+          isSecondaryDevice,
+          groupType
         });
 
         // Store session data in localStorage for backward compatibility
         localStorage.setItem("guestCounts", JSON.stringify(guestCounts));
         localStorage.setItem("selectedTableId", selectedTable.id);
         localStorage.setItem("tableSession", JSON.stringify(sessionData));
+        localStorage.setItem("groupType", groupType);
         localStorage.setItem("deviceId", deviceId);
 
         setIsModalOpen(false);
@@ -406,6 +410,13 @@ export default function TablesPage() {
       </div>
 
       <Dialog open={isModalOpen} onOpenChange={handleModalClose}>
+        <WaiterVerificationModal
+          isOpen={isWaiterModalOpen}
+          onClose={() => setIsWaiterModalOpen(false)}
+          onVerified={handleWaiterVerified}
+          title="Waiter Verification"
+          description="Verify your PIN and choose group option."
+        />
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
