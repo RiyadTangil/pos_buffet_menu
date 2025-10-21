@@ -24,6 +24,9 @@ import { addToCartApi, updateCartApi, removeFromCartApi, clearCartApi, updateCar
 import Confetti from "react-confetti"
 import SessionEndedModal from "@/components/SessionEndedModal"
 import OrderPrinter from "@/components/printing/OrderPrinter"
+import I18nProvider from "@/components/providers/i18n-provider"
+import LanguageSwitcher from "@/components/ui/language-switcher"
+import { useTranslation } from "react-i18next"
 
 interface CartItem {
   menuItem: Product
@@ -44,6 +47,7 @@ const getCategoryIcon = (categoryId: string) => {
 
 export default function ItemsPage() {
   const router = useRouter()
+  const { t } = useTranslation()
   const { printOrder, isPrinting } = usePrinting()
   const [cart, setCart] = useState<CartItem[]>([])
   const [isCartOpen, setIsCartOpen] = useState(false)
@@ -962,56 +966,60 @@ export default function ItemsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {showConfetti && (
-        <Confetti width={window.innerWidth} height={window.innerHeight} recycle={false} numberOfPieces={200} />
-      )}
+    <I18nProvider>
+      <div className="min-h-screen bg-gray-50">
+        {showConfetti && (
+          <Confetti width={window.innerWidth} height={window.innerHeight} recycle={false} numberOfPieces={200} />
+        )}
 
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            <div className="bg-white">
-              <img
-                src="/images/logo.png"
-                alt="KALA Systems Logo"
-                className="h-12 w-auto ms-5"
-              />
-            </div>
-            
-            {/* Current Session Display / Countdown */}
-            {currentSession ? (
-              <SessionCountdown currentSession={currentSession} />
-            ) : buffetSettings && (
-              <div className="flex items-center gap-4 bg-gray-50 rounded-lg px-4 py-2 border border-gray-200">
+        {/* Header */}
+        <div className="bg-white border-b border-gray-200 px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-6">
+              <div className="bg-white">
+                <img
+                  src="/images/logo.png"
+                  alt={t("items.kala_logo_alt")}
+                  className="h-12 w-auto ms-5"
+                />
+              </div>
+              
+              {/* Current Session Display / Countdown */}
+              {currentSession ? (
+                <SessionCountdown currentSession={currentSession} />
+              ) : buffetSettings && (
+                <div className="flex items-center gap-4 bg-gray-50 rounded-lg px-4 py-2 border border-gray-200">
                 <Clock className="h-5 w-5 text-gray-600" />
                 <div className="text-sm text-gray-700">
-                  <div className="font-semibold">No Active Session</div>
-                  <div className="text-xs">Please check session timings</div>
+                  <div className="font-semibold">{t("items.no_active_session")}</div>
+                  <div className="text-xs">{t("items.check_session_timings")}</div>
                 </div>
               </div>
             )}
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 relative z-50">
+            {/* Language Switcher */}
+            <LanguageSwitcher />
+            
             {currentSession && (
               <div className="flex items-center gap-2 bg-blue-50 rounded-lg px-3 py-2 border border-blue-200">
                 <Clock className="h-4 w-4 text-blue-600" />
                 <div className="text-sm">
-                  <div className="font-semibold text-blue-900">Order Intervel</div>
+                  <div className="font-semibold text-blue-900">{t("items.order_interval")}</div>
                   <div className="text-blue-700">{currentSession.data.nextOrderAvailableInMinutes} min</div>
                 </div>
               </div>
             )}
             
             <Button variant="outline" onClick={handleEndSession}>
-              End Session
+              {t("items.end_session")}
             </Button>
 
             {orderPlaced ? (
               <div className="text-center">
-                <div className="text-lg font-semibold text-green-600">Order Placed!</div>
-                <div className="text-sm text-gray-600">Next order available in: {formatTime(timeRemaining)}</div>
+                <div className="text-lg font-semibold text-green-600">{t("items.order_placed")}</div>
+                <div className="text-sm text-gray-600">{t("items.next_order_available")} {formatTime(timeRemaining)}</div>
               </div>
             ) : (
               <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
@@ -1022,7 +1030,7 @@ export default function ItemsPage() {
                     disabled={sessionEnded}
                   >
                     <ShoppingCart className="w-5 h-5 mr-2" />
-                   Item in Cart
+                   {t("items.item_in_cart")}
                     {getTotalItems() > 0 && (
                       <Badge className="absolute -top-2 -right-2 bg-red-500 text-white">{getTotalItems()}</Badge>
                     )}
@@ -1030,7 +1038,7 @@ export default function ItemsPage() {
                 </SheetTrigger>
                 <SheetContent className="w-full sm:max-w-md bg-gradient-to-b from-white to-orange-50 flex flex-col h-full overflow-hidden">
                   <SheetHeader className="border-b border-orange-200 pb-4 flex-shrink-0">
-                    <SheetTitle className="text-xl text-orange-900">Your Selection</SheetTitle>
+                    <SheetTitle className="text-xl text-orange-900">{t("items.your_selection")}</SheetTitle>
                     <SheetDescription className="text-orange-700">
                       Review your items • Unlimited quantities available
                     </SheetDescription>
@@ -1040,8 +1048,8 @@ export default function ItemsPage() {
                     {cart.length === 0 ? (
                       <div className="text-center py-12">
                         <ShoppingCart className="w-16 h-16 mx-auto text-orange-300 mb-4" />
-                        <p className="text-orange-600 text-lg">Your cart is empty</p>
-                        <p className="text-orange-500 text-sm">Add items from the menu</p>
+                        <p className="text-orange-600 text-lg">{t("items.cart_empty")}</p>
+                  <p className="text-orange-500 text-sm">{t("items.add_items")}</p>
                       </div>
                     ) : (
                       <div className="space-y-4 px-1">
@@ -1108,8 +1116,8 @@ export default function ItemsPage() {
                                 </Button>
                               </div>
                               <Badge variant="secondary" className="bg-orange-100 text-orange-800">
-                                {item.quantity} {item.quantity === 1 ? "serving" : "servings"}
-                              </Badge>
+                          {item.quantity} {item.quantity === 1 ? t("items.serving") : t("items.servings")}
+                        </Badge>
                             </div>
                           </div>
                         ))}
@@ -1122,7 +1130,7 @@ export default function ItemsPage() {
                       {/* Print Job Status */}
                       {lastOrderId && (
                         <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
-                          <h4 className="text-sm font-semibold text-blue-900 mb-2">Print Status</h4>
+                          <h4 className="text-sm font-semibold text-blue-900 mb-2">{t("items.print_status")}</h4>
                           <PrintJobStatus 
                             orderId={lastOrderId}
                             showHeader={false}
@@ -1134,10 +1142,10 @@ export default function ItemsPage() {
                       
                       <div className="bg-orange-50 rounded-lg p-3 border border-orange-200">
                         <div className="flex justify-between items-center text-lg font-semibold text-gray-900">
-                          <span>Total Items:</span>
-                          <span className="text-orange-600">{getTotalItems()}</span>
-                        </div>
-                        <p className="text-sm text-gray-600 mt-1">Buffet style • Unlimited servings</p>
+                    <span>{t("items.total_items")}</span>
+                    <span className="text-orange-600">{getTotalItems()}</span>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-1">{t("items.buffet_style")}</p>
                       </div>
                       <Button
                         className="w-full bg-orange-600 hover:bg-orange-700 text-white shadow-lg"
@@ -1145,7 +1153,7 @@ export default function ItemsPage() {
                         onClick={handleConfirmOrder}
                         disabled={isPrinting}
                       >
-                        {isPrinting ? 'Processing...' : 'Confirm Order'}
+                        {isPrinting ? t("items.processing") : t("items.confirm_order")}
                       </Button>
                     </div>
                   )}
@@ -1178,7 +1186,7 @@ export default function ItemsPage() {
         {/* Left Sidebar - Categories */}
          <div className="w-64 bg-white border-r border-gray-200 overflow-y-auto">
            <div className="p-4">
-             <h2 className="text-lg font-semibold text-gray-900 mb-4">Categories</h2>
+             <h2 className="text-lg font-semibold text-gray-900 mb-4">{t("items.categories")}</h2>
              <div className="space-y-2">
                {categories.map((category) => {
                  const isSelected = selectedCategory === category.id
@@ -1208,7 +1216,7 @@ export default function ItemsPage() {
         <div className="flex-1 overflow-y-auto p-6">
           {loading ? (
             <div className="flex items-center justify-center h-64">
-              <div className="text-lg text-gray-600">Loading menu items...</div>
+              <div className="text-lg text-gray-600">{t("items.loading_menu")}</div>
             </div>
           ) : (() => {
             const selectedCategoryData = categories.find(cat => cat.id === selectedCategory)
@@ -1299,15 +1307,15 @@ export default function ItemsPage() {
                              <div className="flex items-center gap-2">
                                {item.isVegetarian && (
                                  <Badge className="text-xs bg-green-100 text-green-800 border-green-200 hover:bg-green-200">
-                                   <Leaf className="w-3 h-3 mr-1" />
-                                   Veg
-                                 </Badge>
+                          <Leaf className="w-3 h-3 mr-1" />
+                          {t("items.vegetarian")}
+                        </Badge>
                                )}
                                {item.isSpicy && (
                                  <Badge className="text-xs bg-red-100 text-red-800 border-red-200 hover:bg-red-200">
-                                   <Flame className="w-3 h-3 mr-1" />
-                                   Spicy
-                                 </Badge>
+                          <Flame className="w-3 h-3 mr-1" />
+                          {t("items.spicy")}
+                        </Badge>
                                )}
                              </div> */}
 
@@ -1408,5 +1416,6 @@ export default function ItemsPage() {
         />
       )}
     </div>
+    </I18nProvider>
   )
 }

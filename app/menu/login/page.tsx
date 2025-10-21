@@ -48,7 +48,7 @@ export default function LoginPage() {
     <I18nProvider>
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 px-4 relative">
       {/* Language Switcher Top Right */}
-      <div className="absolute top-4 right-4">
+      <div className="absolute top-4 right-4 z-50">
         <LanguageSwitcher />
       </div>
       <div className="w-full max-w-md">

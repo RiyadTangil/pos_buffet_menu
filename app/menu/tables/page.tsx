@@ -27,6 +27,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { WaiterVerificationModal } from "@/components/ui/waiter-verification-modal";
 import { Users, Shield } from "lucide-react";
+import I18nProvider from "@/components/providers/i18n-provider";
+import LanguageSwitcher from "@/components/ui/language-switcher";
+import { useTranslation } from "react-i18next";
 
 interface GuestCounts {
   adults: number;
@@ -42,6 +45,7 @@ interface TableWithSession extends Table {
 
 export default function TablesPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [tableStates, setTableStates] = useState<TableWithSession[]>([]);
   const [selectedTable, setSelectedTable] = useState<TableWithSession | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -192,19 +196,19 @@ export default function TablesPage() {
 
   const getTableStatus = (table: TableWithSession) => {
     if (table.status === "available" && !table.session) {
-      return "Available";
+      return t("tables.available");
     } else if (table.session) {
       if (table.availableAdultCapacity! > 0) {
-        return `Occupied (${table.availableAdultCapacity} spots left)`;
+        return `${t("tables.occupied")} (${table.availableAdultCapacity} spots left)`;
       } else {
-        return "Full";
+        return t("tables.full");
       }
     } else if (table.status === "selected") {
-      return "Selected";
+      return t("tables.selected");
     } else if (table.status === "occupied") {
-      return "Occupied";
+      return t("tables.occupied");
     }
-    return "Unavailable";
+    return t("tables.unavailable");
   };
 
   const isTableClickable = (table: TableWithSession) => {
@@ -280,15 +284,20 @@ export default function TablesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F9FD] relative">
-      {/* Top Left KALA Logo */}
-      <div className="mb-5 bg-white pb-4">
-        <img
-          src="/images/logo.png"
-          alt="KALA Systems Logo"
-          className="h-20 w-auto ms-5"
-        />
-      </div>
+    <I18nProvider>
+      <div className="min-h-screen bg-[#F8F9FD] relative">
+        {/* Top Left KALA Logo */}
+        <div className="mb-5 bg-white pb-4 relative">
+          <img
+            src="/images/logo.png"
+            alt="KALA Systems Logo"
+            className="h-20 w-auto ms-5"
+          />
+          {/* Language Switcher */}
+          <div className="absolute top-4 right-4">
+            <LanguageSwitcher />
+          </div>
+        </div>
 
       {/* Top Right Cart Icon */}
       {/* <div className="absolute top-6 right-6 z-10">
@@ -414,7 +423,7 @@ export default function TablesPage() {
           isOpen={isWaiterModalOpen}
           onClose={() => setIsWaiterModalOpen(false)}
           onVerified={handleWaiterVerified}
-          title="Waiter Verification"
+          title={t("tables.waiter_verification")}
           description="Verify your PIN and choose group option."
         />
         <DialogContent className="sm:max-w-md">
@@ -500,14 +509,14 @@ export default function TablesPage() {
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <Label htmlFor="adults">
-                  Adults {isSecondaryDevice && `(Max: ${selectedTable?.availableAdultCapacity})`}
-                </Label>
-                <span className="text-sm text-gray-500">
-                  {guestCounts.adults}/{isSecondaryDevice ? selectedTable?.availableAdultCapacity : selectedTable?.capacity} capacity
-                </span>
-              </div>
+                <div className="flex justify-between items-center">
+                  <Label htmlFor="adults">
+                    {t("tables.adults")} {isSecondaryDevice && `(Max: ${selectedTable?.availableAdultCapacity})`}
+                  </Label>
+                  <span className="text-sm text-gray-500">
+                    {guestCounts.adults}/{isSecondaryDevice ? selectedTable?.availableAdultCapacity : selectedTable?.capacity} capacity
+                  </span>
+                </div>
               <Input
                 id="adults"
                 type="number"
@@ -537,7 +546,7 @@ export default function TablesPage() {
             {/* Always show all form fields for both primary and secondary devices */}
             <>
               <div className="space-y-2">
-                <Label htmlFor="children">Children (3-12 years)</Label>
+                <Label htmlFor="children">{t("tables.children")}</Label>
                 <Input
                   id="children"
                   type="number"
@@ -553,7 +562,7 @@ export default function TablesPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="infants">Infants (under 3 years)</Label>
+                <Label htmlFor="infants">{t("tables.infants")}</Label>
                 <Input
                   id="infants"
                   type="number"
@@ -583,7 +592,7 @@ export default function TablesPage() {
                   htmlFor="drinks"
                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                 >
-                  Include drinks package
+                  {t("tables.include_drinks")}
                 </Label>
               </div>
             </>
@@ -591,13 +600,13 @@ export default function TablesPage() {
 
           <DialogFooter>
             <Button variant="outline" onClick={handleModalClose}>
-              Cancel
+              {t("tables.cancel")}
             </Button>
             <Button 
               onClick={handleConfirm}
               disabled={(!isSecondaryDevice && guestCounts.adults === 0) || (isSecondaryDevice && !verifiedWaiter)}
             >
-              {isSecondaryDevice ? 'Join Table' : 'Confirm Selection'}
+              {isSecondaryDevice ? t("tables.join_table") : t("tables.confirm_selection")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -610,5 +619,6 @@ export default function TablesPage() {
         onVerified={handleWaiterVerified}
       />
     </div>
+    </I18nProvider>
   );
 }

@@ -31,8 +31,12 @@ import {
 import { Label } from "@/components/ui/label"
 import SessionEndedModal from "@/components/SessionEndedModal"
 import SplitBillModal from "@/components/SplitBillModal"
+import I18nProvider from "@/components/providers/i18n-provider"
+import LanguageSwitcher from "@/components/ui/language-switcher"
+import { useTranslation } from "react-i18next"
 
 export default function SessionOrdersPage() {
+  const { t } = useTranslation()
   const router = useRouter()
   const [isPaymentOpen, setIsPaymentOpen] = useState(false)
   const [waiterPin, setWaiterPin] = useState("")
@@ -479,17 +483,22 @@ export default function SessionOrdersPage() {
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card'>('cash')
 
   return (
+    <I18nProvider>
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-6xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Session Orders</h1>
-            <p className="text-gray-600">Review all orders placed during this session</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">{t("orders.session_orders")}</h1>
+              <p className="text-gray-600">{t("orders.review_orders")}</p>
           </div>
-          <Button variant="outline" onClick={() => router.back()} aria-label="Go back">
-            Back
-          </Button>
+          <div className="flex items-center gap-4">
+            {/* Language Switcher */}
+            <LanguageSwitcher />
+            <Button variant="outline" onClick={() => router.back()} aria-label={t("orders.go_back")}>
+              Back
+            </Button>
+          </div>
         </div>
 
         {/* Session Info */}
@@ -499,7 +508,7 @@ export default function SessionOrdersPage() {
               <div className="flex items-center gap-3">
                 <Users className="w-8 h-8 text-blue-600" />
                 <div>
-                  <div className="font-semibold text-blue-900">Session Guests</div>
+                  <div className="font-semibold text-blue-900">{t("orders.session_guests")}</div>
                   <div className="text-sm text-blue-700">
                     {sessionData.adults} Adults, {sessionData.children} Children, {sessionData.infants} Infants
                   </div>
@@ -508,16 +517,16 @@ export default function SessionOrdersPage() {
               <div className="flex items-center gap-3">
                 <Coffee className="w-8 h-8 text-blue-600" />
                 <div>
-                  <div className="font-semibold text-blue-900">Extra Drinks</div>
-                  <div className="text-sm text-blue-700">
-                    {sessionData.extraDrinks ? `Included (+£${(sessionData.adults * sessionData.extraDrinksPricing.adultPrice + sessionData.children * sessionData.extraDrinksPricing.childPrice + sessionData.infants * sessionData.extraDrinksPricing.infantPrice).toFixed(2)})` : "Not included"}
+                  <div className="font-semibold text-blue-900">{t("orders.extra_drinks")}</div>
+                <div className="text-sm text-blue-700">
+                  {sessionData.extraDrinks ? `${t("orders.included")} (+£${(sessionData.adults * sessionData.extraDrinksPricing.adultPrice + sessionData.children * sessionData.extraDrinksPricing.childPrice + sessionData.infants * sessionData.extraDrinksPricing.infantPrice).toFixed(2)})` : t("orders.not_included")}
                   </div>
                 </div>
               </div>
               <div className="flex items-center gap-3">
                 <CreditCard className="w-8 h-8 text-blue-600" />
                 <div>
-                  <div className="font-semibold text-blue-900">Session Total</div>
+                  <div className="font-semibold text-blue-900">{t("orders.session_total")}</div>
                   <div className="text-xl font-bold text-blue-900">£{grandTotal}</div>
                 </div>
               </div>
@@ -532,19 +541,19 @@ export default function SessionOrdersPage() {
           </CardHeader>
           <CardContent>
             {loading ? (
-              <div className="text-center py-8 text-gray-500">Loading orders...</div>
+              <div className="text-center py-8 text-gray-500">{t("orders.loading_orders")}</div>
             ) : orders.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">No orders found for this table</div>
+              <div className="text-center py-8 text-gray-500">{t("orders.no_orders")}</div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse">
                   <thead>
                     <tr className="border-b border-gray-200">
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Order ID</th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Time</th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Items</th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Total Amount</th>
-                      <th className="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700">{t("orders.order_id")}</th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700">{t("orders.time")}</th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700">{t("orders.items")}</th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700">{t("orders.total_amount")}</th>
+                      <th className="text-left py-3 px-4 font-semibold text-gray-700">{t("orders.status")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -586,50 +595,50 @@ export default function SessionOrdersPage() {
         {/* Session Total Card - E-commerce Style */}
         <Card className="bg-white border-gray-200 shadow-lg">
           <CardHeader className="bg-gray-50 border-b">
-            <CardTitle className="text-xl font-bold text-gray-900">Order Summary</CardTitle>
+            <CardTitle className="text-xl font-bold text-gray-900">{t("orders.order_summary")}</CardTitle>
           </CardHeader>
           <CardContent className="p-6">
             <div className="space-y-4">
               {/* Buffet Charges */}
               <div className="space-y-3">
-                <h4 className="font-semibold text-gray-800 border-b pb-2">Buffet Access</h4>
+                <h4 className="font-semibold text-gray-800 border-b pb-2">{t("orders.buffet_access")}</h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">
-                      Adults ({sessionData.adults} × £{sessionData.adultPrice})
-                    </span>
+                        {t("orders.adults")} ({sessionData.adults} × £{sessionData.adultPrice})
+                      </span>
                     <span className="font-medium">£{(sessionData.adults * sessionData.adultPrice).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">
-                      Children ({sessionData.children} × £{sessionData.childPrice})
-                    </span>
+                        {t("orders.children")} ({sessionData.children} × £{sessionData.childPrice})
+                      </span>
                     <span className="font-medium">£{(sessionData.children * sessionData.childPrice).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">
-                      Infants ({sessionData.infants} × £{sessionData.infantPrice})
-                    </span>
+                        {t("orders.infants")} ({sessionData.infants} × £{sessionData.infantPrice})
+                      </span>
                     <span className="font-medium">£{(sessionData.infants * sessionData.infantPrice).toFixed(2)}</span>
                   </div>
                   {sessionData.extraDrinks && (
                     <div className="space-y-1">
-                      <div className="text-gray-600 font-medium">Extra Drinks:</div>
+                      <div className="text-gray-600 font-medium">{t("orders.extra_drinks_pricing")}</div>
                       {sessionData.adults > 0 && (
                         <div className="flex justify-between items-center text-sm pl-4">
-                          <span className="text-gray-600">Adults ({sessionData.adults} × £{sessionData.extraDrinksPricing.adultPrice})</span>
+                          <span className="text-gray-600">{t("orders.adults")} ({sessionData.adults} × £{sessionData.extraDrinksPricing.adultPrice})</span>
                           <span className="font-medium">£{(sessionData.adults * sessionData.extraDrinksPricing.adultPrice).toFixed(2)}</span>
                         </div>
                       )}
                       {sessionData.children > 0 && (
                         <div className="flex justify-between items-center text-sm pl-4">
-                          <span className="text-gray-600">Children ({sessionData.children} × £{sessionData.extraDrinksPricing.childPrice})</span>
+                          <span className="text-gray-600">{t("orders.children")} ({sessionData.children} × £{sessionData.extraDrinksPricing.childPrice})</span>
                           <span className="font-medium">£{(sessionData.children * sessionData.extraDrinksPricing.childPrice).toFixed(2)}</span>
                         </div>
                       )}
                       {sessionData.infants > 0 && sessionData.extraDrinksPricing.infantPrice > 0 && (
                         <div className="flex justify-between items-center text-sm pl-4">
-                          <span className="text-gray-600">Infants ({sessionData.infants} × £{sessionData.extraDrinksPricing.infantPrice})</span>
+                          <span className="text-gray-600">{t("orders.infants")} ({sessionData.infants} × £{sessionData.extraDrinksPricing.infantPrice})</span>
                           <span className="font-medium">£{(sessionData.infants * sessionData.extraDrinksPricing.infantPrice).toFixed(2)}</span>
                         </div>
                       )}
@@ -637,7 +646,7 @@ export default function SessionOrdersPage() {
                   )}
                 </div>
                 <div className="flex justify-between items-center pt-2 border-t">
-                  <span className="font-medium text-gray-800">Buffet Subtotal:</span>
+                  <span className="font-medium text-gray-800">{t("orders.buffet_subtotal")}</span>
                   <span className="font-semibold">£{(sessionData.adults * sessionData.adultPrice + sessionData.children * sessionData.childPrice + sessionData.infants * sessionData.infantPrice + (sessionData.extraDrinks ? sessionData.drinkPrice : 0)).toFixed(2)}</span>
                 </div>
               </div>
@@ -645,11 +654,11 @@ export default function SessionOrdersPage() {
               {/* Order Items Total */}
               {orders.length > 0 && (
                 <div className="space-y-3">
-                  <h4 className="font-semibold text-gray-800 border-b pb-2">Additional Orders</h4>
+                  <h4 className="font-semibold text-gray-800 border-b pb-2">{t("orders.additional_orders")}</h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between items-center">
                       <span className="text-gray-600">
-                        {orders.length} order{orders.length !== 1 ? "s" : ""} placed
+                        {t("orders.total_orders")}
                       </span>
                       <span className="font-medium">£{orders.reduce((sum, order) => sum + (order.totalAmount || 0), 0).toFixed(2)}</span>
                     </div>
@@ -660,10 +669,10 @@ export default function SessionOrdersPage() {
               {/* Grand Total */}
               <div className="border-t-2 border-gray-300 pt-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-xl font-bold text-gray-900">Total Amount:</span>
+                  <span className="text-xl font-bold text-gray-900">{t("orders.total_amount_final")}</span>
                   <span className="text-2xl font-bold text-green-600">£{grandTotal}</span>
                 </div>
-                <p className="text-sm text-gray-500 mt-1">Including all buffet access and additional orders</p>
+                <p className="text-sm text-gray-500 mt-1">{t("orders.including_all")}</p>
               </div>
             </div>
           </CardContent>
@@ -675,39 +684,39 @@ export default function SessionOrdersPage() {
               <div className="flex items-center gap-3">
                 <CreditCard className="h-8 w-8 text-amber-600" />
                 <div>
-                  <h3 className="font-semibold text-amber-800">Payment Required</h3>
-                  <p className="text-amber-700">Please pay £{grandTotal} to complete your session</p>
+                  <h3 className="font-semibold text-amber-800">{t("orders.payment_required")}</h3>
+                <p className="text-amber-700">{t("orders.please_pay", { amount: grandTotal })}</p>
                 </div>
               </div>
 
               <Dialog open={isPaymentOpen} onOpenChange={setIsPaymentOpen}>
                 <DialogTrigger asChild>
-                  <Button className="bg-amber-600 hover:bg-amber-700 text-white">Pay with Waiter</Button>
+                  <Button className="bg-amber-600 hover:bg-amber-700 text-white">{t("orders.pay_with_waiter")}</Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-md">
                   <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                       <User className="w-5 h-5" />
-                      Waiter Payment
+                      {t("orders.waiter_verification")}
                     </DialogTitle>
-                    <DialogDescription>Enter waiter PIN to process payment of £{grandTotal}</DialogDescription>
+                    <DialogDescription>{t("orders.enter_waiter_pin", { amount: grandTotal })}</DialogDescription>
                   </DialogHeader>
 
                   {paymentComplete ? (
                     <div className="text-center py-6">
                       <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-                      <h3 className="text-lg font-semibold text-green-700 mb-2">Payment Successful!</h3>
-                      <p className="text-gray-600">Redirecting to tables...</p>
+                      <h3 className="text-lg font-semibold text-green-700 mb-2">{t("orders.payment_successful")}</h3>
+                      <p className="text-gray-600">{t("orders.redirecting")}</p>
                     </div>
                   ) : (
                     <>
                       <div className="space-y-4">
                         <div>
-                          <Label htmlFor="waiterPin">Waiter PIN</Label>
+                          <Label htmlFor="waiterPin">{t("orders.waiter_pin")}</Label>
                           <Input
                             id="waiterPin"
                             type="password"
-                            placeholder="Enter 4-digit PIN"
+                            placeholder={t("orders.enter_pin")}
                             value={waiterPin}
                             onChange={(e) => {
                               const value = e.target.value.replace(/\D/g, '').slice(0, 4)
@@ -721,7 +730,7 @@ export default function SessionOrdersPage() {
                             <p className="text-sm text-red-600 mt-1">{pinError}</p>
                           )}
                           {validatedWaiter && (
-                            <p className="text-sm text-green-600 mt-1">✓ Validated: {validatedWaiter.name}</p>
+                            <p className="text-sm text-green-600 mt-1">{t("orders.validated")} {validatedWaiter.name}</p>
                           )}
                         </div>
 
@@ -735,7 +744,7 @@ export default function SessionOrdersPage() {
                               onClick={() => setPaymentMethod('cash')}
                               aria-pressed={paymentMethod === 'cash'}
                             >
-                              <DollarSign className="w-4 h-4 mr-2" /> Cash
+                              <DollarSign className="w-4 h-4 mr-2" /> {t("orders.cash")}
                             </Button>
                             <Button
                               type="button"
@@ -743,7 +752,7 @@ export default function SessionOrdersPage() {
                               onClick={() => setPaymentMethod('card')}
                               aria-pressed={paymentMethod === 'card'}
                             >
-                              <CreditCard className="w-4 h-4 mr-2" /> Card
+                              <CreditCard className="w-4 h-4 mr-2" /> {t("orders.card")}
                             </Button>
                           </div>
                         </div>
@@ -766,12 +775,12 @@ export default function SessionOrdersPage() {
                               disabled={isProcessing} 
                               className="w-full"
                             >
-                              {isProcessing ? "Processing..." : `Pay Full Amount £${grandTotal}`}
+                              {isProcessing ? t("orders.processing") : t("orders.pay_full_amount", { amount: grandTotal })}
                             </Button>
                           </>
                         ) : (
                           <Button onClick={handlePayment} disabled={!waiterPin || waiterPin.length !== 4 || isProcessing} className="w-full">
-                            {isProcessing ? "Validating..." : "Validate PIN"}
+                            {isProcessing ? t("orders.validating") : t("orders.validate_pin")}
                           </Button>
                         )}
                       </DialogFooter>
@@ -800,5 +809,6 @@ export default function SessionOrdersPage() {
         totalAmount={grandTotal}
       />
     </div>
+    </I18nProvider>
   )
 }
