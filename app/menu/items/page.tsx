@@ -1000,9 +1000,6 @@ export default function ItemsPage() {
           </div>
 
           <div className="flex items-center gap-4 relative z-50">
-            {/* Language Switcher */}
-            <LanguageSwitcher />
-            
             {currentSession && (
               <div className="flex items-center gap-2 bg-blue-50 rounded-lg px-3 py-2 border border-blue-200">
                 <Clock className="h-4 w-4 text-blue-600" />
@@ -1050,6 +1047,8 @@ export default function ItemsPage() {
                       Review your items • Unlimited quantities available
                     </SheetDescription>
                   </SheetHeader>
+            
+
 
                   <div className="flex-1 overflow-y-auto py-4 min-h-0">
                     {cart.length === 0 ? (
@@ -1167,6 +1166,9 @@ export default function ItemsPage() {
                 </SheetContent>
               </Sheet>
             )}
+            <div className="ml-auto">
+              <LanguageSwitcher />
+            </div>
           </div>
         </div>
       </div>
