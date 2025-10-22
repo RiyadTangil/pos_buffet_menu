@@ -24,6 +24,7 @@ import { addToCartApi, updateCartApi, removeFromCartApi, clearCartApi, updateCar
 import Confetti from "react-confetti"
 import SessionEndedModal from "@/components/SessionEndedModal"
 import OrderPrinter from "@/components/printing/OrderPrinter"
+import WaiterRequest from "@/components/WaiterRequest"
 import I18nProvider from "@/components/providers/i18n-provider"
 import LanguageSwitcher from "@/components/ui/language-switcher"
 import { useTranslation } from "react-i18next"
@@ -1015,6 +1016,12 @@ export default function ItemsPage() {
             <Button variant="outline" onClick={handleEndSession}>
               {t("items.end_session")}
             </Button>
+
+            {/* Waiter Request Button */}
+            <WaiterRequest 
+              tableNumber={parseInt(tableSession?.tableId || localStorage.getItem('selectedTableId') || '0')}
+              disabled={sessionEnded}
+            />
 
             {orderPlaced ? (
               <div className="text-center">

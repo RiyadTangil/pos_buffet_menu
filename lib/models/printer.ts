@@ -75,6 +75,43 @@ export interface CategoryPrinterMapping {
   printerName: string
 }
 
+// Waiter request types and models
+export type WaiterRequestType = 'waiter' | 'cleaning' | 'bill'
+
+export interface WaiterRequest {
+  id: string
+  tableNumber: number
+  requestType: WaiterRequestType
+  message: string
+  status: 'pending' | 'acknowledged' | 'completed'
+  createdAt: string
+  acknowledgedAt?: string
+  completedAt?: string
+}
+
+export interface WaiterRequestPrinterMapping {
+  requestType: WaiterRequestType
+  printerId: string
+  printerName: string
+  connectionType: 'ip' | 'usb'
+  isActive: boolean
+}
+
+export interface WaiterRequestPrintJob {
+  id: string
+  requestId: string
+  printerId: string
+  printerName: string
+  tableNumber: number
+  requestType: WaiterRequestType
+  message: string
+  status: 'pending' | 'printing' | 'completed' | 'failed'
+  createdAt: string
+  printedAt?: string
+  errorMessage?: string
+  retryCount: number
+}
+
 // Default printer configuration
 export const defaultPrinterConfig: Omit<PrinterConfig, 'id' | 'createdAt' | 'updatedAt'> = {
   name: 'Default Printer',

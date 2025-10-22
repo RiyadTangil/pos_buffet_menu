@@ -31,7 +31,8 @@ import {
   WifiOff,
   CheckCircle,
   XCircle,
-  Usb
+  Usb,
+  Users
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { PrinterConfig } from '@/lib/models/printer'
@@ -39,6 +40,7 @@ import { fetchPrinters, createPrinter, updatePrinter, deletePrinter } from '@/li
 import { fetchCategories } from '@/lib/api/categories'
 import { MenuCategory } from '@/lib/mockData'
 import USBPrinterManagement from '@/components/admin/USBPrinterManagement'
+import WaiterRequestPrinterManagement from '@/components/admin/WaiterRequestPrinterManagement'
 
 export default function PrintersPage() {
   const [printers, setPrinters] = useState<PrinterConfig[]>([])
@@ -169,7 +171,7 @@ export default function PrintersPage() {
       </div>
 
       <Tabs defaultValue="ip-printers" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="ip-printers" className="flex items-center gap-2">
             <Wifi className="h-4 w-4" />
             IP Based Printers
@@ -177,6 +179,10 @@ export default function PrintersPage() {
           <TabsTrigger value="usb-printers" className="flex items-center gap-2">
             <Usb className="h-4 w-4" />
             USB Based Printers
+          </TabsTrigger>
+          <TabsTrigger value="waiter-requests" className="flex items-center gap-2">
+            <Users className="h-4 w-4" />
+            Waiter Requests
           </TabsTrigger>
         </TabsList>
 
@@ -421,6 +427,10 @@ export default function PrintersPage() {
 
         <TabsContent value="usb-printers" className="mt-6">
           <USBPrinterManagement />
+        </TabsContent>
+
+        <TabsContent value="waiter-requests" className="mt-6">
+          <WaiterRequestPrinterManagement />
         </TabsContent>
       </Tabs>
     </div>

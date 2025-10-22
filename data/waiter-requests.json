@@ -1,0 +1,26 @@
+[
+  {
+    "id": "wr_1761099660343_e2b0ejgtm",
+    "tableNumber": 68,
+    "requestType": "bill",
+    "message": "Customer is requesting the bill",
+    "status": "pending",
+    "createdAt": "2025-10-22T02:21:00.343Z"
+  },
+  {
+    "id": "wr_1761099741567_5g0ou8fbz",
+    "tableNumber": 68,
+    "requestType": "waiter",
+    "message": "Customer is requesting waiter assistance",
+    "status": "pending",
+    "createdAt": "2025-10-22T02:22:21.567Z"
+  },
+  {
+    "id": "wr_1761099750369_60c4vstwq",
+    "tableNumber": 68,
+    "requestType": "cleaning",
+    "message": "Table needs cleaning service",
+    "status": "pending",
+    "createdAt": "2025-10-22T02:22:30.369Z"
+  }
+]
