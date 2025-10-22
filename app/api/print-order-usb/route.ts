@@ -137,7 +137,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { orderId, orderItems, tableNumber, guestCount, orderTime } = body || {}
+    const { orderId, orderItems, tableNumber, guestCount, orderTime, printerName } = body || {}
 
     if (!orderId || !Array.isArray(orderItems) || orderItems.length === 0) {
       return NextResponse.json({ success: false, error: 'Order ID and items are required' }, { status: 400 })
@@ -157,7 +157,7 @@ export async function POST(request: NextRequest) {
     const printJob: PrintJob = {
       id: jobId,
       type: 'order',
-      printerName: 'USB/Spooler',
+      printerName: printerName || 'USB/Spooler',
       status: 'pending',
       items,
       createdAt: new Date().toISOString(),
@@ -173,7 +173,12 @@ export async function POST(request: NextRequest) {
     updatePrintJob(jobId, j => { j.status = 'printing' })
     const sumatraPath = process.env.SUMATRA_PDF || process.env.SUMATRA_PDF_PATH
     try {
-      await printFn(pdfPath, sumatraPath ? { sumatraPdfPath: sumatraPath } : { printer: undefined })
+      // Use specific printer if provided, otherwise use default spooler
+      const printOptions = sumatraPath 
+        ? { sumatraPdfPath: sumatraPath, printer: printerName }
+        : { printer: printerName || undefined }
+      
+      await printFn(pdfPath, printOptions)
     } catch (e: any) {
       if (e?.code === 'ENOENT' || /SumatraPDF/i.test(e?.message || '')) {
         updatePrintJob(jobId, j => { j.status = 'failed'; j.error = 'SumatraPDF not found. Install SumatraPDF or set SUMATRA_PDF env var.' })

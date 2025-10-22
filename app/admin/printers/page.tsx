@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { 
   Dialog,
   DialogContent,
@@ -29,13 +30,15 @@ import {
   Wifi, 
   WifiOff,
   CheckCircle,
-  XCircle
+  XCircle,
+  Usb
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { PrinterConfig } from '@/lib/models/printer'
 import { fetchPrinters, createPrinter, updatePrinter, deletePrinter } from '@/lib/api/printers'
 import { fetchCategories } from '@/lib/api/categories'
 import { MenuCategory } from '@/lib/mockData'
+import USBPrinterManagement from '@/components/admin/USBPrinterManagement'
 
 export default function PrintersPage() {
   const [printers, setPrinters] = useState<PrinterConfig[]>([])
@@ -158,19 +161,34 @@ export default function PrintersPage() {
 
   return (
     <div className="container mx-auto p-6">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h1 className="text-3xl font-bold">Printer Management</h1>
-          <p className="text-gray-600">Configure and manage your restaurant printers</p>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-2">
+          <Printer className="h-6 w-6" />
+          <h1 className="text-2xl font-bold">Printer Management</h1>
         </div>
-        
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={resetForm}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Printer
-            </Button>
-          </DialogTrigger>
+      </div>
+
+      <Tabs defaultValue="ip-printers" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="ip-printers" className="flex items-center gap-2">
+            <Wifi className="h-4 w-4" />
+            IP Based Printers
+          </TabsTrigger>
+          <TabsTrigger value="usb-printers" className="flex items-center gap-2">
+            <Usb className="h-4 w-4" />
+            USB Based Printers
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="ip-printers" className="mt-6">
+          <div className="flex justify-end mb-4">
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button onClick={resetForm}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add IP Printer
+                </Button>
+              </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>
@@ -399,6 +417,12 @@ export default function PrintersPage() {
           )}
         </div>
       )}
+        </TabsContent>
+
+        <TabsContent value="usb-printers" className="mt-6">
+          <USBPrinterManagement />
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

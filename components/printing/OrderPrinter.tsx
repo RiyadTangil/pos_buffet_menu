@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import { fetchPrinters, printOrderByCategories } from '@/lib/api/printers'
-import { PrinterConfig } from '@/lib/models/printer'
+import { fetchUSBPrinters } from '@/lib/api/usb-printers'
+import { PrinterConfig, USBPrinterConfig } from '@/lib/models/printer'
 
 interface OrderPrinterProps {
   orderId: string
@@ -18,7 +19,9 @@ interface OrderPrinterProps {
 interface OrderPrinterState {
   isProcessing: boolean
   availablePrinters: PrinterConfig[]
+  availableUSBPrinters: USBPrinterConfig[]
   defaultPrinter: PrinterConfig | null
+  defaultUSBPrinter: USBPrinterConfig | null
 }
 
 export default function OrderPrinter({
@@ -33,7 +36,9 @@ export default function OrderPrinter({
   const [state, setState] = useState<OrderPrinterState>({
     isProcessing: false,
     availablePrinters: [],
-    defaultPrinter: null
+    availableUSBPrinters: [],
+    defaultPrinter: null,
+    defaultUSBPrinter: null
   })
 
   // Load available printers on component mount
@@ -43,25 +48,35 @@ export default function OrderPrinter({
 
   // Auto-print when order data is available
   useEffect(() => {
-    if (autoPrint && orderId && orderItems.length > 0 && state.availablePrinters.length > 0) {
+    if (autoPrint && orderId && orderItems.length > 0 && 
+        (state.availablePrinters.length > 0 || state.availableUSBPrinters.length > 0)) {
       handleAutoPrint()
     }
-  }, [autoPrint, orderId, orderItems, state.availablePrinters])
+  }, [autoPrint, orderId, orderItems, state.availablePrinters, state.availableUSBPrinters])
 
   const loadPrinters = async () => {
     try {
+      // Load IP printers
       const printers = await fetchPrinters()
       const activePrinters = printers.filter(p => p.isActive)
       
-      // Find default printer (USB first, then IP)
-      const usbPrinter = activePrinters.find(p => p.type === 'thermal' && !p.ipAddress)
+      // Load USB printers
+      const usbPrinters = await fetchUSBPrinters()
+      const activeUSBPrinters = usbPrinters.filter(p => p.isActive)
+      
+      // Find default IP printer
       const ipPrinter = activePrinters.find(p => p.ipAddress)
-      const defaultPrinter = usbPrinter || ipPrinter || activePrinters[0] || null
+      const defaultIPPrinter = ipPrinter || activePrinters[0] || null
+
+      // Find default USB printer
+      const defaultUSBPrinter = activeUSBPrinters.find(p => p.isDefault) || activeUSBPrinters[0] || null
 
       setState(prev => ({
         ...prev,
         availablePrinters: activePrinters,
-        defaultPrinter
+        availableUSBPrinters: activeUSBPrinters,
+        defaultPrinter: defaultIPPrinter,
+        defaultUSBPrinter: defaultUSBPrinter
       }))
     } catch (error) {
       console.error('Error loading printers:', error)
@@ -75,24 +90,57 @@ export default function OrderPrinter({
     setState(prev => ({ ...prev, isProcessing: true }))
 
     try {
-      // First try category-based printing (IP printers)
       let printSuccess = false
       let errors: string[] = []
 
+      // First try category-based printing with IP printers
       if (state.availablePrinters.some(p => p.ipAddress)) {
         try {
           const printJobs = await printOrderByCategories(orderId, orderItems)
           if (printJobs && printJobs.length > 0) {
             printSuccess = true
-            toast.success(`Order sent to ${printJobs.length} printer(s)`)
+            toast.success(`Order sent to ${printJobs.length} IP printer(s)`)
           }
         } catch (error) {
-          console.error('Category-based printing failed:', error)
+          console.error('IP printer category-based printing failed:', error)
           errors.push('IP printer failed')
         }
       }
 
-      // Fallback to USB/backend printing if IP printing failed or no IP printers
+      // Try category-based printing with USB printers if IP printing failed or no IP printers
+      if (!printSuccess && state.availableUSBPrinters.length > 0) {
+        try {
+          const usbPrintJobs = await printOrderByUSBCategories(orderId, orderItems)
+          if (usbPrintJobs && usbPrintJobs.length > 0) {
+            printSuccess = true
+            toast.success(`Order sent to ${usbPrintJobs.length} USB printer(s)`)
+          }
+        } catch (error) {
+          console.error('USB printer category-based printing failed:', error)
+          errors.push('USB category printing failed')
+        }
+      }
+
+      // Fallback to default USB printer if category printing failed
+      if (!printSuccess && state.defaultUSBPrinter) {
+        try {
+          await printOrderViaUsb({
+            orderId,
+            orderItems,
+            tableNumber,
+            guestCount,
+            orderTime,
+            printerName: state.defaultUSBPrinter.localPrinterName
+          })
+          printSuccess = true
+          toast.success('Order sent to default USB printer')
+        } catch (error) {
+          console.error('Default USB printing failed:', error)
+          errors.push('Default USB printer failed')
+        }
+      }
+
+      // Final fallback to legacy USB printing
       if (!printSuccess && state.defaultPrinter) {
         try {
           await printOrderViaUsb({
@@ -103,10 +151,10 @@ export default function OrderPrinter({
             orderTime
           })
           printSuccess = true
-          toast.success('Order sent to USB printer')
+          toast.success('Order sent to legacy USB printer')
         } catch (error) {
-          console.error('USB printing failed:', error)
-          errors.push('USB printer failed')
+          console.error('Legacy USB printing failed:', error)
+          errors.push('Legacy USB printer failed')
         }
       }
 
@@ -266,6 +314,7 @@ export default function OrderPrinter({
     tableNumber?: string | number
     guestCount?: number
     orderTime?: string
+    printerName?: string
   }) => {
     const response = await fetch('/api/print-order-usb', {
       method: 'POST',
@@ -276,5 +325,75 @@ export default function OrderPrinter({
     const result = await response.json()
     if (!response.ok || !result?.success) {
       throw new Error(result?.error || 'Failed to print order via USB')
+    }
+  }
+
+  const printOrderByUSBCategories = async (orderId: string, orderItems: any[]) => {
+    try {
+      // Group items by category
+      const itemsByCategory = orderItems.reduce((acc, item) => {
+        const category = item.category || item.menuItem?.category || 'uncategorized'
+        if (!acc[category]) {
+          acc[category] = []
+        }
+        acc[category].push(item)
+        return acc
+      }, {} as Record<string, any[]>)
+
+      const printJobs = []
+
+      // Print each category to its assigned USB printer
+      for (const [category, items] of Object.entries(itemsByCategory)) {
+        // Find USB printer assigned to this category
+        const assignedPrinter = state.availableUSBPrinters.find(printer => 
+          printer.categories && printer.categories.includes(category)
+        )
+
+        if (assignedPrinter) {
+          try {
+            await printOrderViaUsb({
+              orderId,
+              orderItems: items,
+              tableNumber,
+              guestCount,
+              orderTime,
+              printerName: assignedPrinter.localPrinterName
+            })
+            printJobs.push({
+              category,
+              printer: assignedPrinter.displayName,
+              itemCount: items.length
+            })
+          } catch (error) {
+            console.error(`Failed to print ${category} items to ${assignedPrinter.displayName}:`, error)
+          }
+        } else {
+          // Fallback to default USB printer for unassigned categories
+          if (state.defaultUSBPrinter) {
+            try {
+              await printOrderViaUsb({
+                orderId,
+                orderItems: items,
+                tableNumber,
+                guestCount,
+                orderTime,
+                printerName: state.defaultUSBPrinter.localPrinterName
+              })
+              printJobs.push({
+                category,
+                printer: `${state.defaultUSBPrinter.displayName} (default)`,
+                itemCount: items.length
+              })
+            } catch (error) {
+              console.error(`Failed to print ${category} items to default USB printer:`, error)
+            }
+          }
+        }
+      }
+
+      return printJobs
+    } catch (error) {
+      console.error('USB category printing error:', error)
+      throw error
     }
   }

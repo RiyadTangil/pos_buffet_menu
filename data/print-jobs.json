@@ -2868,5 +2868,1241 @@
     ],
     "createdAt": "2025-10-10T01:31:42.832Z",
     "updatedAt": "2025-10-10T01:31:44.843Z"
+  },
+  {
+    "id": "payments-1761094518914-rjdu9t",
+    "type": "payments",
+    "printerName": "USB/Spooler",
+    "status": "completed",
+    "items": [
+      {
+        "id": "1",
+        "name": "PAY-1760990193786-fa96f8ac5  £95.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "2",
+        "name": "PAY-1760990110717-arzskhan0  £260.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "3",
+        "name": "PAY-1760988844042-dnady9f2w  £120.00  Table 2",
+        "quantity": 1
+      },
+      {
+        "id": "4",
+        "name": "PAY-1760831089786-q7s0ytelb  £75.00  Table 2",
+        "quantity": 1
+      },
+      {
+        "id": "5",
+        "name": "PAY-1760796228054-wkwl7zt9j  £70.00  Table 2",
+        "quantity": 1
+      },
+      {
+        "id": "6",
+        "name": "PAY-1760796101651-co2umlx5g  £70.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "7",
+        "name": "PAY-1760749121046-33e99269n  £50.00  Table 3",
+        "quantity": 1
+      },
+      {
+        "id": "8",
+        "name": "PAY-1760467322363-fq9bo1swx  £107.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "9",
+        "name": "PAY-1760467272177-bl7b0l20z  £181.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "10",
+        "name": "PAY-1760467217949-aobsitja3  £35.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "11",
+        "name": "PAY-1760466953385-r2f94bumj  £432.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "12",
+        "name": "PAY-1760406789472-mtle5bh66  £321.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "13",
+        "name": "PAY-1760404987764-6885imnvn  £130.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "14",
+        "name": "PAY-1760404875521-3a52c61kn  £190.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "15",
+        "name": "PAY-1760404610446-pcq748kah  £120.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "16",
+        "name": "PAY-1760403898688-ham1j3osq  £120.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "17",
+        "name": "PAY-1760403140217-3q4hpimwx  £205.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "18",
+        "name": "PAY-1760402937598-udw33t26x  £95.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "19",
+        "name": "PAY-1760402441169-k9ohgz3w7  £95.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "20",
+        "name": "PAY-1760402380651-j9q6zv6xu  £95.00  Table 1",
+        "quantity": 1
+      }
+    ],
+    "createdAt": "2025-10-22T00:55:18.918Z",
+    "updatedAt": "2025-10-22T00:55:33.812Z"
+  },
+  {
+    "id": "payments-1761094522303-tumziw",
+    "type": "payments",
+    "printerName": "USB/Spooler",
+    "status": "completed",
+    "items": [
+      {
+        "id": "1",
+        "name": "PAY-1760990193786-fa96f8ac5  £95.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "2",
+        "name": "PAY-1760990110717-arzskhan0  £260.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "3",
+        "name": "PAY-1760988844042-dnady9f2w  £120.00  Table 2",
+        "quantity": 1
+      },
+      {
+        "id": "4",
+        "name": "PAY-1760831089786-q7s0ytelb  £75.00  Table 2",
+        "quantity": 1
+      },
+      {
+        "id": "5",
+        "name": "PAY-1760796228054-wkwl7zt9j  £70.00  Table 2",
+        "quantity": 1
+      },
+      {
+        "id": "6",
+        "name": "PAY-1760796101651-co2umlx5g  £70.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "7",
+        "name": "PAY-1760749121046-33e99269n  £50.00  Table 3",
+        "quantity": 1
+      },
+      {
+        "id": "8",
+        "name": "PAY-1760467322363-fq9bo1swx  £107.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "9",
+        "name": "PAY-1760467272177-bl7b0l20z  £181.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "10",
+        "name": "PAY-1760467217949-aobsitja3  £35.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "11",
+        "name": "PAY-1760466953385-r2f94bumj  £432.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "12",
+        "name": "PAY-1760406789472-mtle5bh66  £321.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "13",
+        "name": "PAY-1760404987764-6885imnvn  £130.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "14",
+        "name": "PAY-1760404875521-3a52c61kn  £190.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "15",
+        "name": "PAY-1760404610446-pcq748kah  £120.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "16",
+        "name": "PAY-1760403898688-ham1j3osq  £120.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "17",
+        "name": "PAY-1760403140217-3q4hpimwx  £205.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "18",
+        "name": "PAY-1760402937598-udw33t26x  £95.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "19",
+        "name": "PAY-1760402441169-k9ohgz3w7  £95.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "20",
+        "name": "PAY-1760402380651-j9q6zv6xu  £95.00  Table 1",
+        "quantity": 1
+      }
+    ],
+    "createdAt": "2025-10-22T00:55:22.305Z",
+    "updatedAt": "2025-10-22T00:55:33.672Z"
+  },
+  {
+    "id": "payments-1761094533473-zx08qb",
+    "type": "payments",
+    "printerName": "Bluetooth/Serial",
+    "status": "failed",
+    "items": [
+      {
+        "id": "1",
+        "name": "PAY-1760990193786-fa96f8ac5 £95.00 Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "2",
+        "name": "PAY-1760990110717-arzskhan0 £260.00 Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "3",
+        "name": "PAY-1760988844042-dnady9f2w £120.00 Table 2",
+        "quantity": 1
+      },
+      {
+        "id": "4",
+        "name": "PAY-1760831089786-q7s0ytelb £75.00 Table 2",
+        "quantity": 1
+      },
+      {
+        "id": "5",
+        "name": "PAY-1760796228054-wkwl7zt9j £70.00 Table 2",
+        "quantity": 1
+      },
+      {
+        "id": "6",
+        "name": "PAY-1760796101651-co2umlx5g £70.00 Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "7",
+        "name": "PAY-1760749121046-33e99269n £50.00 Table 3",
+        "quantity": 1
+      },
+      {
+        "id": "8",
+        "name": "PAY-1760467322363-fq9bo1swx £107.00 Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "9",
+        "name": "PAY-1760467272177-bl7b0l20z £181.00 Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "10",
+        "name": "PAY-1760467217949-aobsitja3 £35.00 Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "11",
+        "name": "PAY-1760466953385-r2f94bumj £432.00 Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "12",
+        "name": "PAY-1760406789472-mtle5bh66 £321.00 Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "13",
+        "name": "PAY-1760404987764-6885imnvn £130.00 Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "14",
+        "name": "PAY-1760404875521-3a52c61kn £190.00 Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "15",
+        "name": "PAY-1760404610446-pcq748kah £120.00 Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "16",
+        "name": "PAY-1760403898688-ham1j3osq £120.00 Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "17",
+        "name": "PAY-1760403140217-3q4hpimwx £205.00 Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "18",
+        "name": "PAY-1760402937598-udw33t26x £95.00 Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "19",
+        "name": "PAY-1760402441169-k9ohgz3w7 £95.00 Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "20",
+        "name": "PAY-1760402380651-j9q6zv6xu £95.00 Table 1",
+        "quantity": 1
+      }
+    ],
+    "createdAt": "2025-10-22T00:55:33.480Z",
+    "updatedAt": "2025-10-22T00:55:33.564Z",
+    "error": "No COM ports found for Bluetooth printer"
+  },
+  {
+    "id": "payments-1761094540275-irjxnf",
+    "type": "payments",
+    "printerName": "USB/Spooler",
+    "status": "completed",
+    "items": [
+      {
+        "id": "1",
+        "name": "PAY-1760990193786-fa96f8ac5  £95.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "2",
+        "name": "PAY-1760990110717-arzskhan0  £260.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "3",
+        "name": "PAY-1760988844042-dnady9f2w  £120.00  Table 2",
+        "quantity": 1
+      },
+      {
+        "id": "4",
+        "name": "PAY-1760831089786-q7s0ytelb  £75.00  Table 2",
+        "quantity": 1
+      },
+      {
+        "id": "5",
+        "name": "PAY-1760796228054-wkwl7zt9j  £70.00  Table 2",
+        "quantity": 1
+      },
+      {
+        "id": "6",
+        "name": "PAY-1760796101651-co2umlx5g  £70.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "7",
+        "name": "PAY-1760749121046-33e99269n  £50.00  Table 3",
+        "quantity": 1
+      },
+      {
+        "id": "8",
+        "name": "PAY-1760467322363-fq9bo1swx  £107.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "9",
+        "name": "PAY-1760467272177-bl7b0l20z  £181.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "10",
+        "name": "PAY-1760467217949-aobsitja3  £35.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "11",
+        "name": "PAY-1760466953385-r2f94bumj  £432.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "12",
+        "name": "PAY-1760406789472-mtle5bh66  £321.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "13",
+        "name": "PAY-1760404987764-6885imnvn  £130.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "14",
+        "name": "PAY-1760404875521-3a52c61kn  £190.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "15",
+        "name": "PAY-1760404610446-pcq748kah  £120.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "16",
+        "name": "PAY-1760403898688-ham1j3osq  £120.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "17",
+        "name": "PAY-1760403140217-3q4hpimwx  £205.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "18",
+        "name": "PAY-1760402937598-udw33t26x  £95.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "19",
+        "name": "PAY-1760402441169-k9ohgz3w7  £95.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "20",
+        "name": "PAY-1760402380651-j9q6zv6xu  £95.00  Table 1",
+        "quantity": 1
+      }
+    ],
+    "createdAt": "2025-10-22T00:55:40.278Z",
+    "updatedAt": "2025-10-22T00:55:41.959Z"
+  },
+  {
+    "id": "payments-1761094548953-v19hgr",
+    "type": "payments",
+    "printerName": "Bluetooth/Serial",
+    "status": "failed",
+    "items": [
+      {
+        "id": "1",
+        "name": "PAY-1760990193786-fa96f8ac5 £95.00 Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "2",
+        "name": "PAY-1760990110717-arzskhan0 £260.00 Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "3",
+        "name": "PAY-1760988844042-dnady9f2w £120.00 Table 2",
+        "quantity": 1
+      },
+      {
+        "id": "4",
+        "name": "PAY-1760831089786-q7s0ytelb £75.00 Table 2",
+        "quantity": 1
+      },
+      {
+        "id": "5",
+        "name": "PAY-1760796228054-wkwl7zt9j £70.00 Table 2",
+        "quantity": 1
+      },
+      {
+        "id": "6",
+        "name": "PAY-1760796101651-co2umlx5g £70.00 Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "7",
+        "name": "PAY-1760749121046-33e99269n £50.00 Table 3",
+        "quantity": 1
+      },
+      {
+        "id": "8",
+        "name": "PAY-1760467322363-fq9bo1swx £107.00 Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "9",
+        "name": "PAY-1760467272177-bl7b0l20z £181.00 Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "10",
+        "name": "PAY-1760467217949-aobsitja3 £35.00 Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "11",
+        "name": "PAY-1760466953385-r2f94bumj £432.00 Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "12",
+        "name": "PAY-1760406789472-mtle5bh66 £321.00 Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "13",
+        "name": "PAY-1760404987764-6885imnvn £130.00 Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "14",
+        "name": "PAY-1760404875521-3a52c61kn £190.00 Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "15",
+        "name": "PAY-1760404610446-pcq748kah £120.00 Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "16",
+        "name": "PAY-1760403898688-ham1j3osq £120.00 Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "17",
+        "name": "PAY-1760403140217-3q4hpimwx £205.00 Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "18",
+        "name": "PAY-1760402937598-udw33t26x £95.00 Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "19",
+        "name": "PAY-1760402441169-k9ohgz3w7 £95.00 Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "20",
+        "name": "PAY-1760402380651-j9q6zv6xu £95.00 Table 1",
+        "quantity": 1
+      }
+    ],
+    "createdAt": "2025-10-22T00:55:48.956Z",
+    "updatedAt": "2025-10-22T00:55:48.993Z",
+    "error": "No COM ports found for Bluetooth printer"
+  },
+  {
+    "id": "payments-1761094557072-j604x4",
+    "type": "payments",
+    "printerName": "USB/Spooler",
+    "status": "completed",
+    "items": [
+      {
+        "id": "1",
+        "name": "PAY-1760990193786-fa96f8ac5  £95.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "2",
+        "name": "PAY-1760990110717-arzskhan0  £260.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "3",
+        "name": "PAY-1760988844042-dnady9f2w  £120.00  Table 2",
+        "quantity": 1
+      },
+      {
+        "id": "4",
+        "name": "PAY-1760831089786-q7s0ytelb  £75.00  Table 2",
+        "quantity": 1
+      },
+      {
+        "id": "5",
+        "name": "PAY-1760796228054-wkwl7zt9j  £70.00  Table 2",
+        "quantity": 1
+      },
+      {
+        "id": "6",
+        "name": "PAY-1760796101651-co2umlx5g  £70.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "7",
+        "name": "PAY-1760749121046-33e99269n  £50.00  Table 3",
+        "quantity": 1
+      },
+      {
+        "id": "8",
+        "name": "PAY-1760467322363-fq9bo1swx  £107.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "9",
+        "name": "PAY-1760467272177-bl7b0l20z  £181.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "10",
+        "name": "PAY-1760467217949-aobsitja3  £35.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "11",
+        "name": "PAY-1760466953385-r2f94bumj  £432.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "12",
+        "name": "PAY-1760406789472-mtle5bh66  £321.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "13",
+        "name": "PAY-1760404987764-6885imnvn  £130.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "14",
+        "name": "PAY-1760404875521-3a52c61kn  £190.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "15",
+        "name": "PAY-1760404610446-pcq748kah  £120.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "16",
+        "name": "PAY-1760403898688-ham1j3osq  £120.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "17",
+        "name": "PAY-1760403140217-3q4hpimwx  £205.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "18",
+        "name": "PAY-1760402937598-udw33t26x  £95.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "19",
+        "name": "PAY-1760402441169-k9ohgz3w7  £95.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "20",
+        "name": "PAY-1760402380651-j9q6zv6xu  £95.00  Table 1",
+        "quantity": 1
+      }
+    ],
+    "createdAt": "2025-10-22T00:55:57.074Z",
+    "updatedAt": "2025-10-22T00:56:00.612Z"
+  },
+  {
+    "id": "payments-1761094558981-52tjih",
+    "type": "payments",
+    "printerName": "USB/Spooler",
+    "status": "completed",
+    "items": [
+      {
+        "id": "1",
+        "name": "PAY-1760990193786-fa96f8ac5  £95.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "2",
+        "name": "PAY-1760990110717-arzskhan0  £260.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "3",
+        "name": "PAY-1760988844042-dnady9f2w  £120.00  Table 2",
+        "quantity": 1
+      },
+      {
+        "id": "4",
+        "name": "PAY-1760831089786-q7s0ytelb  £75.00  Table 2",
+        "quantity": 1
+      },
+      {
+        "id": "5",
+        "name": "PAY-1760796228054-wkwl7zt9j  £70.00  Table 2",
+        "quantity": 1
+      },
+      {
+        "id": "6",
+        "name": "PAY-1760796101651-co2umlx5g  £70.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "7",
+        "name": "PAY-1760749121046-33e99269n  £50.00  Table 3",
+        "quantity": 1
+      },
+      {
+        "id": "8",
+        "name": "PAY-1760467322363-fq9bo1swx  £107.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "9",
+        "name": "PAY-1760467272177-bl7b0l20z  £181.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "10",
+        "name": "PAY-1760467217949-aobsitja3  £35.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "11",
+        "name": "PAY-1760466953385-r2f94bumj  £432.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "12",
+        "name": "PAY-1760406789472-mtle5bh66  £321.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "13",
+        "name": "PAY-1760404987764-6885imnvn  £130.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "14",
+        "name": "PAY-1760404875521-3a52c61kn  £190.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "15",
+        "name": "PAY-1760404610446-pcq748kah  £120.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "16",
+        "name": "PAY-1760403898688-ham1j3osq  £120.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "17",
+        "name": "PAY-1760403140217-3q4hpimwx  £205.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "18",
+        "name": "PAY-1760402937598-udw33t26x  £95.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "19",
+        "name": "PAY-1760402441169-k9ohgz3w7  £95.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "20",
+        "name": "PAY-1760402380651-j9q6zv6xu  £95.00  Table 1",
+        "quantity": 1
+      }
+    ],
+    "createdAt": "2025-10-22T00:55:58.984Z",
+    "updatedAt": "2025-10-22T00:56:01.968Z"
+  },
+  {
+    "id": "payments-1761094596908-fgy44e",
+    "type": "payments",
+    "printerName": "USB/Spooler",
+    "status": "completed",
+    "items": [
+      {
+        "id": "1",
+        "name": "PAY-1760990193786-fa96f8ac5  £95.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "2",
+        "name": "PAY-1760990110717-arzskhan0  £260.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "3",
+        "name": "PAY-1760988844042-dnady9f2w  £120.00  Table 2",
+        "quantity": 1
+      },
+      {
+        "id": "4",
+        "name": "PAY-1760831089786-q7s0ytelb  £75.00  Table 2",
+        "quantity": 1
+      },
+      {
+        "id": "5",
+        "name": "PAY-1760796228054-wkwl7zt9j  £70.00  Table 2",
+        "quantity": 1
+      },
+      {
+        "id": "6",
+        "name": "PAY-1760796101651-co2umlx5g  £70.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "7",
+        "name": "PAY-1760749121046-33e99269n  £50.00  Table 3",
+        "quantity": 1
+      },
+      {
+        "id": "8",
+        "name": "PAY-1760467322363-fq9bo1swx  £107.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "9",
+        "name": "PAY-1760467272177-bl7b0l20z  £181.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "10",
+        "name": "PAY-1760467217949-aobsitja3  £35.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "11",
+        "name": "PAY-1760466953385-r2f94bumj  £432.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "12",
+        "name": "PAY-1760406789472-mtle5bh66  £321.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "13",
+        "name": "PAY-1760404987764-6885imnvn  £130.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "14",
+        "name": "PAY-1760404875521-3a52c61kn  £190.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "15",
+        "name": "PAY-1760404610446-pcq748kah  £120.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "16",
+        "name": "PAY-1760403898688-ham1j3osq  £120.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "17",
+        "name": "PAY-1760403140217-3q4hpimwx  £205.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "18",
+        "name": "PAY-1760402937598-udw33t26x  £95.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "19",
+        "name": "PAY-1760402441169-k9ohgz3w7  £95.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "20",
+        "name": "PAY-1760402380651-j9q6zv6xu  £95.00  Table 1",
+        "quantity": 1
+      }
+    ],
+    "createdAt": "2025-10-22T00:56:36.911Z",
+    "updatedAt": "2025-10-22T00:56:38.723Z"
+  },
+  {
+    "id": "payments-1761095604116-np1627",
+    "type": "payments",
+    "printerName": "USB/Spooler",
+    "status": "completed",
+    "items": [
+      {
+        "id": "1",
+        "name": "PAY-1760990193786-fa96f8ac5  £95.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "2",
+        "name": "PAY-1760990110717-arzskhan0  £260.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "3",
+        "name": "PAY-1760988844042-dnady9f2w  £120.00  Table 2",
+        "quantity": 1
+      },
+      {
+        "id": "4",
+        "name": "PAY-1760831089786-q7s0ytelb  £75.00  Table 2",
+        "quantity": 1
+      },
+      {
+        "id": "5",
+        "name": "PAY-1760796228054-wkwl7zt9j  £70.00  Table 2",
+        "quantity": 1
+      },
+      {
+        "id": "6",
+        "name": "PAY-1760796101651-co2umlx5g  £70.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "7",
+        "name": "PAY-1760749121046-33e99269n  £50.00  Table 3",
+        "quantity": 1
+      },
+      {
+        "id": "8",
+        "name": "PAY-1760467322363-fq9bo1swx  £107.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "9",
+        "name": "PAY-1760467272177-bl7b0l20z  £181.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "10",
+        "name": "PAY-1760467217949-aobsitja3  £35.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "11",
+        "name": "PAY-1760466953385-r2f94bumj  £432.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "12",
+        "name": "PAY-1760406789472-mtle5bh66  £321.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "13",
+        "name": "PAY-1760404987764-6885imnvn  £130.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "14",
+        "name": "PAY-1760404875521-3a52c61kn  £190.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "15",
+        "name": "PAY-1760404610446-pcq748kah  £120.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "16",
+        "name": "PAY-1760403898688-ham1j3osq  £120.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "17",
+        "name": "PAY-1760403140217-3q4hpimwx  £205.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "18",
+        "name": "PAY-1760402937598-udw33t26x  £95.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "19",
+        "name": "PAY-1760402441169-k9ohgz3w7  £95.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "20",
+        "name": "PAY-1760402380651-j9q6zv6xu  £95.00  Table 1",
+        "quantity": 1
+      }
+    ],
+    "createdAt": "2025-10-22T01:13:24.119Z",
+    "updatedAt": "2025-10-22T01:13:26.581Z"
+  },
+  {
+    "id": "payments-1761095641557-z59vxq",
+    "type": "payments",
+    "printerName": "USB/Spooler",
+    "status": "completed",
+    "items": [
+      {
+        "id": "1",
+        "name": "PAY-1760990193786-fa96f8ac5  £95.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "2",
+        "name": "PAY-1760990110717-arzskhan0  £260.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "3",
+        "name": "PAY-1760988844042-dnady9f2w  £120.00  Table 2",
+        "quantity": 1
+      },
+      {
+        "id": "4",
+        "name": "PAY-1760831089786-q7s0ytelb  £75.00  Table 2",
+        "quantity": 1
+      },
+      {
+        "id": "5",
+        "name": "PAY-1760796228054-wkwl7zt9j  £70.00  Table 2",
+        "quantity": 1
+      },
+      {
+        "id": "6",
+        "name": "PAY-1760796101651-co2umlx5g  £70.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "7",
+        "name": "PAY-1760749121046-33e99269n  £50.00  Table 3",
+        "quantity": 1
+      },
+      {
+        "id": "8",
+        "name": "PAY-1760467322363-fq9bo1swx  £107.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "9",
+        "name": "PAY-1760467272177-bl7b0l20z  £181.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "10",
+        "name": "PAY-1760467217949-aobsitja3  £35.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "11",
+        "name": "PAY-1760466953385-r2f94bumj  £432.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "12",
+        "name": "PAY-1760406789472-mtle5bh66  £321.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "13",
+        "name": "PAY-1760404987764-6885imnvn  £130.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "14",
+        "name": "PAY-1760404875521-3a52c61kn  £190.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "15",
+        "name": "PAY-1760404610446-pcq748kah  £120.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "16",
+        "name": "PAY-1760403898688-ham1j3osq  £120.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "17",
+        "name": "PAY-1760403140217-3q4hpimwx  £205.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "18",
+        "name": "PAY-1760402937598-udw33t26x  £95.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "19",
+        "name": "PAY-1760402441169-k9ohgz3w7  £95.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "20",
+        "name": "PAY-1760402380651-j9q6zv6xu  £95.00  Table 1",
+        "quantity": 1
+      }
+    ],
+    "createdAt": "2025-10-22T01:14:01.560Z",
+    "updatedAt": "2025-10-22T01:14:03.621Z"
+  },
+  {
+    "id": "payments-1761095643370-fsv2y6",
+    "type": "payments",
+    "printerName": "USB/Spooler",
+    "status": "completed",
+    "items": [
+      {
+        "id": "1",
+        "name": "PAY-1760990193786-fa96f8ac5  £95.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "2",
+        "name": "PAY-1760990110717-arzskhan0  £260.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "3",
+        "name": "PAY-1760988844042-dnady9f2w  £120.00  Table 2",
+        "quantity": 1
+      },
+      {
+        "id": "4",
+        "name": "PAY-1760831089786-q7s0ytelb  £75.00  Table 2",
+        "quantity": 1
+      },
+      {
+        "id": "5",
+        "name": "PAY-1760796228054-wkwl7zt9j  £70.00  Table 2",
+        "quantity": 1
+      },
+      {
+        "id": "6",
+        "name": "PAY-1760796101651-co2umlx5g  £70.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "7",
+        "name": "PAY-1760749121046-33e99269n  £50.00  Table 3",
+        "quantity": 1
+      },
+      {
+        "id": "8",
+        "name": "PAY-1760467322363-fq9bo1swx  £107.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "9",
+        "name": "PAY-1760467272177-bl7b0l20z  £181.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "10",
+        "name": "PAY-1760467217949-aobsitja3  £35.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "11",
+        "name": "PAY-1760466953385-r2f94bumj  £432.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "12",
+        "name": "PAY-1760406789472-mtle5bh66  £321.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "13",
+        "name": "PAY-1760404987764-6885imnvn  £130.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "14",
+        "name": "PAY-1760404875521-3a52c61kn  £190.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "15",
+        "name": "PAY-1760404610446-pcq748kah  £120.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "16",
+        "name": "PAY-1760403898688-ham1j3osq  £120.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "17",
+        "name": "PAY-1760403140217-3q4hpimwx  £205.00  Table 8",
+        "quantity": 1
+      },
+      {
+        "id": "18",
+        "name": "PAY-1760402937598-udw33t26x  £95.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "19",
+        "name": "PAY-1760402441169-k9ohgz3w7  £95.00  Table 1",
+        "quantity": 1
+      },
+      {
+        "id": "20",
+        "name": "PAY-1760402380651-j9q6zv6xu  £95.00  Table 1",
+        "quantity": 1
+      }
+    ],
+    "createdAt": "2025-10-22T01:14:03.391Z",
+    "updatedAt": "2025-10-22T01:14:05.419Z"
+  },
+  {
+    "id": "order-1761098447849-dd74xi",
+    "type": "order",
+    "printerName": "Microsoft Print to PDF",
+    "status": "failed",
+    "items": [
+      {
+        "id": "68cad4b09af39ae52f9b96d4",
+        "name": "Riyad Hasan",
+        "quantity": 1,
+        "price": 70
+      }
+    ],
+    "createdAt": "2025-10-22T02:00:47.852Z",
+    "updatedAt": "2025-10-22T02:01:05.167Z",
+    "meta": {
+      "orderId": "order-1761098425285-k9ds4k3jn",
+      "tableNumber": "68c15318c85542d7fb04fe20",
+      "guestCount": 2,
+      "orderTime": "2025-10-22T02:00:43.415Z",
+      "totalAmount": 70
+    },
+    "error": "SumatraPDF not found. Install SumatraPDF or set SUMATRA_PDF env var."
   }
 ]

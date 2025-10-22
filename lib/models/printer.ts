@@ -3,11 +3,31 @@
 export interface PrinterConfig {
   id: string
   name: string
-  ipAddress: string
-  port: number
+  connectionType: 'ip' | 'usb'
+  // IP printer fields
+  ipAddress?: string
+  port?: number
+  // USB printer fields
+  localPrinterName?: string
+  // Common fields
   type: 'thermal' | 'inkjet' | 'laser'
   isActive: boolean
   categories: string[] // Array of category IDs this printer serves
+  createdAt: string
+  updatedAt: string
+}
+
+export interface USBPrinterConfig {
+  id: string
+  name: string
+  localPrinterName: string
+  displayName: string
+  type: 'thermal' | 'inkjet' | 'laser'
+  isActive: boolean
+  categories: string[] // Array of category IDs this printer serves
+  isDefault: boolean
+  status: string
+  description?: string
   createdAt: string
   updatedAt: string
 }
@@ -58,11 +78,23 @@ export interface CategoryPrinterMapping {
 // Default printer configuration
 export const defaultPrinterConfig: Omit<PrinterConfig, 'id' | 'createdAt' | 'updatedAt'> = {
   name: 'Default Printer',
+  connectionType: 'ip',
   ipAddress: '192.168.1.100',
   port: 9100,
   type: 'thermal',
   isActive: true,
   categories: []
+}
+
+export const defaultUSBPrinterConfig: Omit<USBPrinterConfig, 'id' | 'createdAt' | 'updatedAt'> = {
+  name: 'Default USB Printer',
+  localPrinterName: '',
+  displayName: '',
+  type: 'thermal',
+  isActive: true,
+  categories: [],
+  isDefault: false,
+  status: 'Ready'
 }
 
 // Default print template
