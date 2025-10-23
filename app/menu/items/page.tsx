@@ -132,125 +132,228 @@ export default function ItemsPage() {
       <head>
         <title>Order Receipt - ${orderData.orderId}</title>
         <style>
+          * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+          }
+          
+          html, body {
+            height: 100%;
+            width: 100%;
+          }
+          
           body {
             font-family: 'Courier New', monospace;
-            font-size: 12px;
-            line-height: 1.4;
-            margin: 20px;
+            font-size: 14px;
+            line-height: 1.6;
             color: #000;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
           }
+          
+          .receipt-container {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            border: 2px solid #000;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+          }
+          
           .header {
             text-align: center;
-            border-bottom: 2px solid #000;
-            padding-bottom: 10px;
-            margin-bottom: 15px;
+            border-bottom: 3px double #000;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
           }
+          
           .restaurant-name {
-            font-size: 18px;
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+          }
+          
+          .receipt-type {
+            font-size: 16px;
             font-weight: bold;
             margin-bottom: 5px;
           }
+          
           .order-info {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             border-bottom: 1px dashed #000;
-            padding-bottom: 10px;
+            padding-bottom: 15px;
           }
+          
           .order-info div {
-            margin-bottom: 3px;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
           }
+          
+          .order-info strong {
+            font-weight: bold;
+          }
+          
+          .items-section {
+            margin-bottom: 20px;
+          }
+          
+          .items-header {
+            text-align: center;
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 5px;
+          }
+          
           .items-table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 15px;
           }
+          
           .items-table th,
           .items-table td {
+            padding: 8px 4px;
+            border-bottom: 1px solid #ccc;
             text-align: left;
-            padding: 5px 2px;
-            border-bottom: 1px solid #ddd;
           }
+          
           .items-table th {
             border-bottom: 2px solid #000;
             font-weight: bold;
+            background-color: #f5f5f5;
           }
+          
           .item-name {
-            width: 50%;
+            width: 45%;
           }
+          
           .item-qty {
             width: 15%;
             text-align: center;
           }
+          
           .item-price {
             width: 20%;
             text-align: right;
           }
+          
           .item-total {
-            width: 15%;
+            width: 20%;
             text-align: right;
           }
+          
           .total-section {
-            border-top: 2px solid #000;
-            padding-top: 10px;
-            text-align: right;
-          }
-          .total-amount {
-            font-size: 16px;
+            border-top: 3px double #000;
+            padding-top: 15px;
+            text-align: center;
             font-weight: bold;
+            font-size: 18px;
           }
+          
           .footer {
             text-align: center;
-            margin-top: 20px;
+            margin-top: 25px;
+            font-size: 12px;
             border-top: 1px dashed #000;
-            padding-top: 10px;
-            font-size: 10px;
+            padding-top: 15px;
           }
+          
+          .footer div {
+            margin-bottom: 5px;
+          }
+          
           @media print {
-            body { margin: 0; }
-            .no-print { display: none; }
+            html, body {
+              height: auto;
+              margin: 0;
+              padding: 0;
+            }
+            
+            body {
+              min-height: auto;
+              padding: 10mm;
+              justify-content: flex-start;
+            }
+            
+            .receipt-container {
+              border: none;
+              box-shadow: none;
+              max-width: none;
+              width: 100%;
+              margin: 0;
+              padding: 0;
+            }
+            
+            .no-print {
+              display: none;
+            }
+            
+            @page {
+              margin: 10mm;
+              size: A4;
+            }
           }
         </style>
       </head>
       <body>
-        <div class="header">
-          <div class="restaurant-name">BUFFET RESTAURANT</div>
-          <div>Kitchen Order</div>
-        </div>
-        
-        <div class="order-info">
-          <div><strong>Order ID:</strong> ${orderData.orderId}</div>
-          <div><strong>Table:</strong> ${orderData.tableNumber || 'N/A'}</div>
-          <div><strong>Guests:</strong> ${orderData.guestCount || 0}</div>
-          <div><strong>Date & Time:</strong> ${orderDate}</div>
-        </div>
+        <div class="receipt-container">
+          <div class="header">
+            <div class="restaurant-name">BUFFET RESTAURANT</div>
+            <div class="receipt-type">Customer Receipt</div>
+          </div>
+          
+          <div class="order-info">
+            <div><strong>Order ID:</strong> <span>${orderData.orderId}</span></div>
+            <div><strong>Table:</strong> <span>${orderData.tableNumber || 'N/A'}</span></div>
+            <div><strong>Guests:</strong> <span>${orderData.guestCount || 0}</span></div>
+            <div><strong>Date & Time:</strong> <span>${orderDate}</span></div>
+          </div>
 
-        <table class="items-table">
-          <thead>
-            <tr>
-              <th class="item-name">Item</th>
-              <th class="item-qty">Qty</th>
-              <th class="item-price">Price</th>
-              <th class="item-total">Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${orderData.orderItems.map(item => `
-              <tr>
-                <td class="item-name">${item.name}</td>
-                <td class="item-qty">${item.quantity}</td>
-                <td class="item-price">$${item.price.toFixed(2)}</td>
-                <td class="item-total">$${(item.price * item.quantity).toFixed(2)}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
+          <div class="items-section">
+            <div class="items-header">ORDER ITEMS</div>
+            <table class="items-table">
+              <thead>
+                <tr>
+                  <th class="item-name">Item</th>
+                  <th class="item-qty">Qty</th>
+                  <th class="item-price">Price</th>
+                  <th class="item-total">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${orderData.orderItems.map(item => `
+                  <tr>
+                    <td class="item-name">${item.name}</td>
+                    <td class="item-qty">${item.quantity}</td>
+                    <td class="item-price">£${item.price.toFixed(2)}</td>
+                    <td class="item-total">£${(item.price * item.quantity).toFixed(2)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
 
-        <div class="total-section">
-          <div class="total-amount">Total: $${totalAmount.toFixed(2)}</div>
-        </div>
+          <div class="total-section">
+            <div>TOTAL AMOUNT: £${totalAmount.toFixed(2)}</div>
+          </div>
 
-        <div class="footer">
-          <div>Thank you for your order!</div>
-          <div>Printed on ${new Date().toLocaleString()}</div>
+          <div class="footer">
+            <div><strong>Thank you for dining with us!</strong></div>
+            <div>Please keep this receipt for your records</div>
+            <div>Printed: ${new Date().toLocaleString()}</div>
+          </div>
         </div>
 
         <script>
@@ -264,6 +367,7 @@ export default function ItemsPage() {
       </body>
       </html>
     `
+
 
     printWindow.document.write(printContent)
     printWindow.document.close()

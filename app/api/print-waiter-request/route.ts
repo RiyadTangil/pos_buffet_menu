@@ -112,24 +112,216 @@ async function printToUSBPrinter(printer: USBPrinterConfig, content: string): Pr
 function generateWaiterRequestContent(tableNumber: number, requestType: string, message: string): string {
   const timestamp = new Date().toLocaleString()
   const requestTypeDisplay = requestType.charAt(0).toUpperCase() + requestType.slice(1)
+  const requestId = `wr_${Date.now()}`
   
   return `
-================================
-    WAITER REQUEST
-================================
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Waiter Request - ${requestId}</title>
+      <style>
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+        
+        html, body {
+          height: 100%;
+          width: 100%;
+        }
+        
+        body {
+          font-family: 'Courier New', monospace;
+          font-size: 14px;
+          line-height: 1.6;
+          color: #000;
+          background: white;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          min-height: 100vh;
+          padding: 20px;
+        }
+        
+        .request-container {
+          width: 100%;
+          max-width: 400px;
+          margin: 0 auto;
+          background: white;
+          border: 2px solid #000;
+          padding: 20px;
+          box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .header {
+          text-align: center;
+          border-bottom: 3px double #000;
+          padding-bottom: 15px;
+          margin-bottom: 20px;
+        }
+        
+        .restaurant-name {
+          font-size: 22px;
+          font-weight: bold;
+          margin-bottom: 8px;
+          letter-spacing: 1px;
+        }
+        
+        .request-type {
+          font-size: 18px;
+          font-weight: bold;
+          margin-bottom: 5px;
+          color: #d32f2f;
+        }
+        
+        .request-info {
+          margin-bottom: 20px;
+          border-bottom: 1px dashed #000;
+          padding-bottom: 15px;
+        }
+        
+        .request-info div {
+          margin-bottom: 8px;
+          display: flex;
+          justify-content: space-between;
+        }
+        
+        .request-info strong {
+          font-weight: bold;
+          min-width: 100px;
+        }
+        
+        .message-section {
+          margin-bottom: 20px;
+          padding: 15px;
+          background-color: #f9f9f9;
+          border: 1px solid #ddd;
+          border-radius: 5px;
+        }
+        
+        .message-header {
+          font-weight: bold;
+          margin-bottom: 10px;
+          text-align: center;
+          font-size: 16px;
+        }
+        
+        .message-content {
+          text-align: center;
+          font-style: italic;
+          min-height: 20px;
+        }
+        
+        .status-section {
+          text-align: center;
+          padding: 15px;
+          border: 2px solid #d32f2f;
+          background-color: #ffebee;
+          margin-bottom: 20px;
+          border-radius: 5px;
+        }
+        
+        .status-label {
+          font-weight: bold;
+          font-size: 16px;
+          color: #d32f2f;
+        }
+        
+        .footer {
+          text-align: center;
+          margin-top: 25px;
+          font-size: 14px;
+          border-top: 1px dashed #000;
+          padding-top: 15px;
+          font-weight: bold;
+        }
+        
+        .footer div {
+          margin-bottom: 5px;
+        }
+        
+        .urgent {
+          color: #d32f2f;
+          font-weight: bold;
+        }
+        
+        @media print {
+          html, body {
+            height: auto;
+            margin: 0;
+            padding: 0;
+          }
+          
+          body {
+            min-height: auto;
+            padding: 10mm;
+            justify-content: flex-start;
+          }
+          
+          .request-container {
+            border: none;
+            box-shadow: none;
+            max-width: none;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+          }
+          
+          .no-print {
+            display: none;
+          }
+          
+          @page {
+            margin: 10mm;
+            size: A4;
+          }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="request-container">
+        <div class="header">
+          <div class="restaurant-name">BUFFET RESTAURANT</div>
+          <div class="request-type">🔔 WAITER REQUEST 🔔</div>
+        </div>
+        
+        <div class="request-info">
+          <div><strong>Request ID:</strong> <span>${requestId}</span></div>
+          <div><strong>Table Number:</strong> <span>${tableNumber}</span></div>
+          <div><strong>Request Type:</strong> <span>${requestTypeDisplay}</span></div>
+          <div><strong>Date & Time:</strong> <span>${timestamp}</span></div>
+        </div>
 
-Table Number: ${tableNumber}
-Request Type: ${requestTypeDisplay}
-Time: ${timestamp}
+        ${message ? `
+        <div class="message-section">
+          <div class="message-header">CUSTOMER MESSAGE</div>
+          <div class="message-content">"${message}"</div>
+        </div>
+        ` : ''}
 
-Message:
-${message}
+        <div class="status-section">
+          <div class="status-label">STATUS: PENDING</div>
+        </div>
 
-================================
-Please attend to this request
-================================
+        <div class="footer">
+          <div class="urgent">⚠️ PLEASE ATTEND TO THIS REQUEST IMMEDIATELY ⚠️</div>
+          <div>Printed: ${new Date().toLocaleString()}</div>
+        </div>
+      </div>
 
-`
+      <script>
+        window.onload = function() {
+          window.print();
+          setTimeout(function() {
+            window.close();
+          }, 1000);
+        }
+      </script>
+    </body>
+    </html>
+  `
 }
 
 // POST - Print waiter request
