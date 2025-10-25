@@ -35,8 +35,7 @@ import { toast } from 'sonner'
 import { WaiterRequestPrinterMapping, WaiterRequestType, PrinterConfig, USBPrinterConfig } from '@/lib/models/printer'
 import { 
   fetchWaiterRequestMappings, 
-  createWaiterRequestMapping, 
-  updateWaiterRequestMapping, 
+  saveWaiterRequestMapping, 
   deleteWaiterRequestMapping 
 } from '@/lib/api/waiter-requests'
 import { fetchPrinters } from '@/lib/api/printers'
@@ -82,9 +81,9 @@ export default function WaiterRequestPrinterManagement() {
         fetchUSBPrinters()
       ])
 
-      if (mappingsResponse.success) {
-        setMappings(mappingsResponse.data)
-      }
+      // fetchWaiterRequestMappings returns array directly, not wrapped in success/data
+      setMappings(mappingsResponse)
+      
       if (ipPrintersResponse.success) {
         setIPPrinters(ipPrintersResponse.data)
       }
@@ -123,20 +122,14 @@ export default function WaiterRequestPrinterManagement() {
       }
 
       let response
-      if (editingMapping) {
-        response = await updateWaiterRequestMapping(editingMapping.requestType, mappingData)
-      } else {
-        response = await createWaiterRequestMapping(mappingData)
-      }
+      // Use saveWaiterRequestMapping for both create and update operations
+      response = await saveWaiterRequestMapping(mappingData)
 
-      if (response.success) {
-        toast.success(editingMapping ? 'Mapping updated successfully' : 'Mapping created successfully')
-        setIsDialogOpen(false)
-        resetForm()
-        loadData()
-      } else {
-        toast.error(response.error || 'Failed to save mapping')
-      }
+      // saveWaiterRequestMapping returns the mapping directly, not wrapped in success/data
+      toast.success(editingMapping ? 'Mapping updated successfully' : 'Mapping created successfully')
+      setIsDialogOpen(false)
+      resetForm()
+      loadData()
     } catch (error) {
       console.error('Error saving mapping:', error)
       toast.error('Failed to save mapping')

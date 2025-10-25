@@ -1,1 +1,38 @@
-[]
+[
+  {
+    "id": "usb_printer_1",
+    "name": "Kitchen Printer",
+    "localPrinterName": "Kitchen_Thermal_Printer",
+    "type": "thermal",
+    "description": "Main kitchen printer for hot food items",
+    "categories": ["hot-food", "main-courses"],
+    "isActive": true,
+    "isDefault": false,
+    "createdAt": "2025-01-21T10:00:00.000Z",
+    "updatedAt": "2025-01-21T10:00:00.000Z"
+  },
+  {
+    "id": "usb_printer_2", 
+    "name": "Bar Printer",
+    "localPrinterName": "Bar_Receipt_Printer",
+    "type": "thermal",
+    "description": "Bar printer for drinks and cold items",
+    "categories": ["drinks", "cold-items"],
+    "isActive": true,
+    "isDefault": false,
+    "createdAt": "2025-01-21T10:00:00.000Z",
+    "updatedAt": "2025-01-21T10:00:00.000Z"
+  },
+  {
+    "id": "usb_printer_3",
+    "name": "Default Receipt Printer",
+    "localPrinterName": "Default_USB_Printer",
+    "type": "thermal", 
+    "description": "Default printer for all items when category-specific printer not available",
+    "categories": [],
+    "isActive": true,
+    "isDefault": true,
+    "createdAt": "2025-01-21T10:00:00.000Z",
+    "updatedAt": "2025-01-21T10:00:00.000Z"
+  }
+]

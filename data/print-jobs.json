@@ -4104,5 +4104,167 @@
       "totalAmount": 70
     },
     "error": "SumatraPDF not found. Install SumatraPDF or set SUMATRA_PDF env var."
+  },
+  {
+    "id": "order-1761379375961-61jmv5",
+    "type": "order",
+    "printerName": "Default_USB_Printer",
+    "status": "failed",
+    "items": [
+      {
+        "id": "68c19d3a3b67d81cc1cc2e82",
+        "name": "Normal Vagitable",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-25T08:02:55.962Z",
+    "updatedAt": "2025-10-25T08:02:56.778Z",
+    "meta": {
+      "orderId": "order-1761379220526-7die3pnbe",
+      "tableNumber": "68c15318c85542d7fb04fe20",
+      "guestCount": 2,
+      "orderTime": "2025-10-25T08:02:44.596Z",
+      "totalAmount": 0
+    },
+    "error": "SumatraPDF not found. Install SumatraPDF or set SUMATRA_PDF env var."
+  },
+  {
+    "id": "order-1761379528590-1teoy3",
+    "type": "order",
+    "printerName": "Default_USB_Printer",
+    "status": "failed",
+    "items": [
+      {
+        "id": "68c19d3a3b67d81cc1cc2e82",
+        "name": "Normal Vagitable",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-25T08:05:28.592Z",
+    "updatedAt": "2025-10-25T08:05:28.754Z",
+    "meta": {
+      "orderId": "order-1761379393198-qyxewljyr",
+      "tableNumber": "68c15318c85542d7fb04fe20",
+      "guestCount": 1,
+      "orderTime": "2025-10-25T08:05:28.453Z",
+      "totalAmount": 0
+    },
+    "error": "SumatraPDF not found. Install SumatraPDF or set SUMATRA_PDF env var."
+  },
+  {
+    "id": "order-1761379563360-wh487i",
+    "type": "order",
+    "printerName": "Default_USB_Printer",
+    "status": "failed",
+    "items": [
+      {
+        "id": "68c19d3a3b67d81cc1cc2e82",
+        "name": "Normal Vagitable",
+        "quantity": 3,
+        "price": 0
+      },
+      {
+        "id": "68c19c383b67d81cc1cc2e80",
+        "name": "Toast bread",
+        "quantity": 1,
+        "price": 0
+      },
+      {
+        "id": "68ead8c3918084db650738ff",
+        "name": "TEST",
+        "quantity": 2,
+        "price": 1
+      },
+      {
+        "id": "68c17c673b67d81cc1cc2e7d",
+        "name": "Pizzs",
+        "quantity": 2,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-25T08:06:03.363Z",
+    "updatedAt": "2025-10-25T08:06:03.505Z",
+    "meta": {
+      "orderId": "order-1761379562004-j4w34ul1l",
+      "tableNumber": "68c15318c85542d7fb04fe20",
+      "guestCount": 2,
+      "orderTime": "2025-10-25T08:06:03.032Z",
+      "totalAmount": 2
+    },
+    "error": "SumatraPDF not found. Install SumatraPDF or set SUMATRA_PDF env var."
+  },
+  {
+    "id": "order-1761379784687-0ougy2",
+    "type": "order",
+    "printerName": "Default_USB_Printer",
+    "status": "failed",
+    "items": [
+      {
+        "id": "68c19c383b67d81cc1cc2e80",
+        "name": "Toast bread",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-25T08:09:44.707Z",
+    "updatedAt": "2025-10-25T08:09:48.161Z",
+    "meta": {
+      "orderId": "order-1761379777561-3zhvoknlb",
+      "tableNumber": "68c15318c85542d7fb04fe20",
+      "guestCount": 2,
+      "orderTime": "2025-10-25T08:09:38.591Z",
+      "totalAmount": 0
+    },
+    "error": "SumatraPDF not found. Install SumatraPDF or set SUMATRA_PDF env var."
+  },
+  {
+    "id": "order-1761379890071-b9y26p",
+    "type": "order",
+    "printerName": "Default_USB_Printer",
+    "status": "failed",
+    "items": [
+      {
+        "id": "68c19c383b67d81cc1cc2e80",
+        "name": "Toast bread",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-25T08:11:30.076Z",
+    "updatedAt": "2025-10-25T08:11:30.853Z",
+    "meta": {
+      "orderId": "order-1761379722133-n3hx4ftn8",
+      "tableNumber": "68c15318c85542d7fb04fe20",
+      "guestCount": 1,
+      "orderTime": "2025-10-25T08:11:29.821Z",
+      "totalAmount": 0
+    },
+    "error": "SumatraPDF not found. Install SumatraPDF or set SUMATRA_PDF env var."
+  },
+  {
+    "id": "order-1761379906396-wmxm4f",
+    "type": "order",
+    "printerName": "Default_USB_Printer",
+    "status": "failed",
+    "items": [
+      {
+        "id": "68c19c383b67d81cc1cc2e80",
+        "name": "Toast bread",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-25T08:11:46.400Z",
+    "updatedAt": "2025-10-25T08:11:46.687Z",
+    "meta": {
+      "orderId": "order-1761379904559-sdt54pdif",
+      "tableNumber": "68c15318c85542d7fb04fe20",
+      "guestCount": 1,
+      "orderTime": "2025-10-25T08:11:45.568Z",
+      "totalAmount": 0
+    },
+    "error": "SumatraPDF not found. Install SumatraPDF or set SUMATRA_PDF env var."
   }
 ]

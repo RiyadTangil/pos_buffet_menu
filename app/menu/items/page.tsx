@@ -1121,7 +1121,7 @@ export default function ItemsPage() {
 
             {/* Waiter Request Button */}
             <WaiterRequest 
-              tableNumber={parseInt(tableSession?.tableId || localStorage.getItem('selectedTableId') || '0')}
+              tableNumber={parseInt(tableSession?.tableId || (typeof window !== 'undefined' ? localStorage.getItem('selectedTableId') : null) || '0')}
               disabled={sessionEnded}
             />
 
