@@ -4529,5 +4529,65 @@
       "orderTime": "2025-10-26T12:05:59.737Z",
       "totalAmount": 0
     }
+  },
+  {
+    "id": "order-1761493625039-3wl0vy",
+    "type": "order",
+    "printerName": "Microsoft Print to PDF",
+    "status": "failed",
+    "items": [
+      {
+        "id": "68c17c673b67d81cc1cc2e7d",
+        "name": "Pizzs",
+        "quantity": 1,
+        "price": 0
+      },
+      {
+        "id": "68c19d173b67d81cc1cc2e81",
+        "name": "Vagitable",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-26T15:47:05.045Z",
+    "updatedAt": "2025-10-26T15:47:10.512Z",
+    "meta": {
+      "orderId": "order-1761493603014-az57fnvsj",
+      "tableNumber": "68c15318c85542d7fb04fe20",
+      "guestCount": 4,
+      "orderTime": "2025-10-26T15:46:45.087Z",
+      "totalAmount": 0
+    },
+    "error": "SumatraPDF not found. Install SumatraPDF or set SUMATRA_PDF env var."
+  },
+  {
+    "id": "order-1761494892072-td4y8g",
+    "type": "order",
+    "printerName": "Microsoft Print to PDF",
+    "status": "failed",
+    "items": [
+      {
+        "id": "68c19c383b67d81cc1cc2e80",
+        "name": "Toast bread",
+        "quantity": 1,
+        "price": 0
+      },
+      {
+        "id": "68c19d173b67d81cc1cc2e81",
+        "name": "Vagitable",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-26T16:08:12.080Z",
+    "updatedAt": "2025-10-26T16:08:26.333Z",
+    "meta": {
+      "orderId": "order-1761494881400-2g7jkjy0g",
+      "tableNumber": "68c15318c85542d7fb04fe20",
+      "guestCount": 4,
+      "orderTime": "2025-10-26T16:08:08.370Z",
+      "totalAmount": 0
+    },
+    "error": "SumatraPDF not found. Install SumatraPDF or set SUMATRA_PDF env var."
   }
 ]

@@ -552,6 +552,7 @@ export default function OrderPrinter({
       }, {} as Record<string, any[]>)
 
       console.log('🖨️ [USB Categories] Items grouped by category:', itemsByCategory)
+      console.log('🖨️ [USB Categories] Items grouped by category keyss:', Object.key(itemsByCategory))
       const printJobs = []
 
       // Print each category to its assigned USB printer
