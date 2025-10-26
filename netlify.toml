@@ -1,21 +1,25 @@
-# example netlify.toml
+# Netlify configuration for Next.js
 [build]
-  command = "pnpm run build "
-  functions = "netlify/functions"
+  command = "pnpm run build"
   publish = ".next"
 
-  ## Uncomment to use this redirect for Single Page Applications like create-react-app.
-  ## Not needed for static site generators.
-  #[[redirects]]
-  #  from = "/*"
-  #  to = "/index.html"
-  #  status = 200
+# Next.js specific configuration
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
 
-  ## (optional) Settings for Netlify Dev
-  ## https://github.com/netlify/cli/blob/main/docs/netlify-dev.md#project-detection
-  #[dev]
-  #  command = "yarn start" # Command to start your dev server
-  #  port = 3000 # Port that the dev server will be listening on
-  #  publish = "dist" # Folder with the static content for _redirect file
+# Redirects for client-side routing
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  conditions = {Role = ["admin"]}
 
-  ## more info on configuring this file: https://ntl.fyi/file-based-build-config
+# API routes handling
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+# Environment variables (set these in Netlify dashboard)
+[build.environment]
+  NODE_VERSION = "18"

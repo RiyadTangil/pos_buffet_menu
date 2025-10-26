@@ -399,87 +399,130 @@ export default function ItemsPage() {
           return
         }
         
-        // Initialize Socket.IO client and join table room
-        const socket = initializeSocketClient()
-        
+        // Initialize Socket.IO client and join table room with fallback polling
+        let socketConnected = false;
+        let pollingInterval: NodeJS.Timeout | null = null;
+
         try {
-          await joinTableRoom(storedTableId, storedGroupType)
-          console.log('✅ Successfully joined table room')
-        } catch (error) {
-          console.error('❌ Failed to join table room:', error)
-          // Continue with the rest of the initialization even if socket fails
-        }
-        
-        // Set up real-time table session updates
-        onTableSessionUpdate((updatedSessionData) => {
-          console.log('Received table session update:', updatedSessionData)
+          const socket = initializeSocketClient()
           
-          // Check if session has ended (either sessionEnded flag or null session)
-          if (updatedSessionData?.sessionEnded || updatedSessionData === null) {
-            setShowSessionEndedModal(true)
-            return
+          try {
+            await joinTableRoom(storedTableId, storedGroupType)
+            console.log('✅ Successfully joined table room')
+            socketConnected = true;
+          } catch (error) {
+            console.error('❌ Failed to join table room:', error)
+            // Continue with the rest of the initialization even if socket fails
           }
           
-          setTableSession(updatedSessionData)
-          // Update localStorage with fresh data
-          localStorage.setItem('tableSession', JSON.stringify(updatedSessionData))
-          // Update order countdown from session field for multi-device sync
-          // Only adjust countdown when the field is present to avoid clearing
-          // on partial updates that don't include nextOrderAvailableUntil
-          if (updatedSessionData?.nextOrderAvailableUntil) {
-            const untilMs = new Date(updatedSessionData.nextOrderAvailableUntil).getTime()
-            const remaining = Math.max(0, Math.floor((untilMs - Date.now()) / 1000))
-            setOrderPlaced(remaining > 0)
-            setTimeRemaining(remaining)
-          }
-        })
-
-        // Set up real-time cart synchronization
-        onCartUpdate((cartData) => {
-          console.log('Received cart update:', cartData)
-          if (cartData.tableId === storedTableId) {
-            // Convert database cart items to UI cart items
-            if (cartData.cartItems && productsData.length > 0) {
-              const convertedCartItems = cartData.cartItems.map((dbCartItem: any) => {
-                const product = productsData.find(p => p.id === dbCartItem.menuItemId)
-                if (product) {
-                  return {
-                    menuItem: product,
-                    quantity: dbCartItem.quantity
-                  }
-                }
-                return null
-              }).filter(Boolean) as CartItem[]
-              
-              setCart(convertedCartItems)
-            } else {
-              setCart([])
+          // Set up real-time table session updates
+          onTableSessionUpdate((updatedSessionData) => {
+            console.log('Received table session update:', updatedSessionData)
+            
+            // Check if session has ended (either sessionEnded flag or null session)
+            if (updatedSessionData?.sessionEnded || updatedSessionData === null) {
+              setShowSessionEndedModal(true)
+              return
             }
-          }
-        })
-
-        // Set up real-time order confirmation synchronization
-        onOrderConfirmation((orderData) => {
-          console.log('Received order confirmation:', orderData)
-          if (orderData.tableId === storedTableId) {
-            // Sync order confirmation state with other devices in same group
-            setShowConfetti(true)
-            setOrderPlaced(true)
             
-            // Use timing from the order data or default
-            const timingInSeconds = orderData.orderData?.timingInSeconds || 60
-            setTimeRemaining(timingInSeconds)
-            
-            // Clear cart when order is confirmed by another device
-            setCart([])
-            setIsCartOpen(false)
+            setTableSession(updatedSessionData)
+            // Update localStorage with fresh data
+            localStorage.setItem('tableSession', JSON.stringify(updatedSessionData))
+            // Update order countdown from session field for multi-device sync
+            // Only adjust countdown when the field is present to avoid clearing
+            // on partial updates that don't include nextOrderAvailableUntil
+            if (updatedSessionData?.nextOrderAvailableUntil) {
+              const untilMs = new Date(updatedSessionData.nextOrderAvailableUntil).getTime()
+              const remaining = Math.max(0, Math.floor((untilMs - Date.now()) / 1000))
+              setOrderPlaced(remaining > 0)
+              setTimeRemaining(remaining)
+            }
+          })
 
-            // Hide confetti after 3 seconds
-            setTimeout(() => {
-              setShowConfetti(false)
-            }, 3000)
-          }
-        })
+          // Set up real-time cart synchronization
+          onCartUpdate((cartData) => {
+            console.log('Received cart update:', cartData)
+            if (cartData.tableId === storedTableId) {
+              // Convert database cart items to UI cart items
+              if (cartData.cartItems && productsData.length > 0) {
+                const convertedCartItems = cartData.cartItems.map((dbCartItem: any) => {
+                  const product = productsData.find(p => p.id === dbCartItem.menuItemId)
+                  if (product) {
+                    return {
+                      menuItem: product,
+                      quantity: dbCartItem.quantity
+                    }
+                  }
+                  return null
+                }).filter(Boolean) as CartItem[]
+                
+                setCart(convertedCartItems)
+              } else {
+                setCart([])
+              }
+            }
+          })
+
+          // Set up real-time order confirmation synchronization
+          onOrderConfirmation((orderData) => {
+            console.log('Received order confirmation:', orderData)
+            if (orderData.tableId === storedTableId) {
+              // Sync order confirmation state with other devices in same group
+              setShowConfetti(true)
+              setOrderPlaced(true)
+              
+              // Use timing from the order data or default
+              const timingInSeconds = orderData.orderData?.timingInSeconds || 60
+              setTimeRemaining(timingInSeconds)
+              
+              // Clear cart when order is confirmed by another device
+              setCart([])
+              setIsCartOpen(false)
+
+              // Hide confetti after 3 seconds
+              setTimeout(() => {
+                setShowConfetti(false)
+              }, 3000)
+            }
+          })
+        } catch (error) {
+          console.warn('Socket.IO not available, will use polling fallback:', error);
+          socketConnected = false;
+        }
+
+        // If Socket.IO is not available (e.g., on Netlify), set up polling for session updates
+        if (!socketConnected) {
+          console.log('Starting polling fallback for session updates');
+          pollingInterval = setInterval(async () => {
+            try {
+              const sessionData = await getTableSession(storedTableId, storedGroupType || undefined);
+              if (sessionData?.sessionEnded || sessionData === null) {
+                setShowSessionEndedModal(true);
+                if (pollingInterval) clearInterval(pollingInterval);
+                return;
+              }
+              
+              if (sessionData) {
+                setTableSession(sessionData);
+                localStorage.setItem('tableSession', JSON.stringify(sessionData));
+                
+                if (sessionData.nextOrderAvailableUntil) {
+                  const untilMs = new Date(sessionData.nextOrderAvailableUntil).getTime();
+                  const remaining = Math.max(0, Math.floor((untilMs - Date.now()) / 1000));
+                  setOrderPlaced(remaining > 0);
+                  setTimeRemaining(remaining);
+                }
+              }
+            } catch (error) {
+              console.error('Error polling session data:', error);
+            }
+          }, 5000); // Poll every 5 seconds
+        }
+
+        // Store polling interval for cleanup
+        if (pollingInterval) {
+          (window as any).sessionPollingInterval = pollingInterval;
+        }
         
         // Try to get fresh session data from API, fallback to stored session
         let sessionData: TableSession | null = null
@@ -612,6 +655,12 @@ export default function ItemsPage() {
       offTableSessionUpdate()
       offCartUpdate()
       offOrderConfirmation()
+      
+      // Clean up polling interval if it exists
+      if ((window as any).sessionPollingInterval) {
+        clearInterval((window as any).sessionPollingInterval);
+        (window as any).sessionPollingInterval = null;
+      }
     }
   }, [router])
 
@@ -1161,6 +1210,7 @@ export default function ItemsPage() {
             
 
 
+
                   <div className="flex-1 overflow-y-auto py-4 min-h-0">
                     {cart.length === 0 ? (
                       <div className="text-center py-12">
@@ -1221,7 +1271,7 @@ export default function ItemsPage() {
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  onClick={() => addToCart(item.menuItem)}
+                                  onClick={() => addToCart(item)}
                                   className="w-8 h-8 p-0 border-orange-200 hover:bg-orange-50"
                                   disabled={sessionEnded || isUpdating}
                                 >

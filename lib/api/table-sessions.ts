@@ -1,6 +1,6 @@
 // Client-side API functions for table session management
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || ''
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || (typeof window !== 'undefined' ? window.location.origin : '')
 
 export interface CartItem {
   menuItemId: string

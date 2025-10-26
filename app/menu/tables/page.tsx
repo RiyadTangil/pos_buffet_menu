@@ -113,21 +113,49 @@ export default function TablesPage() {
     loadData();
   }, []);
 
-  // Socket: join tables room and refresh on updates
+  // Socket: join tables room and refresh on updates with fallback polling
   useEffect(() => {
-    initializeSocketClient();
-    joinTablesRoom();
+    let pollingInterval: NodeJS.Timeout | null = null;
+    let socketConnected = false;
 
-    const handleTablesUpdate = () => {
-      // Refresh tables data on any update
-      loadData();
-    };
+    // Try to initialize Socket.IO
+    try {
+      initializeSocketClient();
+      joinTablesRoom();
 
-    onTablesUpdate(handleTablesUpdate);
+      const handleTablesUpdate = () => {
+        // Refresh tables data on any update
+        loadData();
+      };
+
+      onTablesUpdate(handleTablesUpdate);
+      socketConnected = true;
+    } catch (error) {
+      console.warn('Socket.IO not available, falling back to polling:', error);
+      socketConnected = false;
+    }
+
+    // If Socket.IO is not available (e.g., on Netlify), use polling
+    if (!socketConnected) {
+      console.log('Starting polling fallback for table updates');
+      pollingInterval = setInterval(() => {
+        loadData();
+      }, 10000); // Poll every 10 seconds
+    }
 
     return () => {
-      offTablesUpdate();
-      leaveTablesRoom();
+      if (socketConnected) {
+        try {
+          offTablesUpdate();
+          leaveTablesRoom();
+        } catch (error) {
+          console.warn('Error cleaning up Socket.IO:', error);
+        }
+      }
+      
+      if (pollingInterval) {
+        clearInterval(pollingInterval);
+      }
     };
   }, []);
 
