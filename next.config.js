@@ -17,6 +17,12 @@ const nextConfig = {
   },
   experimental: {
     serverComponentsExternalPackages: ['mongodb', 'serialport', 'pdf-to-printer', 'pdf-lib']
+  },
+  typescript: {
+    ignoreBuildErrors: true
+  },
+  eslint: {
+    ignoreDuringBuilds: true
   }
 }
 

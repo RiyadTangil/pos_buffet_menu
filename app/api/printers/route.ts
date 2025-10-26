@@ -119,6 +119,7 @@ export async function POST(request: NextRequest) {
       ipAddress,
       port: parseInt(port),
       type,
+      connectionType: body.connectionType || 'ip',
       isActive: body.isActive !== undefined ? body.isActive : true,
       categories: categories || [],
       createdAt: new Date().toISOString(),

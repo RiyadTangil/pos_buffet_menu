@@ -140,15 +140,15 @@ export default function CheckoutPage() {
         body: JSON.stringify({ pin: waiterPin }),
       })
 
-      const result = await response.json()
+      const validateResult = await response.json()
       
-      if (!result.success) {
-        setWaiterError(result.message || 'Invalid PIN')
+      if (!validateResult.success) {
+        setWaiterError(validateResult.message || 'Invalid PIN')
         setIsProcessing(false)
         return
       }
 
-      const waiter = result.user
+      const waiter = validateResult.user
       setValidatedWaiter(waiter)
 
       // Create checkout order
@@ -167,9 +167,9 @@ export default function CheckoutPage() {
       }
 
       // Save checkout order
-      const result = await saveOrder(checkoutOrder)
+      const saveResult = await saveOrder(checkoutOrder)
       
-      if (result.success) {
+      if (saveResult.success) {
         setPaymentProcessed(true)
         setIsProcessing(false)
 
@@ -178,7 +178,7 @@ export default function CheckoutPage() {
           router.push("/tables")
         }, 3000)
       } else {
-        throw new Error(result.message)
+        throw new Error(saveResult.message)
       }
     } catch (error) {
       console.error('Error processing payment:', error)

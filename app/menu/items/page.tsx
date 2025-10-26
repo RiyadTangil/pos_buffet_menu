@@ -1501,7 +1501,7 @@ export default function ItemsPage() {
       {/* Session Ended Modal */}
       <SessionEndedModal 
         isOpen={showSessionEndedModal}
-        tableNumber={tableSession?.tableId || localStorage.getItem('selectedTableId') || 'Unknown'}
+        tableNumber={tableSession?.tableId || (typeof window !== 'undefined' ? localStorage.getItem('selectedTableId') : null) || 'Unknown'}
       />
 
       {/* Order Printer Component - Handles automatic printing */}

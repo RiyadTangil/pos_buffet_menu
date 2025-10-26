@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getDatabase, COLLECTIONS } from '@/lib/mongodb'
 import { ObjectId } from 'mongodb'
 import { MongoPayment, CreatePaymentRequest } from '@/lib/models/payment'
-import { broadcastTablesUpdate } from '@/app/api/socket/route'
+import { broadcastTablesUpdate } from '@/lib/socket-server'
 
 // GET - Fetch all payments with optional filtering
 export async function GET(request: NextRequest) {
