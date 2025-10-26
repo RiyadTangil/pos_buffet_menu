@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getDatabase } from '@/lib/mongodb'
 import { ObjectId } from 'mongodb'
-import { broadcastTableSessionUpdate } from '@/lib/socket-server'
+import { broadcastTableSessionUpdate } from '@/app/api/socket/route'
 import { CartItem } from '../route'
 
 // PUT - Update cart items for a table session

@@ -1,5 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { broadcastTableSessionUpdate, broadcastTablesUpdate } from '@/lib/socket-server'
+
+// Broadcast table session updates to all devices on the same table
+export function broadcastTableSessionUpdate(tableId: string, sessionData: any, groupType?: string) {
+  if (global.io) {
+    const roomName = groupType ? `table-${tableId}-${groupType}` : `table-${tableId}`
+    console.log(`📡 API Broadcasting table session update for ${roomName}`)
+    console.log(`📋 API Session data:`, JSON.stringify(sessionData, null, 2))
+    console.log(`👥 API Broadcasting to ${global.io.sockets.adapter.rooms.get(roomName)?.size || 0} clients`)
+    global.io.to(roomName).emit('tableSessionUpdate', sessionData)
+  } else {
+    console.warn('Socket.IO server not initialized')
+  }
+}
+
+// Broadcast global tables updates (create/update/delete/status changes)
+export function broadcastTablesUpdate(update: any) {
+  if (global.io) {
+    console.log('📡 API Broadcasting tables update')
+    console.log('📋 API Update data:', JSON.stringify(update, null, 2))
+    console.log(`👥 API Broadcasting to ${global.io.sockets.adapter.rooms.get('tables')?.size || 0} clients`)
+    global.io.to('tables').emit('tablesUpdate', update)
+  } else {
+    console.warn('Socket.IO server not initialized')
+  }
+}
 
 // GET endpoint to get Socket.IO status
 export async function GET(request: NextRequest) {

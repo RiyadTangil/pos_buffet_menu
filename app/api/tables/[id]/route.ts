@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import {  getDatabase } from '@/lib/mongodb'
-import { broadcastTablesUpdate } from '@/lib/socket-server'
+import { broadcastTablesUpdate } from '@/app/api/socket/route'
 import { ObjectId } from 'mongodb'
 
 // GET - Fetch a single table by ID

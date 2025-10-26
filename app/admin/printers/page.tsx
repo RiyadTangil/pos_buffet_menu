@@ -54,8 +54,7 @@ export default function PrintersPage() {
     ipAddress: '',
     port: 9100,
     categories: [] as string[],
-    isActive: true,
-    connectionType: 'ip' as 'ip' | 'usb'
+    isActive: true
   })
 
   useEffect(() => {
@@ -113,11 +112,10 @@ export default function PrintersPage() {
     setFormData({
       name: printer.name,
       type: printer.type,
-      ipAddress: printer.ipAddress || '',
-      port: printer.port || 9100,
+      ipAddress: printer.ipAddress,
+      port: printer.port,
       categories: printer.categories || [],
-      isActive: printer.isActive,
-      connectionType: printer.connectionType || 'ip'
+      isActive: printer.isActive
     })
     setIsDialogOpen(true)
   }
@@ -143,8 +141,7 @@ export default function PrintersPage() {
       ipAddress: '',
       port: 9100,
       categories: [],
-      isActive: true,
-      connectionType: 'ip'
+      isActive: true
     })
   }
 

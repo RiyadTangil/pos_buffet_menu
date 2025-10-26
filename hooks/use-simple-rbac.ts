@@ -2,7 +2,15 @@
 
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
-import { NavigationItem } from '@/lib/rbac'
+
+// Simple navigation item interface that matches DynamicNavigation expectations
+interface NavItem {
+  id: string
+  name: string
+  href: string
+  icon: string
+  children?: NavItem[]
+}
 
 // Simple role configuration from database
 interface RoleConfig {
@@ -11,25 +19,25 @@ interface RoleConfig {
   navigationItems: string[]
 }
 
-// All available navigation items (minimal fields filled to satisfy NavigationItem type)
-const ALL_NAV_ITEMS: NavigationItem[] = [
-  { id: 'dashboard', name: 'Dashboard', href: '/admin/dashboard', icon: 'LayoutDashboard', requiredPermissions: [], isVisible: true, order: 1 },
-  { id: 'profile', name: 'Profile', href: '/admin/profile', icon: 'User', requiredPermissions: [], isVisible: true, order: 2 },
-  { id: 'users', name: 'Users', href: '/admin/users', icon: 'Users', requiredPermissions: [], isVisible: true, order: 3 },
-  { id: 'tables', name: 'Tables', href: '/admin/tables', icon: 'Table', requiredPermissions: [], isVisible: true, order: 4 },
-  { id: 'categories', name: 'Categories', href: '/admin/categories', icon: 'Package', requiredPermissions: [], isVisible: true, order: 5 },
-  { id: 'products', name: 'Products', href: '/admin/products', icon: 'ShoppingCart', requiredPermissions: [], isVisible: true, order: 6 },
-  { id: 'order-management', name: 'Order Management', href: '/admin/order-management', icon: 'ClipboardList', requiredPermissions: [], isVisible: true, order: 7 },
-  { id: 'payments', name: 'Payments', href: '/admin/payments', icon: 'CreditCard', requiredPermissions: [], isVisible: true, order: 8 },
-  { id: 'my-payments', name: 'My Payments', href: '/admin/my-payments', icon: 'Wallet', requiredPermissions: [], isVisible: true, order: 12 },
-  { id: 'printers', name: 'Printers', href: '/admin/printers', icon: 'Printer', requiredPermissions: [], isVisible: true, order: 9 },
-  { id: 'role-management', name: 'Role Management', href: '/admin/role-management', icon: 'Shield', requiredPermissions: [], isVisible: true, order: 10 },
-  { id: 'settings', name: 'Settings', href: '/admin/settings', icon: 'Settings', requiredPermissions: [], isVisible: true, order: 11 }
+// All available navigation items
+const ALL_NAV_ITEMS: NavItem[] = [
+  { id: 'dashboard', name: 'Dashboard', href: '/admin/dashboard', icon: 'LayoutDashboard' },
+  { id: 'profile', name: 'Profile', href: '/admin/profile', icon: 'User' },
+  { id: 'users', name: 'Users', href: '/admin/users', icon: 'Users' },
+  { id: 'tables', name: 'Tables', href: '/admin/tables', icon: 'Table' },
+  { id: 'categories', name: 'Categories', href: '/admin/categories', icon: 'Package' },
+  { id: 'products', name: 'Products', href: '/admin/products', icon: 'ShoppingCart' },
+  { id: 'order-management', name: 'Order Management', href: '/admin/order-management', icon: 'ClipboardList' },
+  { id: 'payments', name: 'Payments', href: '/admin/payments', icon: 'CreditCard' },
+  { id: 'my-payments', name: 'My Payments', href: '/admin/my-payments', icon: 'Wallet' },
+  { id: 'printers', name: 'Printers', href: '/admin/printers', icon: 'Printer' },
+  { id: 'role-management', name: 'Role Management', href: '/admin/role-management', icon: 'Shield' },
+  { id: 'settings', name: 'Settings', href: '/admin/settings', icon: 'Settings' }
 ]
 
 export function useSimpleRBAC() {
   const { data: session } = useSession()
-  const [navigationItems, setNavigationItems] = useState<NavigationItem[]>([])
+  const [navigationItems, setNavigationItems] = useState<NavItem[]>([])
   const [permissions, setPermissions] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
 

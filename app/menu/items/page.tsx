@@ -75,6 +75,7 @@ export default function ItemsPage() {
 
   const loadOrderIntervalFromStorage = () => {
     try {
+      if (typeof window === 'undefined') return null
       const stored = localStorage.getItem('orderInterval')
       if (!stored) return null
 
@@ -384,6 +385,9 @@ export default function ItemsPage() {
       try {
         setLoading(true)
         
+        // Only run on client side
+        if (typeof window === 'undefined') return
+        
         // Load table session and group type from localStorage
         const storedTableId = localStorage.getItem('selectedTableId')
         const storedGroupType = localStorage.getItem('groupType')
@@ -598,10 +602,12 @@ export default function ItemsPage() {
       window.removeEventListener("popstate", handlePopState)
       
       // Clean up Socket.IO connections
-      const storedTableId = localStorage.getItem('selectedTableId')
-      const storedGroupType = localStorage.getItem('groupType')
-      if (storedTableId) {
-        leaveTableRoom(storedTableId, storedGroupType || undefined)
+      if (typeof window !== 'undefined') {
+        const storedTableId = localStorage.getItem('selectedTableId')
+        const storedGroupType = localStorage.getItem('groupType')
+        if (storedTableId) {
+          leaveTableRoom(storedTableId, storedGroupType || undefined)
+        }
       }
       offTableSessionUpdate()
       offCartUpdate()
@@ -722,7 +728,7 @@ export default function ItemsPage() {
         quantity: 1,
         categoryId: product.categoryId
       }
-      const groupTypeLocal= localStorage.getItem('groupType') 
+      const groupTypeLocal = typeof window !== 'undefined' ? localStorage.getItem('groupType') : null 
       const result = await addToCartApi(tableSession.tableId, cartItem, groupTypeLocal)
       
       if (result.success) {

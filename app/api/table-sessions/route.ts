@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getDatabase } from '@/lib/mongodb'
 import { ObjectId } from 'mongodb'
-import { broadcastTableSessionUpdate, broadcastTablesUpdate } from '@/lib/socket-server'
+import { broadcastTableSessionUpdate, broadcastTablesUpdate } from '@/app/api/socket/route'
 
 export interface CartItem {
   menuItemId: string

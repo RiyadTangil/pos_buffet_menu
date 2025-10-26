@@ -430,7 +430,7 @@ function CategoriesPage() {
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDelete}
-              disabled={isSubmitting || (!!selectedCategory && getCategoryItemCount(selectedCategory.id) > 0)}
+              disabled={isSubmitting || (selectedCategory && getCategoryItemCount(selectedCategory.id) > 0)}
               className="bg-red-600 hover:bg-red-700"
             >
               {isSubmitting ? 'Deleting...' : 'Delete Category'}
