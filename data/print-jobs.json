@@ -4266,5 +4266,233 @@
       "totalAmount": 0
     },
     "error": "SumatraPDF not found. Install SumatraPDF or set SUMATRA_PDF env var."
+  },
+  {
+    "id": "order-1761476689513-uj881x",
+    "type": "order",
+    "printerName": "EPSON L220 Series",
+    "status": "completed",
+    "items": [
+      {
+        "id": "68c19d3a3b67d81cc1cc2e82",
+        "name": "Normal Vagitable",
+        "quantity": 3,
+        "price": 0
+      },
+      {
+        "id": "68c19c383b67d81cc1cc2e80",
+        "name": "Toast bread",
+        "quantity": 2,
+        "price": 0
+      },
+      {
+        "id": "68ead8c3918084db650738ff",
+        "name": "TEST",
+        "quantity": 2,
+        "price": 1
+      },
+      {
+        "id": "68c17c673b67d81cc1cc2e7d",
+        "name": "Pizzs",
+        "quantity": 2,
+        "price": 0
+      },
+      {
+        "id": "68c19d173b67d81cc1cc2e81",
+        "name": "Vagitable",
+        "quantity": 1,
+        "price": 0
+      },
+      {
+        "id": "68c99fed991d23a92d66f078",
+        "name": "Cola",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-26T11:04:49.515Z",
+    "updatedAt": "2025-10-26T11:05:04.309Z",
+    "meta": {
+      "orderId": "order-1761476677854-vwfx560um",
+      "tableNumber": "68c15318c85542d7fb04fe20",
+      "guestCount": 3,
+      "orderTime": "2025-10-26T11:04:41.860Z",
+      "totalAmount": 2
+    }
+  },
+  {
+    "id": "order-1761477155035-xoaq0l",
+    "type": "order",
+    "printerName": "EPSON L220 Series",
+    "status": "completed",
+    "items": [
+      {
+        "id": "68c99fed991d23a92d66f078",
+        "name": "Cola",
+        "quantity": 1,
+        "price": 0
+      },
+      {
+        "id": "68c17c673b67d81cc1cc2e7d",
+        "name": "Pizzs",
+        "quantity": 1,
+        "price": 0
+      },
+      {
+        "id": "68c19d173b67d81cc1cc2e81",
+        "name": "Vagitable",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-26T11:12:35.044Z",
+    "updatedAt": "2025-10-26T11:12:46.646Z",
+    "meta": {
+      "orderId": "order-1761477127299-esw2dv66y",
+      "tableNumber": "68c15318c85542d7fb04fe20",
+      "guestCount": 3,
+      "orderTime": "2025-10-26T11:12:32.283Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "order-1761478429304-6s2oiy",
+    "type": "order",
+    "printerName": "EPSON L220 Series",
+    "status": "completed",
+    "items": [
+      {
+        "id": "68c19d3a3b67d81cc1cc2e82",
+        "name": "Normal Vagitable",
+        "quantity": 1,
+        "price": 0
+      },
+      {
+        "id": "68cad4b09af39ae52f9b96d4",
+        "name": "Riyad Hasan",
+        "quantity": 1,
+        "price": 70
+      },
+      {
+        "id": "68c99fed991d23a92d66f078",
+        "name": "Cola",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-26T11:33:49.314Z",
+    "updatedAt": "2025-10-26T11:33:59.084Z",
+    "meta": {
+      "orderId": "order-1761478396728-lg2p460f3",
+      "tableNumber": "68c15318c85542d7fb04fe20",
+      "guestCount": 3,
+      "orderTime": "2025-10-26T11:33:40.555Z",
+      "totalAmount": 70
+    }
+  },
+  {
+    "id": "order-1761478825691-bpe1s2",
+    "type": "order",
+    "printerName": "EPSON L220 Series",
+    "status": "completed",
+    "items": [
+      {
+        "id": "68c17c673b67d81cc1cc2e7d",
+        "name": "Pizzs",
+        "quantity": 1,
+        "price": 0
+      },
+      {
+        "id": "68c19d173b67d81cc1cc2e81",
+        "name": "Vagitable",
+        "quantity": 1,
+        "price": 0
+      },
+      {
+        "id": "68c99fed991d23a92d66f078",
+        "name": "Cola",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-26T11:40:25.701Z",
+    "updatedAt": "2025-10-26T11:40:35.999Z",
+    "meta": {
+      "orderId": "order-1761478801072-c2oc2v3gw",
+      "tableNumber": "68c15318c85542d7fb04fe20",
+      "guestCount": 3,
+      "orderTime": "2025-10-26T11:40:10.340Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "order-1761479081534-cfmztv",
+    "type": "order",
+    "printerName": "EPSON L220 Series",
+    "status": "completed",
+    "items": [
+      {
+        "id": "68c17c673b67d81cc1cc2e7d",
+        "name": "Pizzs",
+        "quantity": 1,
+        "price": 0
+      },
+      {
+        "id": "68c19d173b67d81cc1cc2e81",
+        "name": "Vagitable",
+        "quantity": 1,
+        "price": 0
+      },
+      {
+        "id": "68c99fed991d23a92d66f078",
+        "name": "Cola",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-26T11:44:41.539Z",
+    "updatedAt": "2025-10-26T11:44:45.086Z",
+    "meta": {
+      "orderId": "order-1761479052380-tqr76ecqr",
+      "tableNumber": "68c15318c85542d7fb04fe20",
+      "guestCount": 3,
+      "orderTime": "2025-10-26T11:44:38.267Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "order-1761479171182-p673nq",
+    "type": "order",
+    "printerName": "EPSON L220 Series",
+    "status": "completed",
+    "items": [
+      {
+        "id": "68c19c383b67d81cc1cc2e80",
+        "name": "Toast bread",
+        "quantity": 1,
+        "price": 0
+      },
+      {
+        "id": "68cad4b09af39ae52f9b96d4",
+        "name": "Riyad Hasan",
+        "quantity": 1,
+        "price": 70
+      },
+      {
+        "id": "68c99fed991d23a92d66f078",
+        "name": "Cola",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-26T11:46:11.196Z",
+    "updatedAt": "2025-10-26T11:46:13.242Z",
+    "meta": {
+      "orderId": "order-1761479167098-tlrs1url4",
+      "tableNumber": "68c15318c85542d7fb04fe20",
+      "guestCount": 3,
+      "orderTime": "2025-10-26T11:46:09.805Z",
+      "totalAmount": 70
+    }
   }
 ]

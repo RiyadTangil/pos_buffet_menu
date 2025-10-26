@@ -137,7 +137,15 @@ export default function OrderPrinter({
       if (!printSuccess && state.availableUSBPrinters.length > 0) {
         try {
           console.log('🖨️ [OrderPrinter] Attempting USB printer category-based printing...')
-          const usbPrintJobs = await printOrderByUSBCategories(orderId, orderItems)
+          const usbPrintJobs = await printOrderByUSBCategories(
+            orderId, 
+            orderItems, 
+            state.availableUSBPrinters, 
+            state.defaultUSBPrinter,
+            tableNumber,
+            guestCount,
+            orderTime
+          )
           console.log('🖨️ [OrderPrinter] USB printer print jobs result:', usbPrintJobs)
           
           if (usbPrintJobs && usbPrintJobs.length > 0) {
@@ -517,7 +525,15 @@ export default function OrderPrinter({
     }
   }
 
-  const printOrderByUSBCategories = async (orderId: string, orderItems: any[]) => {
+  const printOrderByUSBCategories = async (
+    orderId: string, 
+    orderItems: any[], 
+    availableUSBPrinters: USBPrinterConfig[], 
+    defaultUSBPrinter: USBPrinterConfig | null,
+    tableNumber?: string | number,
+    guestCount?: number,
+    orderTime?: string
+  ) => {
     console.log('🖨️ [USB Categories] Starting USB category-based printing...')
     console.log('🖨️ [USB Categories] Order ID:', orderId)
     console.log('🖨️ [USB Categories] Order Items:', orderItems)
@@ -544,7 +560,7 @@ export default function OrderPrinter({
         console.log(`🖨️ [USB Categories] Processing category: ${category} with ${items.length} items`)
         
         // Find USB printer assigned to this category
-        const assignedPrinter = state.availableUSBPrinters.find(printer => 
+        const assignedPrinter = availableUSBPrinters.find(printer => 
           printer.categories && printer.categories.includes(category)
         )
 
@@ -571,31 +587,8 @@ export default function OrderPrinter({
             console.error(`🖨️ [USB Categories] ❌ Failed to print ${category} items to ${assignedPrinter.displayName}:`, error)
           }
         } else {
-          console.log(`🖨️ [USB Categories] No assigned printer found for category: ${category}`)
-          // Fallback to default USB printer for unassigned categories
-          if (state.defaultUSBPrinter) {
-            try {
-              console.log(`🖨️ [USB Categories] Using default USB printer for ${category}: ${state.defaultUSBPrinter.displayName}`)
-              await printOrderViaUsb({
-                orderId,
-                orderItems: items,
-                tableNumber,
-                guestCount,
-                orderTime,
-                printerName: state.defaultUSBPrinter.localPrinterName
-              })
-              console.log(`🖨️ [USB Categories] ✅ Successfully printed ${category} items to default USB printer`)
-              printJobs.push({
-                category,
-                printer: `${state.defaultUSBPrinter.displayName} (default)`,
-                itemCount: items.length
-              })
-            } catch (error) {
-              console.error(`🖨️ [USB Categories] ❌ Failed to print ${category} items to default USB printer:`, error)
-            }
-          } else {
-            console.log(`🖨️ [USB Categories] ❌ No default USB printer available for category: ${category}`)
-          }
+          console.log(`🖨️ [USB Categories] No assigned printer found for category: ${category}. Skipping this category.`)
+          // Skip categories without assigned printers - don't print to default printer
         }
       }
 
