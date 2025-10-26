@@ -162,35 +162,54 @@ export default function PrintersPage() {
   }
 
   return (
-    <div className="container mx-auto p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2">
-          <Printer className="h-6 w-6" />
-          <h1 className="text-2xl font-bold">Printer Management</h1>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+      <div className="container mx-auto max-w-7xl px-4 py-8">
+        <div className="flex items-center justify-center mb-8">
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <div className="p-3 bg-blue-600 rounded-full">
+                <Printer className="h-8 w-8 text-white" />
+              </div>
+              <h1 className="text-4xl font-bold text-gray-900">Printer Management</h1>
+            </div>
+            <p className="text-gray-600 text-lg">Manage your restaurant's printing system</p>
+          </div>
         </div>
-      </div>
 
-      <Tabs defaultValue="ip-printers" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="ip-printers" className="flex items-center gap-2">
-            <Wifi className="h-4 w-4" />
-            IP Based Printers
-          </TabsTrigger>
-          <TabsTrigger value="usb-printers" className="flex items-center gap-2">
-            <Usb className="h-4 w-4" />
-            USB Based Printers
-          </TabsTrigger>
-          <TabsTrigger value="waiter-requests" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            Waiter Requests
-          </TabsTrigger>
-        </TabsList>
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
+          <Tabs defaultValue="ip-printers" className="w-full">
+            <TabsList className="grid w-full grid-cols-3 bg-gray-100 p-1 rounded-lg h-12">
+              <TabsTrigger 
+                value="ip-printers" 
+                className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all duration-200"
+              >
+                <Wifi className="h-4 w-4" />
+                <span className="font-medium">IP Printers</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="usb-printers" 
+                className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all duration-200"
+              >
+                <Usb className="h-4 w-4" />
+                <span className="font-medium">USB Printers</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="waiter-requests" 
+                className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all duration-200"
+              >
+                <Users className="h-4 w-4" />
+                <span className="font-medium">Waiter Requests</span>
+              </TabsTrigger>
+            </TabsList>
 
-        <TabsContent value="ip-printers" className="mt-6">
-          <div className="flex justify-end mb-4">
+        <TabsContent value="ip-printers" className="mt-8">
+          <div className="flex justify-end mb-6">
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
-                <Button onClick={resetForm}>
+                <Button 
+                  onClick={resetForm}
+                  className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   Add IP Printer
                 </Button>
@@ -331,27 +350,41 @@ export default function PrintersPage() {
       </div>
 
       {loading ? (
-        <div className="text-center py-8">Loading printers...</div>
+        <div className="flex items-center justify-center py-16">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600 text-lg">Loading printers...</p>
+          </div>
+        </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {printers.length === 0 ? (
-            <div className="col-span-full text-center py-12">
-              <Printer className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-semibold text-gray-600 mb-2">No Printers Found</h3>
-              <p className="text-gray-500 mb-4">Add your first printer to get started</p>
-              <Button onClick={() => setIsDialogOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Printer
-              </Button>
+            <div className="col-span-full">
+              <div className="bg-white rounded-xl shadow-lg p-12 text-center">
+                <div className="p-4 bg-gray-100 rounded-full w-20 h-20 mx-auto mb-6 flex items-center justify-center">
+                  <Printer className="h-10 w-10 text-gray-400" />
+                </div>
+                <h3 className="text-2xl font-semibold text-gray-800 mb-3">No Printers Found</h3>
+                <p className="text-gray-600 mb-6 text-lg">Add your first printer to get started with order printing</p>
+                <Button 
+                  onClick={() => setIsDialogOpen(true)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                >
+                  <Plus className="h-5 w-5 mr-2" />
+                  Add Your First Printer
+                </Button>
+              </div>
             </div>
           ) : (
             printers.map((printer) => (
-              <Card key={printer.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader className="pb-3">
+              <Card key={printer.id} className="bg-white hover:shadow-xl transition-all duration-300 border-0 shadow-lg hover:-translate-y-1">
+                <CardHeader className="pb-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Printer className="h-5 w-5" />
-                      {printer.name}
+                    <CardTitle className="text-xl flex items-center gap-3">
+                      <div className="p-2 bg-blue-600 rounded-lg">
+                        <Printer className="h-5 w-5 text-white" />
+                      </div>
+                      <span className="text-gray-800">{printer.name}</span>
                     </CardTitle>
                     <div className="flex items-center gap-2">
                       {getStatusIcon(printer.isActive)}
@@ -359,51 +392,60 @@ export default function PrintersPage() {
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 mb-4">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Type:</span>
-                      <Badge variant="secondary">{printer.type}</Badge>
+                <CardContent className="p-6">
+                  <div className="space-y-4 mb-6">
+                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                      <span className="text-sm font-medium text-gray-700">Type:</span>
+                      <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200">
+                        {printer.type}
+                      </Badge>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Categories:</span>
-                      <div className="flex flex-wrap gap-1">
+                    <div className="flex justify-between items-start py-2 border-b border-gray-100">
+                      <span className="text-sm font-medium text-gray-700">Categories:</span>
+                      <div className="flex flex-wrap gap-1 max-w-[60%] justify-end">
                         {printer.categories && printer.categories.length > 0 ? (
                           printer.categories.map((categoryId) => {
                             const category = categories.find(c => c.id === categoryId)
                             return category ? (
-                              <Badge key={categoryId} variant="outline" className="text-xs">
+                              <Badge key={categoryId} variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
                                 {category.name}
                               </Badge>
                             ) : null
                           })
                         ) : (
-                          <span className="text-xs text-gray-400">No categories assigned</span>
+                          <span className="text-xs text-gray-400 italic">No categories assigned</span>
                         )}
                       </div>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">IP:</span>
-                      <span className="text-sm font-mono">{printer.ipAddress}</span>
+                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                      <span className="text-sm font-medium text-gray-700">IP Address:</span>
+                      <span className="text-sm font-mono bg-gray-100 px-2 py-1 rounded text-gray-800">
+                        {printer.ipAddress}
+                      </span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Port:</span>
-                      <span className="text-sm font-mono">{printer.port}</span>
+                    <div className="flex justify-between items-center py-2 border-b border-gray-100">
+                      <span className="text-sm font-medium text-gray-700">Port:</span>
+                      <span className="text-sm font-mono bg-gray-100 px-2 py-1 rounded text-gray-800">
+                        {printer.port}
+                      </span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Status:</span>
-                      <Badge variant={printer.isActive ? "default" : "secondary"}>
+                    <div className="flex justify-between items-center py-2">
+                      <span className="text-sm font-medium text-gray-700">Status:</span>
+                      <Badge 
+                        variant={printer.isActive ? "default" : "secondary"}
+                        className={printer.isActive ? "bg-green-100 text-green-800 border-green-200" : "bg-gray-100 text-gray-600 border-gray-200"}
+                      >
                         {printer.isActive ? 'Active' : 'Inactive'}
                       </Badge>
                     </div>
                   </div>
                   
-                  <div className="flex gap-2">
+                  <div className="flex gap-3 pt-4 border-t border-gray-100">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleEdit(printer)}
-                      className="flex-1"
+                      className="flex-1 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-colors"
                     >
                       <Edit className="h-4 w-4 mr-1" />
                       Edit
@@ -412,7 +454,7 @@ export default function PrintersPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => handleDelete(printer.id)}
-                      className="text-red-600 hover:text-red-700"
+                      className="hover:bg-red-50 hover:border-red-300 hover:text-red-700 text-red-600 border-red-200 transition-colors"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -433,6 +475,8 @@ export default function PrintersPage() {
           <WaiterRequestPrinterManagement />
         </TabsContent>
       </Tabs>
+    </div>
+    </div>
     </div>
   )
 }

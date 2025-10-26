@@ -1,18 +1,1 @@
-[
-  {
-    "id": "1761476623327",
-    "name": "EPSON L220 Series",
-    "localPrinterName": "EPSON L220 Series",
-    "displayName": "EPSON L220 Series",
-    "type": "thermal",
-    "isActive": true,
-    "categories": [
-      "68c167f8c85542d7fb04fe24"
-    ],
-    "isDefault": false,
-    "status": "Ready",
-    "description": "Epson ESC/P Standard 10 V4 Class Driver",
-    "createdAt": "2025-10-26T11:03:43.327Z",
-    "updatedAt": "2025-10-26T11:03:43.328Z"
-  }
-]
+[]
