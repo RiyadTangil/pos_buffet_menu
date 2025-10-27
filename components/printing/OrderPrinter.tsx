@@ -542,7 +542,7 @@ export default function OrderPrinter({
       // Group items by category
       console.log('🖨️ [USB Categories] Grouping items by category...')
       const itemsByCategory = orderItems.reduce((acc, item) => {
-        const category = item.category || item.menuItem?.category || 'uncategorized'
+        const category = item.category?.id || item.menuItem?.category?.id || 'uncategorized'
         console.log('🖨️ [USB Categories] Item:', item.name, 'Category:', category)
         if (!acc[category]) {
           acc[category] = []
@@ -552,7 +552,7 @@ export default function OrderPrinter({
       }, {} as Record<string, any[]>)
 
       console.log('🖨️ [USB Categories] Items grouped by category:', itemsByCategory)
-      console.log('🖨️ [USB Categories] Items grouped by category keyss:', Object.key(itemsByCategory))
+      console.log('🖨️ [USB Categories] Items grouped by category keys:', Object.keys(itemsByCategory))
       const printJobs = []
 
       // Print each category to its assigned USB printer

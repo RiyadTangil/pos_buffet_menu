@@ -775,7 +775,7 @@ export default function SessionOrdersPage() {
                               disabled={isProcessing} 
                               className="w-full"
                             >
-                              {isProcessing ? t("orders.processing") : t("orders.pay_full_amount", { amount: grandTotal })}
+                              {isProcessing ? t("orders.processing") : t("orders.pay_full_amount") + grandTotal}
                             </Button>
                           </>
                         ) : (

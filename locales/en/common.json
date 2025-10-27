@@ -90,6 +90,6 @@
   "orders.cancel": "Cancel",
   "orders.processing": "Processing...",
   "orders.validating": "Validating...",
-  "orders.pay_full_amount": "Pay Full Amount £{amount}",
+  "orders.pay_full_amount": "Pay Full Amount £ ",
   "orders.validate_pin": "Validate PIN"
 }
