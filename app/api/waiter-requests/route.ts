@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { promises as fs } from 'fs'
 import path from 'path'
 import { WaiterRequest, WaiterRequestPrinterMapping } from '@/lib/models/printer'
+import { getDatabase, COLLECTIONS } from '@/lib/mongodb'
+import { ObjectId } from 'mongodb'
 
 const DATA_DIR = path.join(process.cwd(), 'data')
 const WAITER_REQUESTS_FILE = path.join(DATA_DIR, 'waiter-requests.json')
@@ -41,17 +43,71 @@ async function writeWaiterRequests(requests: WaiterRequest[]): Promise<void> {
   await fs.writeFile(WAITER_REQUESTS_FILE, JSON.stringify(requests, null, 2))
 }
 
-// Read waiter request printer mappings
+// Read waiter request printer mappings from MongoDB
 async function readWaiterRequestMappings(): Promise<WaiterRequestPrinterMapping[]> {
-  await ensureDataFiles()
-  const data = await fs.readFile(WAITER_REQUEST_MAPPINGS_FILE, 'utf-8')
-  return JSON.parse(data)
+  try {
+    const db = await getDatabase()
+    const mappings = await db.collection(COLLECTIONS.WAITER_REQUEST_MAPPINGS)
+      .find({})
+      .toArray()
+    
+    return mappings.map(mapping => ({
+      _id: mapping._id.toString(),
+      requestType: mapping.requestType,
+      printerId: mapping.printerId,
+      printerName: mapping.printerName,
+      connectionType: mapping.connectionType,
+      isActive: mapping.isActive,
+      createdAt: mapping.createdAt,
+      updatedAt: mapping.updatedAt
+    }))
+  } catch (error) {
+    console.error('Error reading waiter request mappings from MongoDB:', error)
+    // Fallback to JSON file for backward compatibility
+    await ensureDataFiles()
+    const data = await fs.readFile(WAITER_REQUEST_MAPPINGS_FILE, 'utf-8')
+    return JSON.parse(data)
+  }
 }
 
-// Write waiter request printer mappings
-async function writeWaiterRequestMappings(mappings: WaiterRequestPrinterMapping[]): Promise<void> {
-  await ensureDataFiles()
-  await fs.writeFile(WAITER_REQUEST_MAPPINGS_FILE, JSON.stringify(mappings, null, 2))
+// Write waiter request printer mapping to MongoDB
+async function saveWaiterRequestMapping(mapping: Omit<WaiterRequestPrinterMapping, '_id'>): Promise<WaiterRequestPrinterMapping> {
+  try {
+    const db = await getDatabase()
+    const collection = db.collection(COLLECTIONS.WAITER_REQUEST_MAPPINGS)
+    
+    const now = new Date().toISOString()
+    const mappingData = {
+      ...mapping,
+      createdAt: now,
+      updatedAt: now
+    }
+
+    // Remove existing mapping for this request type (upsert behavior)
+    await collection.deleteMany({ requestType: mapping.requestType })
+    
+    const result = await collection.insertOne(mappingData)
+    
+    return {
+      _id: result.insertedId.toString(),
+      ...mappingData
+    }
+  } catch (error) {
+    console.error('Error saving waiter request mapping to MongoDB:', error)
+    throw error
+  }
+}
+
+// Delete waiter request printer mapping from MongoDB
+async function deleteWaiterRequestMapping(requestType: string): Promise<void> {
+  try {
+    const db = await getDatabase()
+    await db.collection(COLLECTIONS.WAITER_REQUEST_MAPPINGS)
+      .deleteMany({ requestType })
+  } catch (error) {
+    console.error('Error deleting waiter request mapping from MongoDB:', error)
+    throw error
+  }
 }
 
 // GET - Fetch all waiter requests and mappings
@@ -84,20 +140,14 @@ export async function POST(request: NextRequest) {
     const type = searchParams.get('type')
 
     if (type === 'mapping') {
-      const mappings = await readWaiterRequestMappings()
-      const newMapping: WaiterRequestPrinterMapping = {
+      const newMapping = await saveWaiterRequestMapping({
         requestType: body.requestType,
         printerId: body.printerId,
         printerName: body.printerName,
         connectionType: body.connectionType,
         isActive: body.isActive ?? true
-      }
+      })
 
-      // Remove existing mapping for this request type
-      const filteredMappings = mappings.filter(m => m.requestType !== body.requestType)
-      filteredMappings.push(newMapping)
-
-      await writeWaiterRequestMappings(filteredMappings)
       return NextResponse.json(newMapping, { status: 201 })
     }
 
@@ -134,23 +184,15 @@ export async function PUT(request: NextRequest) {
     const id = searchParams.get('id')
 
     if (type === 'mapping') {
-      const mappings = await readWaiterRequestMappings()
-      const index = mappings.findIndex(m => m.requestType === body.requestType)
-      
-      if (index === -1) {
-        return NextResponse.json(
-          { error: 'Mapping not found' },
-          { status: 404 }
-        )
-      }
+      const updatedMapping = await saveWaiterRequestMapping({
+        requestType: body.requestType,
+        printerId: body.printerId,
+        printerName: body.printerName,
+        connectionType: body.connectionType,
+        isActive: body.isActive ?? true
+      })
 
-      mappings[index] = {
-        ...mappings[index],
-        ...body
-      }
-
-      await writeWaiterRequestMappings(mappings)
-      return NextResponse.json(mappings[index])
+      return NextResponse.json(updatedMapping)
     }
 
     // Update waiter request
@@ -205,9 +247,7 @@ export async function DELETE(request: NextRequest) {
         )
       }
 
-      const mappings = await readWaiterRequestMappings()
-      const filteredMappings = mappings.filter(m => m.requestType !== requestType)
-      await writeWaiterRequestMappings(filteredMappings)
+      await deleteWaiterRequestMapping(requestType)
       
       return NextResponse.json({ success: true })
     }

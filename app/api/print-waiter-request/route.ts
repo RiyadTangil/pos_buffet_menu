@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { promises as fs } from 'fs'
 import path from 'path'
 import { WaiterRequestPrintJob, WaiterRequestPrinterMapping, PrinterConfig, USBPrinterConfig } from '@/lib/models/printer'
+import { getDatabase, COLLECTIONS } from '@/lib/mongodb'
+import { ObjectId } from 'mongodb'
 
 const DATA_DIR = path.join(process.cwd(), 'data')
 const WAITER_REQUEST_MAPPINGS_FILE = path.join(DATA_DIR, 'waiter-request-mappings.json')
@@ -9,13 +11,27 @@ const PRINTERS_FILE = path.join(DATA_DIR, 'printers.json')
 const USB_PRINTERS_FILE = path.join(DATA_DIR, 'usb-printers.json')
 const PRINT_JOBS_FILE = path.join(DATA_DIR, 'waiter-request-print-jobs.json')
 
-// Read waiter request printer mappings
+// Read waiter request printer mappings from MongoDB
 async function readWaiterRequestMappings(): Promise<WaiterRequestPrinterMapping[]> {
   try {
-    const data = await fs.readFile(WAITER_REQUEST_MAPPINGS_FILE, 'utf-8')
-    return JSON.parse(data)
-  } catch {
-    return []
+    const db = await getDatabase()
+    const mappings = await db.collection(COLLECTIONS.WAITER_REQUEST_MAPPINGS)
+      .find({ isActive: true })
+      .toArray()
+    
+    return mappings.map(mapping => ({
+      ...mapping,
+      _id: mapping._id.toString()
+    }))
+  } catch (error) {
+    console.error('Error reading waiter request mappings from MongoDB:', error)
+    // Fallback to JSON file
+    try {
+      const data = await fs.readFile(WAITER_REQUEST_MAPPINGS_FILE, 'utf-8')
+      return JSON.parse(data)
+    } catch {
+      return []
+    }
   }
 }
 
@@ -86,18 +102,29 @@ async function printToIPPrinter(printer: PrinterConfig, content: string): Promis
 }
 
 // Print to USB printer
-async function printToUSBPrinter(printer: USBPrinterConfig, content: string): Promise<boolean> {
+async function printToUSBPrinter(printer: USBPrinterConfig, content: string, tableNumber: number, requestType: string): Promise<boolean> {
   try {
-    // Use the existing USB printing logic
+    // Create a mock order item for the waiter request
+    const waiterRequestItem = {
+      id: `wr_${Date.now()}`,
+      name: `${requestType.charAt(0).toUpperCase() + requestType.slice(1)} Request`,
+      quantity: 1,
+      price: 0
+    }
+
+    // Use the existing USB printing logic with proper payload format
     const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3002'}/api/print-order-usb`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        printerName: printer.localPrinterName,
-        content: content,
-        isWaiterRequest: true
+        orderId: `waiter_request_${Date.now()}`,
+        orderItems: [waiterRequestItem],
+        tableNumber: tableNumber,
+        guestCount: 1,
+        orderTime: new Date().toISOString(),
+        printerName: printer.localPrinterName
       }),
     })
 
@@ -339,6 +366,7 @@ export async function POST(request: NextRequest) {
 
     // Get printer mapping for this request type
     const mappings = await readWaiterRequestMappings()
+    console.log("mappings => ",mappings)
     const mapping = mappings.find(m => m.requestType === requestType && m.isActive)
 
     if (!mapping) {
@@ -377,11 +405,12 @@ export async function POST(request: NextRequest) {
       }
     } else if (mapping.connectionType === 'usb') {
       // Find USB printer
-      const usbPrinters = await readUSBPrinters()
-      const printer = usbPrinters.find(p => p.id === mapping.printerId && p.isActive)
+      // const usbPrinters = await readUSBPrinters()
+    // console.log("usbPrinters => ",usbPrinters)
+    //   const printer = usbPrinters.find(p => p.id === mapping.printerId& p.isActive)
       
-      if (printer) {
-        printSuccess = await printToUSBPrinter(printer, content)
+      if (mappings) {
+        printSuccess = await printToUSBPrinter(mappings, content, tableNumber, requestType)
       }
     }
 

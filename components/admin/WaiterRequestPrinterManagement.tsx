@@ -29,7 +29,10 @@ import {
   Usb,
   Users,
   Sparkles,
-  Receipt
+  Receipt,
+  RefreshCw,
+  CheckCircle,
+  XCircle
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { WaiterRequestPrinterMapping, WaiterRequestType, PrinterConfig, USBPrinterConfig } from '@/lib/models/printer'
@@ -39,7 +42,16 @@ import {
   deleteWaiterRequestMapping 
 } from '@/lib/api/waiter-requests'
 import { fetchPrinters } from '@/lib/api/printers'
-import { fetchUSBPrinters } from '@/lib/api/usb-printers'
+import { fetchUSBPrinters, fetchLocalPrinters } from '@/lib/api/usb-printers'
+
+interface LocalPrinter {
+  name: string
+  displayName: string
+  description?: string
+  status: string
+  isDefault: boolean
+  attributes?: string[]
+}
 
 const REQUEST_TYPE_ICONS = {
   waiter: Users,
@@ -57,7 +69,9 @@ export default function WaiterRequestPrinterManagement() {
   const [mappings, setMappings] = useState<WaiterRequestPrinterMapping[]>([])
   const [ipPrinters, setIPPrinters] = useState<PrinterConfig[]>([])
   const [usbPrinters, setUSBPrinters] = useState<USBPrinterConfig[]>([])
+  const [localPrinters, setLocalPrinters] = useState<LocalPrinter[]>([])
   const [loading, setLoading] = useState(true)
+  const [detectingPrinters, setDetectingPrinters] = useState(false)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingMapping, setEditingMapping] = useState<WaiterRequestPrinterMapping | null>(null)
   const [formData, setFormData] = useState({
@@ -70,6 +84,7 @@ export default function WaiterRequestPrinterManagement() {
 
   useEffect(() => {
     loadData()
+    detectLocalPrinters()
   }, [])
 
   const loadData = async () => {
@@ -96,6 +111,29 @@ export default function WaiterRequestPrinterManagement() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const detectLocalPrinters = async () => {
+    try {
+      setDetectingPrinters(true)
+      const printers = await fetchLocalPrinters()
+      setLocalPrinters(printers)
+      toast.success(`Detected ${printers.length} local printer(s)`)
+    } catch (error) {
+      console.error('Error detecting local printers:', error)
+      toast.error('Error detecting local printers')
+    } finally {
+      setDetectingPrinters(false)
+    }
+  }
+
+  const selectLocalPrinter = (localPrinter: LocalPrinter) => {
+    setFormData({
+      ...formData,
+      printerId: localPrinter.name,
+      printerName: localPrinter.displayName,
+      connectionType: 'usb'
+    })
   }
 
   const resetForm = () => {
@@ -203,26 +241,61 @@ export default function WaiterRequestPrinterManagement() {
           <h2 className="text-2xl font-bold">Waiter Request Printers</h2>
           <p className="text-gray-600">Configure which printers handle waiter service requests</p>
         </div>
-        
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={detectLocalPrinters}
+            disabled={detectingPrinters}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${detectingPrinters ? 'animate-spin' : ''}`} />
+            {detectingPrinters ? 'Detecting...' : 'Detect Printers'}
+          </Button>
+          
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={resetForm}>
               <Plus className="h-4 w-4 mr-2" />
               Add Request Mapping
             </Button>
           </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                {editingMapping ? 'Edit Request Mapping' : 'Add Request Mapping'}
-              </DialogTitle>
-              <DialogDescription>
-                Configure which printer handles specific waiter requests
-              </DialogDescription>
-            </DialogHeader>
-            
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>
+                  {editingMapping ? 'Edit Request Mapping' : 'Add Request Mapping'}
+                </DialogTitle>
+                <DialogDescription>
+                  Configure which printer handles specific waiter requests
+                </DialogDescription>
+              </DialogHeader>
+              
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {!editingMapping && formData.connectionType === 'usb' && localPrinters.length > 0 && (
+                  <div>
+                    <Label>Available Local Printers</Label>
+                    <div className="grid grid-cols-1 gap-2 mt-2 max-h-32 overflow-y-auto border rounded-md p-2">
+                      {localPrinters.map((printer, index) => (
+                        <div 
+                          key={index}
+                          className="flex items-center justify-between p-2 border rounded cursor-pointer hover:bg-gray-50"
+                          onClick={() => selectLocalPrinter(printer)}
+                        >
+                          <div>
+                            <div className="font-medium">{printer.displayName}</div>
+                            <div className="text-sm text-gray-500">{printer.description}</div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge variant={printer.status === 'Ready' ? 'default' : 'secondary'}>
+                              {printer.status}
+                            </Badge>
+                            {printer.isDefault && <Badge variant="outline">Default</Badge>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                <div>
                 <Label htmlFor="requestType">Request Type</Label>
                 <Select
                   value={formData.requestType}
@@ -313,9 +386,9 @@ export default function WaiterRequestPrinterManagement() {
                 </Button>
               </div>
             </form>
-          </DialogContent>
-        </Dialog>
-      </div>
+          </DialogContent></Dialog>
+            </div>
+          </div>
 
       {loading ? (
         <div className="text-center py-8">Loading mappings...</div>
@@ -357,7 +430,7 @@ export default function WaiterRequestPrinterManagement() {
                     <div className="flex justify-between">
                       <span className="text-sm text-gray-600">Type:</span>
                       <Badge variant="outline">
-                        {mapping.connectionType.toUpperCase()}
+                        {mapping.connectionType?.toUpperCase() ?? 'N/A'}
                       </Badge>
                     </div>
                   </div>

@@ -4670,5 +4670,191 @@
       "orderTime": "2025-10-27T00:08:11.619Z",
       "totalAmount": 0
     }
+  },
+  {
+    "id": "order-1761526883698-ip7cij",
+    "type": "order",
+    "printerName": "Microsoft Print to PDF",
+    "status": "completed",
+    "items": [
+      {
+        "id": "68c19d173b67d81cc1cc2e81",
+        "name": "Vagitable",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-27T01:01:23.700Z",
+    "updatedAt": "2025-10-27T01:01:55.861Z",
+    "meta": {
+      "orderId": "order-1761526855022-vktqfdbts",
+      "tableNumber": "68c15318c85542d7fb04fe20",
+      "guestCount": 1,
+      "orderTime": "2025-10-27T01:01:04.409Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "order-1761526919612-q35n7z",
+    "type": "order",
+    "printerName": "Microsoft XPS Document Writer",
+    "status": "completed",
+    "items": [
+      {
+        "id": "68c99fed991d23a92d66f078",
+        "name": "Cola",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-27T01:01:59.615Z",
+    "updatedAt": "2025-10-27T01:02:29.974Z",
+    "meta": {
+      "orderId": "order-1761526855022-vktqfdbts",
+      "tableNumber": "68c15318c85542d7fb04fe20",
+      "guestCount": 1,
+      "orderTime": "2025-10-27T01:01:04.409Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "order-1761527111016-t0erzs",
+    "type": "order",
+    "printerName": "Microsoft XPS Document Writer",
+    "status": "completed",
+    "items": [
+      {
+        "id": "68c99fed991d23a92d66f078",
+        "name": "Cola",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-27T01:05:11.020Z",
+    "updatedAt": "2025-10-27T01:05:28.147Z",
+    "meta": {
+      "orderId": "order-1761527093140-hr70usllj",
+      "tableNumber": "68c15318c85542d7fb04fe20",
+      "guestCount": 1,
+      "orderTime": "2025-10-27T01:05:03.346Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "order-1761529941072-tbcjdi",
+    "type": "order",
+    "printerName": "Microsoft Print to PDF",
+    "status": "completed",
+    "items": [
+      {
+        "id": "wr_1761529936254",
+        "name": "Waiter Request",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-27T01:52:21.077Z",
+    "updatedAt": "2025-10-27T01:52:39.782Z",
+    "meta": {
+      "orderId": "waiter_request_1761529936254",
+      "tableNumber": 68,
+      "guestCount": 1,
+      "orderTime": "2025-10-27T01:52:16.254Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "order-1761530015261-xz1l8c",
+    "type": "order",
+    "printerName": "Microsoft Print to PDF",
+    "status": "failed",
+    "items": [
+      {
+        "id": "wr_1761530014912",
+        "name": "Waiter Request",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-27T01:53:35.274Z",
+    "updatedAt": "2025-10-27T01:53:39.404Z",
+    "meta": {
+      "orderId": "waiter_request_1761530014912",
+      "tableNumber": 68,
+      "guestCount": 1,
+      "orderTime": "2025-10-27T01:53:34.912Z",
+      "totalAmount": 0
+    },
+    "error": "SumatraPDF not found. Install SumatraPDF or set SUMATRA_PDF env var."
+  },
+  {
+    "id": "order-1761530637287-5z16ch",
+    "type": "order",
+    "printerName": "Microsoft Print to PDF",
+    "status": "completed",
+    "items": [
+      {
+        "id": "wr_1761530632572",
+        "name": "Waiter Request",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-27T02:03:57.290Z",
+    "updatedAt": "2025-10-27T02:04:17.254Z",
+    "meta": {
+      "orderId": "waiter_request_1761530632572",
+      "tableNumber": 68,
+      "guestCount": 1,
+      "orderTime": "2025-10-27T02:03:52.572Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "order-1761533100111-ju906r",
+    "type": "order",
+    "printerName": "USB/Spooler",
+    "status": "completed",
+    "items": [
+      {
+        "id": "wr_1761533097851",
+        "name": "Waiter Request",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-27T02:45:00.115Z",
+    "updatedAt": "2025-10-27T02:45:14.992Z",
+    "meta": {
+      "orderId": "waiter_request_1761533097851",
+      "tableNumber": 68,
+      "guestCount": 1,
+      "orderTime": "2025-10-27T02:44:57.851Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "order-1761533162302-79bpvl",
+    "type": "order",
+    "printerName": "USB/Spooler",
+    "status": "failed",
+    "items": [
+      {
+        "id": "wr_1761533160356",
+        "name": "Cleaning Request",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-27T02:46:02.305Z",
+    "updatedAt": "2025-10-27T02:46:09.857Z",
+    "meta": {
+      "orderId": "waiter_request_1761533160356",
+      "tableNumber": 68,
+      "guestCount": 1,
+      "orderTime": "2025-10-27T02:46:00.356Z",
+      "totalAmount": 0
+    },
+    "error": "SumatraPDF not found. Install SumatraPDF or set SUMATRA_PDF env var."
   }
 ]

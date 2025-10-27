@@ -48,6 +48,7 @@ export const COLLECTIONS = {
   BOOKINGS: 'bookings',
   BANNERS: 'banners',
   COUPONS: 'coupons',
+  WAITER_REQUEST_MAPPINGS: 'waiter_request_mappings',
   TABLES: 'tables',
   SETTINGS: 'settings',
   RBAC: 'rbac'

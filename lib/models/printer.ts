@@ -90,11 +90,14 @@ export interface WaiterRequest {
 }
 
 export interface WaiterRequestPrinterMapping {
+  _id?: string // MongoDB ObjectId
   requestType: WaiterRequestType
   printerId: string
   printerName: string
   connectionType: 'ip' | 'usb'
   isActive: boolean
+  createdAt: string
+  updatedAt: string
 }
 
 export interface WaiterRequestPrintJob {
