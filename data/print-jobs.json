@@ -5495,5 +5495,75 @@
       "orderTime": "2025-10-28T17:45:47.253Z",
       "totalAmount": 0
     }
+  },
+  {
+    "id": "order-1761674877331-83zfu0",
+    "type": "order",
+    "printerName": "Microsoft Print to PDF",
+    "status": "failed",
+    "items": [
+      {
+        "id": "68cad4b09af39ae52f9b96d4",
+        "name": "Riyad Hasan",
+        "quantity": 1,
+        "price": 70
+      }
+    ],
+    "createdAt": "2025-10-28T18:07:57.335Z",
+    "updatedAt": "2025-10-28T18:08:02.618Z",
+    "meta": {
+      "orderId": "order-1761674871544-q2x3bk8ij",
+      "tableNumber": "68c15318c85542d7fb04fe20",
+      "guestCount": 2,
+      "orderTime": "2025-10-28T18:07:52.065Z",
+      "totalAmount": 70
+    },
+    "error": "SumatraPDF not found. Install SumatraPDF or set SUMATRA_PDF env var."
+  },
+  {
+    "id": "order-1761674883727-e6mabp",
+    "type": "order",
+    "printerName": "Microsoft Print to PDF",
+    "status": "completed",
+    "items": [
+      {
+        "id": "68cad4b09af39ae52f9b96d4",
+        "name": "Riyad Hasan",
+        "quantity": 1,
+        "price": 70
+      }
+    ],
+    "createdAt": "2025-10-28T18:08:03.730Z",
+    "updatedAt": "2025-10-28T18:08:13.161Z",
+    "meta": {
+      "orderId": "order-1761674871544-q2x3bk8ij",
+      "tableNumber": "68c15318c85542d7fb04fe20",
+      "guestCount": 2,
+      "orderTime": "2025-10-28T18:07:52.065Z",
+      "totalAmount": 70
+    }
+  },
+  {
+    "id": "order-1761675272441-5i6ru8",
+    "type": "order",
+    "printerName": "Microsoft Print to PDF",
+    "status": "completed",
+    "items": [
+      {
+        "id": "68cad4b09af39ae52f9b96d4",
+        "name": "Riyad Hasan",
+        "quantity": 1,
+        "price": 70
+      }
+    ],
+    "createdAt": "2025-10-28T18:14:32.446Z",
+    "updatedAt": "2025-10-28T18:14:50.744Z",
+    "meta": {
+      "orderId": "order-1761675263564-a89b3ycw9",
+      "tableNumber": "68c15318c85542d7fb04fe20",
+      "guestCount": 3,
+      "orderTime": "2025-10-28T18:14:24.146Z",
+      "totalAmount": 70
+    }
   }
 ]

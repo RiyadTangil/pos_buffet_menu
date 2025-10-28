@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getOrders } from "@/lib/api/orders-client";
+import { getOrders, getOrdersByTableSession } from "@/lib/api/orders-client";
 import { fetchUsers } from "@/lib/api/users";
 import { getBuffetSettings } from "@/lib/api/settings";
 import { getTableSession, type TableSession } from "@/lib/api/table-sessions";
@@ -173,17 +173,29 @@ export default function SessionOrdersPage() {
 
         // No need to fetch waiters since we'll validate PIN directly
 
-        // Fetch orders for this table - only today's orders using API-level filtering
-        const selectedTableId =
-          localStorage.getItem("selectedTableId") || `table-${tableNumber}`;
-        const storedGroupType = localStorage.getItem("groupType");
-        const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
-
-        const tableOrders = await getOrders({
-          tableId: selectedTableId,
-          date: today,
-          groupType: storedGroupType || undefined,
-        });
+        // Fetch orders for this table using tableSessionId
+        let tableSession = localStorage.getItem("tableSession");
+        tableSession = tableSession ? JSON.parse(tableSession) : null;
+        let tableOrders = [];
+        console.log("tableSession=> ",tableSession)
+        if (tableSession && tableSession?.id) {
+          // Use the new API endpoint that fetches orders by tableSessionId
+          tableOrders = await getOrdersByTableSession(tableSession.id);
+          console.log("tableOrders => ",tableOrders)
+      
+        } else {
+          // Fallback to old method if tableSessionId is not available
+          const selectedTableId =
+            localStorage.getItem("selectedTableId") || `table-${tableNumber}`;
+          const storedGroupType = localStorage.getItem("groupType");
+          const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
+          
+          tableOrders = await getOrders({
+            tableId: selectedTableId,
+            date: today,
+            groupType: storedGroupType || undefined,
+          });
+        }
         setOrders(tableOrders);
 
         setLoading(false);

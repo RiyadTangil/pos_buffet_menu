@@ -63,7 +63,7 @@ export default function SplitBillModal({
   sessionData,
   totalAmount
 }: SplitBillModalProps) {
-  const [splitMethod, setSplitMethod] = useState<'equal' | 'items'>('items')
+  const [splitMethod, setSplitMethod] = useState<'equal' | 'items'>('equal')
   const [numberOfSplits, setNumberOfSplits] = useState(2)
   const [items, setItems] = useState<SplitBillItem[]>([])
   const [customerNames, setCustomerNames] = useState<string[]>([])
@@ -231,14 +231,14 @@ export default function SplitBillModal({
               <Users className="w-4 h-4" />
               Equal Parts
             </Button>
-            <Button
+            {/* <Button
               variant={splitMethod === 'items' ? 'default' : 'outline'}
               onClick={() => setSplitMethod('items')}
               className="flex items-center gap-2"
             >
               <ShoppingCart className="w-4 h-4" />
               By Items
-            </Button>
+            </Button> */}
           </div>
 
           {/* Number of Splits (for equal method) */}

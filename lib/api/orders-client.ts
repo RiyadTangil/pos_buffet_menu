@@ -10,6 +10,28 @@ export interface OrderItem {
   image?: string
 }
 
+// Function to get orders by tableSessionId
+export async function getOrdersByTableSession(tableSessionId: string) {
+  try {
+    const response = await fetch(`/api/orders/by-session?tableSessionId=${tableSessionId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch orders');
+    }
+
+    const data = await response.json();
+    return data.orders || [];
+  } catch (error) {
+    console.error('Error fetching orders by tableSessionId:', error);
+    return [];
+  }
+}
+
 export interface SessionOrder {
   orderId: string
   timestamp: string

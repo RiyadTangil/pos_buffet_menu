@@ -86,18 +86,28 @@ export async function updateWaiterRequest(
 }
 
 // Delete waiter request
-export async function deleteWaiterRequest(id: string): Promise<void> {
+export async function deleteWaiterRequest(id: string): Promise<{ success: boolean; error?: string }> {
   try {
     const response = await fetch(`${API_BASE}?id=${id}`, {
       method: 'DELETE',
     })
 
     if (!response.ok) {
-      throw new Error('Failed to delete waiter request')
+      return {
+        success: false,
+        error: 'Failed to delete waiter request'
+      }
+    }
+    
+    return {
+      success: true
     }
   } catch (error) {
     console.error('Error deleting waiter request:', error)
-    throw error
+    return {
+      success: false,
+      error: 'Error deleting waiter request'
+    }
   }
 }
 
@@ -126,18 +136,28 @@ export async function saveWaiterRequestMapping(
 }
 
 // Delete waiter request printer mapping
-export async function deleteWaiterRequestMapping(requestType: WaiterRequestType): Promise<void> {
+export async function deleteWaiterRequestMapping(requestType: WaiterRequestType): Promise<{ success: boolean; error?: string }> {
   try {
     const response = await fetch(`${API_BASE}?type=mapping&requestType=${requestType}`, {
       method: 'DELETE',
     })
 
     if (!response.ok) {
-      throw new Error('Failed to delete waiter request mapping')
+      return {
+        success: false,
+        error: 'Failed to delete waiter request mapping'
+      }
+    }
+    
+    return {
+      success: true
     }
   } catch (error) {
     console.error('Error deleting waiter request mapping:', error)
-    throw error
+    return {
+      success: false,
+      error: 'Error deleting waiter request mapping'
+    }
   }
 }
 
