@@ -5617,5 +5617,28 @@
       "orderTime": "2025-10-28T19:24:20.320Z",
       "totalAmount": 70
     }
+  },
+  {
+    "id": "order-1761679574020-qz9dca",
+    "type": "order",
+    "printerName": "Microsoft Print to PDF",
+    "status": "completed",
+    "items": [
+      {
+        "id": "68c99fed991d23a92d66f078",
+        "name": "Cola",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-28T19:26:14.024Z",
+    "updatedAt": "2025-10-28T19:26:21.943Z",
+    "meta": {
+      "orderId": "order-1761679573419-gsarpy2jk",
+      "tableNumber": "68c1555bc85542d7fb04fe21",
+      "guestCount": 1,
+      "orderTime": "2025-10-28T19:26:13.751Z",
+      "totalAmount": 0
+    }
   }
 ]
