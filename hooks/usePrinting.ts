@@ -44,10 +44,8 @@ export function usePrinting(options: UsePrintingOptions = {}) {
     isPrinting: false
   })
 
-  // Load initial data
-  useEffect(() => {
-    loadAllData()
-  }, [])
+  // Don't load data automatically on initialization
+  // Data will be loaded only when explicitly needed
 
   // Auto-refresh print jobs if enabled
   useEffect(() => {

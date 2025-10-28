@@ -206,5 +206,18 @@
     "createdAt": "2025-10-27T02:46:00.211Z",
     "retryCount": 0,
     "errorMessage": "Failed to print to configured printer"
+  },
+  {
+    "id": "wrpj_1761669373241_7wu2vy4ni",
+    "requestId": "wr_1761669367349_7td6td46y",
+    "printerId": "OneNote for Windows 10",
+    "printerName": "OneNote for Windows 10",
+    "tableNumber": 68,
+    "requestType": "waiter",
+    "message": "Customer is requesting waiter assistance",
+    "status": "completed",
+    "createdAt": "2025-10-28T16:36:13.241Z",
+    "retryCount": 0,
+    "printedAt": "2025-10-28T16:36:26.855Z"
   }
 ]

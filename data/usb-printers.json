@@ -1,7 +1,7 @@
 [
   {
-    "id": "1761493544402",
-    "name": "Microsoft Print to PDF",
+    "id": "1761665933533",
+    "name": "Microsoft Print to PDF(main)",
     "localPrinterName": "Microsoft Print to PDF",
     "displayName": "Microsoft Print to PDF",
     "type": "thermal",
@@ -12,39 +12,23 @@
     "isDefault": false,
     "status": "Ready",
     "description": "Microsoft Print To PDF",
-    "createdAt": "2025-10-26T15:45:44.402Z",
-    "updatedAt": "2025-10-26T15:45:44.402Z"
+    "createdAt": "2025-10-28T15:38:53.533Z",
+    "updatedAt": "2025-10-28T15:38:53.533Z"
   },
   {
-    "id": "1761526790384",
-    "name": "Microsoft XPS Document Writer",
+    "id": "1761666872131",
+    "name": "Microsoft XPS Document Writer(starter)",
     "localPrinterName": "Microsoft XPS Document Writer",
     "displayName": "Microsoft XPS Document Writer",
     "type": "thermal",
     "isActive": true,
     "categories": [
-      "68c99fb9991d23a92d66f077"
+      "68c167dbc85542d7fb04fe23"
     ],
     "isDefault": false,
     "status": "Ready",
     "description": "Microsoft XPS Document Writer v4",
-    "createdAt": "2025-10-27T00:59:50.384Z",
-    "updatedAt": "2025-10-27T00:59:50.384Z"
-  },
-  {
-    "id": "1761527339666",
-    "name": "OneNote for Windows 10",
-    "localPrinterName": "OneNote for Windows 10",
-    "displayName": "OneNote for Windows 10",
-    "type": "thermal",
-    "isActive": true,
-    "categories": [
-      "68c2aeade1593b5d02f10f2e"
-    ],
-    "isDefault": false,
-    "status": "Ready",
-    "description": "Microsoft Software Printer Driver",
-    "createdAt": "2025-10-27T01:08:59.666Z",
-    "updatedAt": "2025-10-27T01:08:59.666Z"
+    "createdAt": "2025-10-28T15:54:32.131Z",
+    "updatedAt": "2025-10-28T15:54:32.131Z"
   }
 ]

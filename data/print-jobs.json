@@ -4856,5 +4856,644 @@
       "totalAmount": 0
     },
     "error": "SumatraPDF not found. Install SumatraPDF or set SUMATRA_PDF env var."
+  },
+  {
+    "id": "order-1761666301908-zzmezt",
+    "type": "order",
+    "printerName": "Microsoft Print to PDF",
+    "status": "completed",
+    "items": [
+      {
+        "id": "68c17c673b67d81cc1cc2e7d",
+        "name": "Pizzs",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-28T15:45:01.912Z",
+    "updatedAt": "2025-10-28T15:45:19.085Z",
+    "meta": {
+      "orderId": "order-1761666123728-yx8d4ewsb",
+      "tableNumber": "68c15d06c85542d7fb04fe22",
+      "guestCount": 1,
+      "orderTime": "2025-10-28T15:44:39.376Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "order-1761666922372-klyceg",
+    "type": "order",
+    "printerName": "Microsoft XPS Document Writer",
+    "status": "completed",
+    "items": [
+      {
+        "id": "68c17c673b67d81cc1cc2e7d",
+        "name": "Pizzs",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-28T15:55:22.375Z",
+    "updatedAt": "2025-10-28T15:55:46.017Z",
+    "meta": {
+      "orderId": "order-1761666898301-z97osx1nt",
+      "tableNumber": "68c15d06c85542d7fb04fe22",
+      "guestCount": 1,
+      "orderTime": "2025-10-28T15:55:17.638Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "order-1761666946729-dyhfqp",
+    "type": "order",
+    "printerName": "Microsoft Print to PDF",
+    "status": "completed",
+    "items": [
+      {
+        "id": "68c19d173b67d81cc1cc2e81",
+        "name": "Vagitable",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-28T15:55:46.735Z",
+    "updatedAt": "2025-10-28T15:55:59.453Z",
+    "meta": {
+      "orderId": "order-1761666898301-z97osx1nt",
+      "tableNumber": "68c15d06c85542d7fb04fe22",
+      "guestCount": 1,
+      "orderTime": "2025-10-28T15:55:17.638Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "1761667897728-8qu1rbtu6",
+    "orderId": "order-1761667891894-3mlxfw4gj",
+    "printerId": "1761666872131",
+    "printerName": "Microsoft XPS Document Writer",
+    "printerType": "usb",
+    "items": [
+      {
+        "id": "68c17c673b67d81cc1cc2e7d",
+        "name": "Pizzs",
+        "quantity": 1,
+        "price": 0,
+        "notes": "",
+        "categoryId": "68c167dbc85542d7fb04fe23",
+        "categoryName": "Starters"
+      }
+    ],
+    "status": "completed",
+    "createdAt": "2025-10-28T16:11:37.728Z",
+    "categoryId": "68c167dbc85542d7fb04fe23",
+    "completedAt": "2025-10-28T16:11:37.789Z"
+  },
+  {
+    "id": "1761667897801-zy24qpted",
+    "orderId": "order-1761667891894-3mlxfw4gj",
+    "printerId": "1761665933533",
+    "printerName": "Microsoft Print to PDF",
+    "printerType": "usb",
+    "items": [
+      {
+        "id": "68c19d173b67d81cc1cc2e81",
+        "name": "Vagitable",
+        "quantity": 1,
+        "price": 0,
+        "notes": "",
+        "categoryId": "68c167f8c85542d7fb04fe24",
+        "categoryName": "Main Course"
+      }
+    ],
+    "status": "completed",
+    "createdAt": "2025-10-28T16:11:37.801Z",
+    "categoryId": "68c167f8c85542d7fb04fe24",
+    "completedAt": "2025-10-28T16:11:37.870Z"
+  },
+  {
+    "id": "1761668064872-qmb0zs4ql",
+    "orderId": "order-1761668064783-3iixqi286",
+    "printerId": "1761665933533",
+    "printerName": "Microsoft Print to PDF",
+    "printerType": "usb",
+    "items": [
+      {
+        "id": "68c19d173b67d81cc1cc2e81",
+        "name": "Vagitable",
+        "quantity": 1,
+        "price": 0,
+        "notes": "",
+        "categoryId": "68c167f8c85542d7fb04fe24",
+        "categoryName": "Main Course"
+      }
+    ],
+    "status": "completed",
+    "createdAt": "2025-10-28T16:14:24.873Z",
+    "categoryId": "68c167f8c85542d7fb04fe24",
+    "completedAt": "2025-10-28T16:14:24.930Z"
+  },
+  {
+    "id": "order-1761668733087-lhazic",
+    "type": "order",
+    "printerName": "Microsoft XPS Document Writer",
+    "status": "completed",
+    "items": [
+      {
+        "id": "68c17c673b67d81cc1cc2e7d",
+        "name": "Pizzs",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-28T16:25:33.091Z",
+    "updatedAt": "2025-10-28T16:25:52.906Z",
+    "meta": {
+      "orderId": "order-1761668716720-ivfekpujm",
+      "tableNumber": "68c15d06c85542d7fb04fe22",
+      "guestCount": 1,
+      "orderTime": "2025-10-28T16:25:19.791Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "order-1761668754912-0u5hmy",
+    "type": "order",
+    "printerName": "Microsoft Print to PDF",
+    "status": "completed",
+    "items": [
+      {
+        "id": "68c19d173b67d81cc1cc2e81",
+        "name": "Vagitable",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-28T16:25:54.916Z",
+    "updatedAt": "2025-10-28T16:26:05.076Z",
+    "meta": {
+      "orderId": "order-1761668716720-ivfekpujm",
+      "tableNumber": "68c15d06c85542d7fb04fe22",
+      "guestCount": 1,
+      "orderTime": "2025-10-28T16:25:19.791Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "order-1761669375332-oupve7",
+    "type": "order",
+    "printerName": "USB/Spooler",
+    "status": "completed",
+    "items": [
+      {
+        "id": "wr_1761669373241",
+        "name": "Waiter Request",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-28T16:36:15.334Z",
+    "updatedAt": "2025-10-28T16:36:26.843Z",
+    "meta": {
+      "orderId": "waiter_request_1761669373242",
+      "tableNumber": 68,
+      "guestCount": 1,
+      "orderTime": "2025-10-28T16:36:13.242Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "order-1761669726162-9yldem",
+    "type": "order",
+    "printerName": "USB/Spooler",
+    "status": "completed",
+    "items": [
+      {
+        "id": "68c17c673b67d81cc1cc2e7d",
+        "name": "Pizzs",
+        "quantity": 1,
+        "price": 0
+      },
+      {
+        "id": "68c19d173b67d81cc1cc2e81",
+        "name": "Vagitable",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-28T16:42:06.166Z",
+    "updatedAt": "2025-10-28T16:42:35.190Z",
+    "meta": {
+      "orderId": "62163f69-33f1-488b-8e3c-33692db50d43",
+      "tableNumber": "68c15d06c85542d7fb04fe22",
+      "guestCount": 1,
+      "orderTime": "2025-10-28T16:41:47.398Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "order-1761669726162-9yldem",
+    "type": "order",
+    "printerName": "USB/Spooler",
+    "status": "pending",
+    "items": [
+      {
+        "id": "68c17c673b67d81cc1cc2e7d",
+        "name": "Pizzs",
+        "quantity": 1,
+        "price": 0
+      },
+      {
+        "id": "68c19d173b67d81cc1cc2e81",
+        "name": "Vagitable",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-28T16:42:06.166Z",
+    "updatedAt": "2025-10-28T16:42:06.166Z",
+    "meta": {
+      "orderId": "62163f69-33f1-488b-8e3c-33692db50d43",
+      "tableNumber": "68c15d06c85542d7fb04fe22",
+      "guestCount": 1,
+      "orderTime": "2025-10-28T16:41:47.398Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "order-1761669911863-fip116",
+    "type": "order",
+    "printerName": "Microsoft Print to PDF",
+    "status": "completed",
+    "items": [
+      {
+        "id": "68c19d173b67d81cc1cc2e81",
+        "name": "Vagitable",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-28T16:45:11.866Z",
+    "updatedAt": "2025-10-28T16:45:26.530Z",
+    "meta": {
+      "orderId": "order-1761669892232-d7nv50zda",
+      "tableNumber": "68c15d06c85542d7fb04fe22",
+      "guestCount": 1,
+      "orderTime": "2025-10-28T16:45:08.805Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "order-1761669927005-fpj6jb",
+    "type": "order",
+    "printerName": "Microsoft XPS Document Writer",
+    "status": "completed",
+    "items": [
+      {
+        "id": "68c17c673b67d81cc1cc2e7d",
+        "name": "Pizzs",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-28T16:45:27.007Z",
+    "updatedAt": "2025-10-28T16:45:39.646Z",
+    "meta": {
+      "orderId": "order-1761669892232-d7nv50zda",
+      "tableNumber": "68c15d06c85542d7fb04fe22",
+      "guestCount": 1,
+      "orderTime": "2025-10-28T16:45:08.805Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "order-1761671115050-cayguw",
+    "type": "order",
+    "printerName": "Microsoft XPS Document Writer",
+    "status": "completed",
+    "items": [
+      {
+        "id": "68c17c673b67d81cc1cc2e7d",
+        "name": "Pizzs",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-28T17:05:15.144Z",
+    "updatedAt": "2025-10-28T17:05:33.301Z",
+    "meta": {
+      "orderId": "order-1761671102265-360l0tri3",
+      "tableNumber": "68c15d06c85542d7fb04fe22",
+      "guestCount": 1,
+      "orderTime": "2025-10-28T17:05:02.480Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "order-1761671133750-ylkhig",
+    "type": "order",
+    "printerName": "Microsoft Print to PDF",
+    "status": "completed",
+    "items": [
+      {
+        "id": "68c19d173b67d81cc1cc2e81",
+        "name": "Vagitable",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-28T17:05:33.753Z",
+    "updatedAt": "2025-10-28T17:05:42.699Z",
+    "meta": {
+      "orderId": "order-1761671102265-360l0tri3",
+      "tableNumber": "68c15d06c85542d7fb04fe22",
+      "guestCount": 1,
+      "orderTime": "2025-10-28T17:05:02.480Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "order-1761671180663-fe4zgq",
+    "type": "order",
+    "printerName": "Microsoft Print to PDF",
+    "status": "completed",
+    "items": [
+      {
+        "id": "68c19d173b67d81cc1cc2e81",
+        "name": "Vagitable",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-28T17:06:20.665Z",
+    "updatedAt": "2025-10-28T17:06:29.245Z",
+    "meta": {
+      "orderId": "order-1761671179368-scuhlb43o",
+      "tableNumber": "68c15d06c85542d7fb04fe22",
+      "guestCount": 1,
+      "orderTime": "2025-10-28T17:06:20.123Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "order-1761671189479-sx3q3c",
+    "type": "order",
+    "printerName": "Microsoft XPS Document Writer",
+    "status": "completed",
+    "items": [
+      {
+        "id": "68c17c673b67d81cc1cc2e7d",
+        "name": "Pizzs",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-28T17:06:29.482Z",
+    "updatedAt": "2025-10-28T17:06:36.836Z",
+    "meta": {
+      "orderId": "order-1761671179368-scuhlb43o",
+      "tableNumber": "68c15d06c85542d7fb04fe22",
+      "guestCount": 1,
+      "orderTime": "2025-10-28T17:06:20.123Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "order-1761671728143-r0e4sy",
+    "type": "order",
+    "printerName": "Microsoft XPS Document Writer",
+    "status": "failed",
+    "items": [
+      {
+        "id": "68ead8c3918084db650738ff",
+        "name": "TEST",
+        "quantity": 1,
+        "price": 1
+      }
+    ],
+    "createdAt": "2025-10-28T17:15:28.146Z",
+    "updatedAt": "2025-10-28T17:15:37.572Z",
+    "meta": {
+      "orderId": "order-1761671715497-8fgldz0hz",
+      "tableNumber": "68c15d06c85542d7fb04fe22",
+      "guestCount": 1,
+      "orderTime": "2025-10-28T17:15:16.309Z",
+      "totalAmount": 1
+    },
+    "error": "SumatraPDF not found. Install SumatraPDF or set SUMATRA_PDF env var."
+  },
+  {
+    "id": "order-1761671737926-oq2n9m",
+    "type": "order",
+    "printerName": "Microsoft Print to PDF",
+    "status": "failed",
+    "items": [
+      {
+        "id": "68c19d173b67d81cc1cc2e81",
+        "name": "Vagitable",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-28T17:15:37.929Z",
+    "updatedAt": "2025-10-28T17:15:41.675Z",
+    "meta": {
+      "orderId": "order-1761671715497-8fgldz0hz",
+      "tableNumber": "68c15d06c85542d7fb04fe22",
+      "guestCount": 1,
+      "orderTime": "2025-10-28T17:15:16.309Z",
+      "totalAmount": 0
+    },
+    "error": "SumatraPDF not found. Install SumatraPDF or set SUMATRA_PDF env var."
+  },
+  {
+    "id": "order-1761671742064-tpja48",
+    "type": "order",
+    "printerName": "Microsoft Print to PDF",
+    "status": "failed",
+    "items": [
+      {
+        "id": "68ead8c3918084db650738ff",
+        "name": "TEST",
+        "quantity": 1,
+        "price": 1
+      },
+      {
+        "id": "68c19d173b67d81cc1cc2e81",
+        "name": "Vagitable",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-28T17:15:42.067Z",
+    "updatedAt": "2025-10-28T17:15:46.119Z",
+    "meta": {
+      "orderId": "order-1761671715497-8fgldz0hz",
+      "tableNumber": "68c15d06c85542d7fb04fe22",
+      "guestCount": 1,
+      "orderTime": "2025-10-28T17:15:16.309Z",
+      "totalAmount": 1
+    },
+    "error": "SumatraPDF not found. Install SumatraPDF or set SUMATRA_PDF env var."
+  },
+  {
+    "id": "order-1761672589737-3a7zj3",
+    "type": "order",
+    "printerName": "Microsoft XPS Document Writer",
+    "status": "completed",
+    "items": [
+      {
+        "id": "68ead8c3918084db650738ff",
+        "name": "TEST",
+        "quantity": 1,
+        "price": 1
+      }
+    ],
+    "createdAt": "2025-10-28T17:29:49.743Z",
+    "updatedAt": "2025-10-28T17:30:02.910Z",
+    "meta": {
+      "orderId": "order-1761672581509-oknab8db5",
+      "tableNumber": "68c15d06c85542d7fb04fe22",
+      "guestCount": 1,
+      "orderTime": "2025-10-28T17:29:42.012Z",
+      "totalAmount": 1
+    }
+  },
+  {
+    "id": "order-1761672603286-koqqal",
+    "type": "order",
+    "printerName": "Microsoft Print to PDF",
+    "status": "completed",
+    "items": [
+      {
+        "id": "68c19d173b67d81cc1cc2e81",
+        "name": "Vagitable",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-28T17:30:03.288Z",
+    "updatedAt": "2025-10-28T17:30:12.757Z",
+    "meta": {
+      "orderId": "order-1761672581509-oknab8db5",
+      "tableNumber": "68c15d06c85542d7fb04fe22",
+      "guestCount": 1,
+      "orderTime": "2025-10-28T17:29:42.012Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "order-1761672874597-9s4xqh",
+    "type": "order",
+    "printerName": "Microsoft XPS Document Writer",
+    "status": "completed",
+    "items": [
+      {
+        "id": "68c17c673b67d81cc1cc2e7d",
+        "name": "Pizzs",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-28T17:34:34.601Z",
+    "updatedAt": "2025-10-28T17:34:49.267Z",
+    "meta": {
+      "orderId": "order-1761672861075-edw80ul6t",
+      "tableNumber": "68c15d06c85542d7fb04fe22",
+      "guestCount": 1,
+      "orderTime": "2025-10-28T17:34:21.598Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "order-1761673000539-xai716",
+    "type": "order",
+    "printerName": "Microsoft Print to PDF",
+    "status": "completed",
+    "items": [
+      {
+        "id": "68c19d173b67d81cc1cc2e81",
+        "name": "Vagitable",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-28T17:36:40.543Z",
+    "updatedAt": "2025-10-28T17:36:52.087Z",
+    "meta": {
+      "orderId": "order-1761672998621-pn8qr759p",
+      "tableNumber": "68c15d06c85542d7fb04fe22",
+      "guestCount": 1,
+      "orderTime": "2025-10-28T17:36:39.105Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "order-1761673387427-8wpspr",
+    "type": "order",
+    "printerName": "Microsoft XPS Document Writer",
+    "status": "completed",
+    "items": [
+      {
+        "id": "68c17c673b67d81cc1cc2e7d",
+        "name": "Pizzs",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-28T17:43:07.430Z",
+    "updatedAt": "2025-10-28T17:43:22.495Z",
+    "meta": {
+      "orderId": "order-1761673380471-mj26crhlh",
+      "tableNumber": "68c15d06c85542d7fb04fe22",
+      "guestCount": 1,
+      "orderTime": "2025-10-28T17:43:00.963Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "order-1761673402832-qfod81",
+    "type": "order",
+    "printerName": "Microsoft Print to PDF",
+    "status": "completed",
+    "items": [
+      {
+        "id": "68c19d173b67d81cc1cc2e81",
+        "name": "Vagitable",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-28T17:43:22.835Z",
+    "updatedAt": "2025-10-28T17:43:49.016Z",
+    "meta": {
+      "orderId": "order-1761673380471-mj26crhlh",
+      "tableNumber": "68c15d06c85542d7fb04fe22",
+      "guestCount": 1,
+      "orderTime": "2025-10-28T17:43:00.963Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "order-1761673568337-9xz2yp",
+    "type": "order",
+    "printerName": "Microsoft XPS Document Writer",
+    "status": "completed",
+    "items": [
+      {
+        "id": "68c19d3a3b67d81cc1cc2e82",
+        "name": "Normal Vagitable",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-10-28T17:46:08.411Z",
+    "updatedAt": "2025-10-28T17:46:29.315Z",
+    "meta": {
+      "orderId": "order-1761673546626-p0biuxha0",
+      "tableNumber": "68c15d06c85542d7fb04fe22",
+      "guestCount": 2,
+      "orderTime": "2025-10-28T17:45:47.253Z",
+      "totalAmount": 0
+    }
   }
 ]

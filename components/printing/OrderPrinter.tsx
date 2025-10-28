@@ -14,6 +14,10 @@ interface OrderPrinterProps {
   orderTime?: string
   onPrintComplete?: (success: boolean, errors?: string[]) => void
   autoPrint?: boolean
+  printerConfigs?: {
+    ipPrinters: any[]
+    usbPrinters: any[]
+  }
 }
 
 interface OrderPrinterState {
@@ -31,7 +35,8 @@ export default function OrderPrinter({
   guestCount,
   orderTime,
   onPrintComplete,
-  autoPrint = true
+  autoPrint = true,
+  printerConfigs
 }: OrderPrinterProps) {
   const [state, setState] = useState<OrderPrinterState>({
     isProcessing: false,
@@ -41,13 +46,36 @@ export default function OrderPrinter({
     defaultUSBPrinter: null
   })
 
-  // Load available printers on component mount
+  // Load available printers on component mount or use provided configs
   useEffect(() => {
-    loadPrinters()
-  }, [])
+    if (printerConfigs) {
+      // Use provided printer configurations
+      const activePrinters = printerConfigs.ipPrinters || []
+      const activeUSBPrinters = printerConfigs.usbPrinters || []
+      
+      // Find default IP printer
+      const ipPrinter = activePrinters.find(p => p.ipAddress)
+      const defaultIPPrinter = ipPrinter || activePrinters[0] || null
+
+      // Find default USB printer
+      const defaultUSBPrinter = activeUSBPrinters.find(p => p.isDefault) || activeUSBPrinters[0] || null
+
+      setState(prev => ({
+        ...prev,
+        availablePrinters: activePrinters,
+        availableUSBPrinters: activeUSBPrinters,
+        defaultPrinter: defaultIPPrinter,
+        defaultUSBPrinter: defaultUSBPrinter
+      }))
+    } else {
+      // Fallback to loading printers via API
+      loadPrinters()
+    }
+  }, [printerConfigs])
 
   // Auto-print when order data is available
   useEffect(() => {
+    // Only trigger auto-print when we have an order to print and printers are available
     if (autoPrint && orderId && orderItems.length > 0 && 
         (state.availablePrinters.length > 0 || state.availableUSBPrinters.length > 0)) {
       handleAutoPrint()
@@ -233,7 +261,6 @@ export default function OrderPrinter({
 
         // Format the order for printing
         const orderDate = new Date(orderData.orderTime || new Date()).toLocaleString()
-        const totalAmount = orderData.orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0)
 
         const printContent = `
           <!DOCTYPE html>
@@ -254,7 +281,7 @@ export default function OrderPrinter({
               }
               
               body { 
-                font-family: 'Courier New', monospace; 
+                font-family: 'Arial', sans-serif; 
                 font-size: 14px;
                 line-height: 1.6;
                 color: #000;
@@ -269,32 +296,35 @@ export default function OrderPrinter({
               
               .receipt-container {
                 width: 100%;
-                max-width: 400px;
+                max-width: 380px;
                 margin: 0 auto;
                 background: white;
-                border: 2px solid #000;
-                padding: 20px;
-                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+                border: 1px solid #000;
+                padding: 15px;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+                border-radius: 8px;
               }
               
               .header { 
                 text-align: center; 
-                border-bottom: 3px double #000; 
-                padding-bottom: 15px; 
-                margin-bottom: 20px; 
+                border-bottom: 2px double #000; 
+                padding-bottom: 12px; 
+                margin-bottom: 15px; 
               }
               
               .restaurant-name { 
-                font-size: 22px; 
+                font-size: 24px; 
                 font-weight: bold; 
-                margin-bottom: 8px;
+                margin-bottom: 6px;
                 letter-spacing: 1px;
+                text-transform: uppercase;
               }
               
               .order-type {
-                font-size: 16px;
+                font-size: 18px;
                 font-weight: bold;
                 margin-bottom: 5px;
+                color: #333;
               }
               
               .order-info { 
@@ -304,13 +334,15 @@ export default function OrderPrinter({
               }
               
               .order-info div { 
-                margin-bottom: 5px;
+                margin-bottom: 8px;
                 display: flex;
                 justify-content: space-between;
+                align-items: center;
               }
               
               .order-info strong {
                 font-weight: bold;
+                min-width: 100px;
               }
               
               .items-section {
@@ -320,62 +352,88 @@ export default function OrderPrinter({
               .items-header {
                 text-align: center;
                 font-weight: bold;
-                font-size: 16px;
+                font-size: 18px;
                 margin-bottom: 10px;
                 border-bottom: 2px solid #000;
-                padding-bottom: 5px;
+                padding-bottom: 8px;
+                letter-spacing: 1px;
               }
               
               .items-table { 
                 width: 100%; 
                 border-collapse: collapse; 
-                margin-bottom: 15px; 
+                margin-bottom: 15px;
+                table-layout: fixed;
               }
               
               .items-table th, .items-table td { 
-                padding: 8px 4px; 
-                border-bottom: 1px solid #ccc; 
+                padding: 10px 5px; 
+                border-bottom: 1px solid #ddd; 
                 text-align: left;
               }
               
               .items-table th { 
                 font-weight: bold; 
                 border-bottom: 2px solid #000;
-                background-color: #f5f5f5;
+                background-color: #f8f8f8;
+                text-transform: uppercase;
+                font-size: 12px;
               }
               
               .item-name { 
-                width: 55%; 
+                width: 60%; 
+                font-weight: 500;
               }
               
               .item-qty { 
                 width: 15%; 
-                text-align: center; 
+                text-align: center;
+                font-weight: bold;
               }
               
-              .item-price { 
-                width: 30%; 
-                text-align: right; 
+              .item-notes { 
+                width: 25%; 
+                text-align: right;
+                font-style: italic;
+                font-size: 12px;
               }
               
               .total-section { 
-                border-top: 3px double #000; 
+                border-top: 2px double #000; 
                 padding-top: 15px; 
                 text-align: center;
                 font-weight: bold;
-                font-size: 18px;
+                font-size: 20px;
+                margin: 10px 0;
+              }
+              
+              .total-section div {
+                background-color: #f8f8f8;
+                display: inline-block;
+                padding: 8px 15px;
+                border-radius: 4px;
+                border: 1px solid #ddd;
               }
               
               .footer { 
                 text-align: center; 
-                margin-top: 25px; 
-                font-size: 12px;
+                margin-top: 20px; 
+                font-size: 16px;
                 border-top: 1px dashed #000;
                 padding-top: 15px;
+                font-weight: bold;
               }
               
               .footer div {
-                margin-bottom: 5px;
+                margin-bottom: 6px;
+              }
+              
+              .timestamp {
+                margin-top: 10px;
+                text-align: center;
+                font-size: 12px;
+                color: #666;
+                font-weight: normal;
               }
               
               @media print {
@@ -387,7 +445,7 @@ export default function OrderPrinter({
                 
                 body {
                   min-height: auto;
-                  padding: 10mm;
+                  padding: 5mm;
                   justify-content: flex-start;
                 }
                 
@@ -395,9 +453,9 @@ export default function OrderPrinter({
                   border: none;
                   box-shadow: none;
                   max-width: none;
-                  width: 100%;
-                  margin: 0;
-                  padding: 0;
+                  width: 80mm; /* Standard thermal receipt width */
+                  margin: 0 auto;
+                  padding: 5mm;
                 }
                 
                 .no-print { 
@@ -405,8 +463,8 @@ export default function OrderPrinter({
                 }
                 
                 @page {
-                  margin: 10mm;
-                  size: A4;
+                  margin: 5mm;
+                  size: 80mm auto; /* Width x auto height */
                 }
               }
             </style>
@@ -414,25 +472,24 @@ export default function OrderPrinter({
           <body>
             <div class="receipt-container">
               <div class="header">
-                <div class="restaurant-name">BUFFET RESTAURANT</div>
-                <div class="order-type">Kitchen Order</div>
+                <div class="restaurant-name">KITCHEN ORDER</div>
+                <div class="order-type">Table ${orderData.tableNumber || 'N/A'}</div>
               </div>
               
               <div class="order-info">
                 <div><strong>Order ID:</strong> <span>${orderData.orderId}</span></div>
-                <div><strong>Table:</strong> <span>${orderData.tableNumber || 'N/A'}</span></div>
                 <div><strong>Guests:</strong> <span>${orderData.guestCount || 0}</span></div>
                 <div><strong>Date & Time:</strong> <span>${orderDate}</span></div>
               </div>
 
               <div class="items-section">
-                <div class="items-header">ORDER ITEMS</div>
+                <div class="items-header">ITEMS TO PREPARE</div>
                 <table class="items-table">
                   <thead>
                     <tr>
                       <th class="item-name">Item</th>
                       <th class="item-qty">Qty</th>
-                      <th class="item-price">Price</th>
+                      <th class="item-notes">Notes</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -440,7 +497,7 @@ export default function OrderPrinter({
                       <tr>
                         <td class="item-name">${item.name || item.menuItem?.name || 'Unknown Item'}</td>
                         <td class="item-qty">${item.quantity}</td>
-                        <td class="item-price">£${(item.price * item.quantity).toFixed(2)}</td>
+                        <td class="item-notes">${item.notes || '-'}</td>
                       </tr>
                     `).join('')}
                   </tbody>
@@ -448,12 +505,12 @@ export default function OrderPrinter({
               </div>
 
               <div class="total-section">
-                <div>TOTAL: £${totalAmount.toFixed(2)}</div>
+                <div>ITEMS: ${orderData.orderItems.reduce((sum, item) => sum + item.quantity, 0)}</div>
               </div>
 
               <div class="footer">
-                <div><strong>Thank you for your order!</strong></div>
-                <div>Printed: ${new Date().toLocaleString()}</div>
+                <div>PREPARE IMMEDIATELY</div>
+                <div class="timestamp">Printed: ${new Date().toLocaleString()}</div>
               </div>
             </div>
 

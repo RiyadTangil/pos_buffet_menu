@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
+import clientPromise, { getDatabase, COLLECTIONS } from '@/lib/mongodb'
+import { ObjectId } from 'mongodb'
 
 // Order interfaces matching our order management page
 interface OrderItem {
@@ -158,22 +160,122 @@ export async function POST(request: NextRequest) {
       tableSessionId: orderData.tableSessionId
     }
     
-    // Load existing orders and add new one
-    const orders = loadOrders()
-    orders.push(newOrder)
-    
-    // Save to file
-    saveOrders(orders)
-    
+    // Perform DB operations in a transaction (insert order + clear cart)
+    const client = await clientPromise
+    const session = client.startSession()
+    try {
+      await session.withTransaction(async () => {
+        const db = client.db('buffet')
+
+        // Insert order into ORDERS collection
+        await db.collection(COLLECTIONS.ORDERS).insertOne(
+          {
+            orderId: newOrder.id,
+            tableId: newOrder.tableId,
+            tableNumber: newOrder.tableNumber,
+            session: newOrder.session,
+            date: newOrder.date,
+            time: newOrder.time,
+            items: newOrder.items,
+            totalAmount: newOrder.totalAmount,
+            status: newOrder.status,
+            guestCount: newOrder.guestCount,
+            groupType: newOrder.groupType,
+            tableSessionId: newOrder.tableSessionId,
+            createdAt: now.toISOString(),
+            updatedAt: now.toISOString()
+          },
+          { session }
+        )
+
+        // Clear cart automatically for active session on this table/groupType
+        if (orderData.tableId) {
+          const query: any = {
+            tableId: orderData.tableId,
+            status: 'active'
+          }
+          if (orderData.groupType) {
+            query.groupType = orderData.groupType
+          }
+
+          await db.collection('table_sessions').updateOne(
+            query,
+            {
+              $set: {
+                cartItems: [],
+                updatedAt: now.toISOString()
+              }
+            },
+            { session }
+          )
+        }
+      }, {
+        readConcern: { level: 'snapshot' },
+        writeConcern: { w: 'majority' },
+        readPreference: 'primary'
+      })
+    } catch (txError: any) {
+      console.error('Order transaction failed:', txError)
+      // Ensure session is ended before returning
+      session.endSession()
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Order processing failed',
+          details: txError?.message || 'Transaction aborted'
+        },
+        { status: 500 }
+      )
+    }
+    // End session after successful transaction
+    session.endSession()
+
+    // As a backup, also persist to local file (non-critical)
+    try {
+      const orders = loadOrders()
+      orders.push(newOrder)
+      saveOrders(orders)
+    } catch (fileErr) {
+      console.warn('Failed to write order backup file:', fileErr)
+    }
+
+    // Fetch printer configurations to include in response
+    let printerConfigs = {
+      ipPrinters: [],
+      usbPrinters: []
+    }
+
+    try {
+      // Load IP printers from file
+      const printersFilePath = path.join(process.cwd(), 'data', 'printers.json')
+      if (fs.existsSync(printersFilePath)) {
+        const printersData = fs.readFileSync(printersFilePath, 'utf8')
+        const printers = JSON.parse(printersData)
+        printerConfigs.ipPrinters = printers.filter((p: any) => p.isActive)
+      }
+
+      // Load USB printers from file
+      const usbPrintersFilePath = path.join(process.cwd(), 'data', 'usb-printers.json')
+      if (fs.existsSync(usbPrintersFilePath)) {
+        const usbPrintersData = fs.readFileSync(usbPrintersFilePath, 'utf8')
+        const usbPrinters = JSON.parse(usbPrintersData)
+        printerConfigs.usbPrinters = usbPrinters.filter((p: any) => p.isActive)
+      }
+    } catch (printerError) {
+      console.error('Error loading printer configurations:', printerError)
+      // Continue without printer configs if there's an error
+    }
+
     return NextResponse.json({ 
       success: true, 
       orderId: newOrder.id,
-      order: newOrder
+      order: newOrder,
+      printerConfigs
     })
   } catch (error) {
     console.error('Error creating order:', error)
     return NextResponse.json(
-      { success: false, error: 'Failed to create order' },
+      { success: false, error: 'Failed to create order', details: (error as Error)?.message },
       { status: 500 }
     )
   }

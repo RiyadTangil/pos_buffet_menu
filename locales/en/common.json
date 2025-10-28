@@ -74,7 +74,7 @@
   "orders.total_amount_final": "Total Amount:",
   "orders.including_all": "Including all buffet access and additional orders",
   "orders.payment_required": "Payment Required",
-  "orders.please_pay": "Please pay £{amount} to complete your session",
+  "orders.please_pay": " to complete your session",
   "orders.pay_with_waiter": "Pay with Waiter",
   "orders.waiter_verification": "Waiter Verification",
   "orders.payment_successful": "Payment Successful!",

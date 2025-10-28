@@ -39,9 +39,10 @@ export function PrintJobStatus({
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    loadPrintJobs()
-    
+    // Only load print jobs if explicitly requested via autoRefresh
+    // This prevents unnecessary API calls on initial page load
     if (autoRefresh) {
+      loadPrintJobs()
       const interval = setInterval(loadPrintJobs, refreshInterval)
       return () => clearInterval(interval)
     }

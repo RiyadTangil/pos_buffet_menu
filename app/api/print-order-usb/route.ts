@@ -77,46 +77,160 @@ async function buildOrderPDF(
   filePath: string
 ) {
   const pdfDoc = await PDFDocument.create()
-  const page = pdfDoc.addPage([595.28, 841.89]) // A4
+  // Use a narrower page width for receipt-like format (80mm width)
+  const page = pdfDoc.addPage([300, 600]) // Custom size for receipt
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica)
+  const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
 
-  const margin = 50
-  let y = 800
+  const margin = 30
+  const pageWidth = 300
+  const centerX = pageWidth / 2
+  let y = 570
 
-  page.setFont(font)
+  // Title - KITCHEN ORDER
+  page.setFont(boldFont)
   page.setFontSize(18)
-  page.drawText(title, { x: margin, y, color: rgb(0,0,0) })
-  y -= 24
-  page.setFontSize(12)
-  page.drawText(`Generated: ${new Date().toLocaleString()}`, { x: margin, y })
-  y -= 24
+  const titleWidth = boldFont.widthOfTextAtSize(title, 18)
+  page.drawText(title, { 
+    x: centerX - titleWidth / 2, 
+    y, 
+    color: rgb(0,0,0) 
+  })
+  y -= 20
+
+  // Table number
+  page.setFontSize(14)
+  const tableText = `Table ${meta.tableNumber ?? 'N/A'}`
+  const tableWidth = boldFont.widthOfTextAtSize(tableText, 14)
+  page.drawText(tableText, { 
+    x: centerX - tableWidth / 2, 
+    y,
+    color: rgb(0,0,0) 
+  })
+  y -= 30
+
+  // Horizontal line
+  page.drawLine({
+    start: { x: margin, y },
+    end: { x: pageWidth - margin, y },
+    thickness: 1,
+    color: rgb(0,0,0),
+  })
+  y -= 15
 
   // Order info
-  page.drawText(`Order ID: ${meta.orderId}`, { x: margin, y }); y -= 16
-  page.drawText(`Table: ${meta.tableNumber ?? 'N/A'}`, { x: margin, y }); y -= 16
-  page.drawText(`Guests: ${meta.guestCount ?? 0}`, { x: margin, y }); y -= 16
-  page.drawText(`Date & Time: ${meta.orderTime ? new Date(meta.orderTime).toLocaleString() : new Date().toLocaleString()}`, { x: margin, y }); y -= 24
+  page.setFont(font)
+  page.setFontSize(10)
+  page.drawText(`Order ID: ${meta.orderId}`, { x: margin, y }); y -= 14
+  page.drawText(`Guests: ${meta.guestCount ?? 0}`, { x: margin, y }); y -= 14
+  page.drawText(`Date & Time: ${meta.orderTime ? new Date(meta.orderTime).toLocaleString() : new Date().toLocaleString()}`, { x: margin, y }); y -= 20
 
-  // Header
-  page.drawText('Item / Qty / Price', { x: margin, y })
-  y -= 16
+  // Horizontal line
+  page.drawLine({
+    start: { x: margin, y },
+    end: { x: pageWidth - margin, y },
+    thickness: 1,
+    color: rgb(0,0,0),
+  })
+  y -= 20
 
+  // Items header
+  page.setFont(boldFont)
+  page.setFontSize(12)
+  const itemsHeader = "ITEMS TO PREPARE"
+  const headerWidth = boldFont.widthOfTextAtSize(itemsHeader, 12)
+  page.drawText(itemsHeader, { 
+    x: centerX - headerWidth / 2, 
+    y,
+    color: rgb(0,0,0) 
+  })
+  y -= 15
+
+  // Column headers
+  page.setFontSize(10)
+  page.drawText("Item", { x: margin, y })
+  page.drawText("Qty", { x: pageWidth - margin - 40, y })
+  y -= 10
+
+  // Horizontal line
+  page.drawLine({
+    start: { x: margin, y },
+    end: { x: pageWidth - margin, y },
+    thickness: 0.5,
+    color: rgb(0,0,0),
+  })
+  y -= 15
+
+  // Items
+  page.setFont(font)
   for (const item of items) {
     if (y < 60) {
-      const p = pdfDoc.addPage([595.28, 841.89])
+      const p = pdfDoc.addPage([300, 600])
       p.setFont(font)
-      p.setFontSize(12)
-      y = 800
+      p.setFontSize(10)
+      y = 570
     }
-    const priceText = item.price != null ? ` £${(item.price * item.quantity).toFixed(2)}` : ''
-    page.drawText(`${item.name}  x${item.quantity}${priceText}`, { x: margin, y })
-    y -= 16
+    
+    // Item name with truncation if needed
+    let itemName = item.name
+    if (itemName.length > 25) {
+      itemName = itemName.substring(0, 22) + '...'
+    }
+    
+    page.drawText(itemName, { x: margin, y })
+    
+    // Quantity (right-aligned)
+    const qtyText = `${item.quantity}`
+    const qtyWidth = font.widthOfTextAtSize(qtyText, 10)
+    page.drawText(qtyText, { 
+      x: pageWidth - margin - qtyWidth, 
+      y 
+    })
+    
+    y -= 15
   }
 
-  if (meta.totalAmount != null) {
-    y -= 16
-    page.drawText(`Total: £${meta.totalAmount.toFixed(2)}`, { x: margin, y })
-  }
+  // Horizontal line
+  y -= 5
+  page.drawLine({
+    start: { x: margin, y },
+    end: { x: pageWidth - margin, y },
+    thickness: 1,
+    color: rgb(0,0,0),
+  })
+  y -= 20
+
+  // Total items count
+  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0)
+  page.setFont(boldFont)
+  page.setFontSize(12)
+  const totalText = `ITEMS: ${totalItems}`
+  const totalWidth = boldFont.widthOfTextAtSize(totalText, 12)
+  page.drawText(totalText, { 
+    x: centerX - totalWidth / 2, 
+    y 
+  })
+  y -= 25
+
+  // Footer
+  page.setFont(boldFont)
+  page.setFontSize(12)
+  const footerText = "PREPARE IMMEDIATELY"
+  const footerWidth = boldFont.widthOfTextAtSize(footerText, 12)
+  page.drawText(footerText, { 
+    x: centerX - footerWidth / 2, 
+    y 
+  })
+  y -= 15
+  
+  page.setFont(font)
+  page.setFontSize(8)
+  const printedText = `Printed: ${new Date().toLocaleString()}`
+  const printedWidth = font.widthOfTextAtSize(printedText, 8)
+  page.drawText(printedText, { 
+    x: centerX - printedWidth / 2, 
+    y 
+  })
 
   const pdfBytes = await pdfDoc.save()
   fs.writeFileSync(filePath, pdfBytes)
