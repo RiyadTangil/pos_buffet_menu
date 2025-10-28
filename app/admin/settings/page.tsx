@@ -8,8 +8,9 @@ import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "@/hooks/use-toast"
-import { Loader2, Save, DollarSign, Clock, Users } from "lucide-react"
-import { getBuffetSettings, updateBuffetSettings, BuffetSettings, ExtraDrinksPricing, SessionSpecificExtraDrinksPricing, ItemsLimit, SessionSpecificItemsLimit } from '@/lib/api/settings'
+import { Loader2, Save, DollarSign, Clock, Users, Plus, Trash2 } from "lucide-react"
+import { getBuffetSettings, updateBuffetSettings, BuffetSettings, ExtraDrinksPricing, SessionSpecificExtraDrinksPricing, ItemsLimit, SessionSpecificItemsLimit, SpecialTableItemsLimit } from '@/lib/api/settings'
+import { fetchTables, Table } from '@/lib/api/tables'
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<BuffetSettings>({
@@ -89,9 +90,12 @@ export default function SettingsPage() {
         childLimit: 4,
         infantLimit: 3
       }
-    }
+    },
+    specialTableItemsLimit: []
   })
   const [selectedSession, setSelectedSession] = useState<'breakfast' | 'lunch' | 'dinner'>('breakfast')
+  const [tables, setTables] = useState<Table[]>([])
+  const [selectedTableId, setSelectedTableId] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
@@ -102,7 +106,14 @@ export default function SettingsPage() {
   const loadSettings = async () => {
     try {
       setLoading(true)
-      const response = await getBuffetSettings()
+      const [response, tablesList] = await Promise.all([
+        getBuffetSettings(),
+        fetchTables()
+      ])
+      
+      // Set tables
+      setTables(tablesList)
+      
       if (response.success && response.data) {
         // Ensure all sessions have complete data with defaults
         const completeSettings = {
@@ -141,7 +152,8 @@ export default function SettingsPage() {
               nextOrderAvailableInMinutes: 30,
               ...response.data.sessions?.dinner
             }
-          }
+          },
+          specialTableItemsLimit: response.data.specialTableItemsLimit || []
         }
         setSettings(completeSettings)
       } else {
@@ -217,6 +229,69 @@ export default function SettingsPage() {
       }
     }))
   }
+  
+  const handleAddSpecialTableItemLimit = () => {
+    if (!selectedTableId) return
+    
+    const selectedTable = tables.find(table => table.id === selectedTableId)
+    if (!selectedTable) return
+    
+    // Check if this table already has a special limit
+    const existingIndex = settings.specialTableItemsLimit?.findIndex(item => item.tableId === selectedTableId)
+    
+    if (existingIndex !== undefined && existingIndex >= 0) {
+      toast({
+        title: "Table already has special limits",
+        description: "This table already has special item limits configured",
+        variant: "destructive"
+      })
+      return
+    }
+    
+    // Add new special table item limit
+    setSettings(prev => ({
+      ...prev,
+      specialTableItemsLimit: [
+        ...(prev.specialTableItemsLimit || []),
+        {
+          tableId: selectedTableId,
+          tableName: selectedTable.name,
+          itemsLimit: {
+            adultLimit: prev.itemsLimit?.adultLimit || 5,
+            childLimit: prev.itemsLimit?.childLimit || 4,
+            infantLimit: prev.itemsLimit?.infantLimit || 3
+          }
+        }
+      ]
+    }))
+    
+    // Reset selected table
+    setSelectedTableId('')
+  }
+  
+  const handleRemoveSpecialTableItemLimit = (tableId: string) => {
+    setSettings(prev => ({
+      ...prev,
+      specialTableItemsLimit: prev.specialTableItemsLimit?.filter(item => item.tableId !== tableId) || []
+    }))
+  }
+  
+  const handleSpecialTableItemLimitChange = (tableId: string, userType: keyof ItemsLimit, value: string | number) => {
+    setSettings(prev => ({
+      ...prev,
+      specialTableItemsLimit: prev.specialTableItemsLimit?.map(item => 
+        item.tableId === tableId 
+          ? {
+              ...item,
+              itemsLimit: {
+                ...item.itemsLimit,
+                [userType]: typeof value === 'string' ? parseInt(value) || 0 : value
+              }
+            }
+          : item
+      ) || []
+    }))
+  }
 
   const handleSessionChange = (sessionType: 'breakfast' | 'lunch' | 'dinner', field: string, value: string | number | boolean) => {
     setSettings(prev => ({
@@ -233,7 +308,7 @@ export default function SettingsPage() {
     }))
   }
 
-  const handleSave = async () => {
+  const handleSaveSettings = async () => {
     try {
       setSaving(true)
       const response = await updateBuffetSettings(settings)
@@ -279,7 +354,7 @@ export default function SettingsPage() {
           <h1 className="text-3xl font-bold">Restaurant Settings</h1>
           <p className="text-gray-600">Configure buffet session pricing and timing settings</p>
         </div>
-        <Button onClick={handleSave} disabled={saving}>
+        <Button onClick={handleSaveSettings} disabled={saving}>
           {saving ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -495,6 +570,91 @@ export default function SettingsPage() {
           </Card>
       </div>
 
+      {/* Special Table Item Limits */}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Special Table Item Limits</CardTitle>
+          <CardDescription>Configure item limits for specific tables</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-end gap-4 mb-4">
+            <div className="flex-1">
+              <Label htmlFor="table-select">Select Table</Label>
+              <Select value={selectedTableId} onValueChange={setSelectedTableId}>
+                <SelectTrigger id="table-select">
+                  <SelectValue placeholder="Select a table" />
+                </SelectTrigger>
+                <SelectContent>
+                  {tables.map(table => (
+                    <SelectItem key={table.id} value={table.id}>{table.number}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Button onClick={handleAddSpecialTableItemLimit} disabled={!selectedTableId}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Special Limit
+            </Button>
+          </div>
+          
+          <Separator className="my-4" />
+          
+          {settings.specialTableItemsLimit && settings.specialTableItemsLimit.length > 0 ? (
+            <div className="space-y-4">
+              {settings.specialTableItemsLimit.map((tableLimit) => (
+                <div key={tableLimit.tableId} className="border rounded-md p-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-medium">{tableLimit.tableName}</h3>
+                    <Button 
+                      variant="destructive" 
+                      size="sm" 
+                      onClick={() => handleRemoveSpecialTableItemLimit(tableLimit.tableId)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <Label htmlFor={`adult-limit-${tableLimit.tableId}`}>Adult Item Limit</Label>
+                      <Input
+                        id={`adult-limit-${tableLimit.tableId}`}
+                        type="number"
+                        value={tableLimit.itemsLimit.adultLimit}
+                        onChange={(e) => handleSpecialTableItemLimitChange(tableLimit.tableId, 'adultLimit', e.target.value)}
+                        min={0}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor={`child-limit-${tableLimit.tableId}`}>Child Item Limit</Label>
+                      <Input
+                        id={`child-limit-${tableLimit.tableId}`}
+                        type="number"
+                        value={tableLimit.itemsLimit.childLimit}
+                        onChange={(e) => handleSpecialTableItemLimitChange(tableLimit.tableId, 'childLimit', e.target.value)}
+                        min={0}
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor={`infant-limit-${tableLimit.tableId}`}>Infant Item Limit</Label>
+                      <Input
+                        id={`infant-limit-${tableLimit.tableId}`}
+                        type="number"
+                        value={tableLimit.itemsLimit.infantLimit}
+                        onChange={(e) => handleSpecialTableItemLimitChange(tableLimit.tableId, 'infantLimit', e.target.value)}
+                        min={0}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-muted-foreground">No special table limits configured yet.</p>
+          )}
+        </CardContent>
+      </Card>
+      
       {/* Settings Preview */}
       <Card>
         <CardHeader>

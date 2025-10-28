@@ -415,9 +415,18 @@ export default function ItemsPage() {
     // Get items limit for current session
     const sessionKey = currentSession.key as 'breakfast' | 'lunch' | 'dinner'
     let itemsLimit = buffetSettings.itemsLimit
+    const tableId = tableSession?.tableId
     
-    // Check if there's session-specific items limit
-    if (buffetSettings.sessionSpecificItemsLimit && buffetSettings.sessionSpecificItemsLimit[sessionKey]) {
+    // First check for special table item limits
+    if (tableId && buffetSettings.specialTableItemsLimit && buffetSettings.specialTableItemsLimit.length > 0) {
+      const specialTableLimit = buffetSettings.specialTableItemsLimit.find(item => item.tableId === tableId)
+      if (specialTableLimit) {
+        itemsLimit = specialTableLimit.itemsLimit
+        console.log('Using special table item limits for table:', tableId)
+      }
+    } 
+    // If no special table limits, use session-specific limits
+    else if (buffetSettings.sessionSpecificItemsLimit && buffetSettings.sessionSpecificItemsLimit[sessionKey]) {
       itemsLimit = buffetSettings.sessionSpecificItemsLimit[sessionKey]
     }
 

@@ -1,34 +1,18 @@
 [
   {
-    "id": "1761665933533",
-    "name": "Microsoft Print to PDF(main)",
+    "id": "1761678661333",
+    "name": "Microsoft Print to PDF",
     "localPrinterName": "Microsoft Print to PDF",
     "displayName": "Microsoft Print to PDF",
     "type": "thermal",
     "isActive": true,
     "categories": [
-      "68c167f8c85542d7fb04fe24"
+      "68c99fb9991d23a92d66f077"
     ],
     "isDefault": false,
     "status": "Ready",
     "description": "Microsoft Print To PDF",
-    "createdAt": "2025-10-28T15:38:53.533Z",
-    "updatedAt": "2025-10-28T15:38:53.533Z"
-  },
-  {
-    "id": "1761666872131",
-    "name": "Microsoft XPS Document Writer(starter)",
-    "localPrinterName": "Microsoft XPS Document Writer",
-    "displayName": "Microsoft XPS Document Writer",
-    "type": "thermal",
-    "isActive": true,
-    "categories": [
-      "68c167dbc85542d7fb04fe23"
-    ],
-    "isDefault": false,
-    "status": "Ready",
-    "description": "Microsoft XPS Document Writer v4",
-    "createdAt": "2025-10-28T15:54:32.131Z",
-    "updatedAt": "2025-10-28T15:54:32.131Z"
+    "createdAt": "2025-10-28T19:11:01.333Z",
+    "updatedAt": "2025-10-28T19:11:01.333Z"
   }
 ]

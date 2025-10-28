@@ -36,6 +36,13 @@ export interface SessionSpecificItemsLimit {
   dinner: ItemsLimit
 }
 
+// Interface for special table items limit
+export interface SpecialTableItemsLimit {
+  tableId: string
+  tableName: string
+  itemsLimit: ItemsLimit
+}
+
 export interface BuffetSettings {
   id?: string
   sessions: {
@@ -48,6 +55,7 @@ export interface BuffetSettings {
   sessionSpecificExtraDrinksPricing: SessionSpecificExtraDrinksPricing
   itemsLimit?: ItemsLimit // Keep for backward compatibility
   sessionSpecificItemsLimit?: SessionSpecificItemsLimit
+  specialTableItemsLimit?: SpecialTableItemsLimit[] // Special table-specific item limits
   createdAt?: Date
   updatedAt?: Date
 }
