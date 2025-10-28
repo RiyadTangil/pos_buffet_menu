@@ -160,75 +160,60 @@ export async function POST(request: NextRequest) {
       tableSessionId: orderData.tableSessionId
     }
     
-    // Perform DB operations in a transaction (insert order + clear cart)
+    // Perform DB operations without a transaction for standalone MongoDB
     const client = await clientPromise
-    const session = client.startSession()
     try {
-      await session.withTransaction(async () => {
-        const db = client.db('buffet')
+      const db = client.db('buffet')
 
-        // Insert order into ORDERS collection
-        await db.collection(COLLECTIONS.ORDERS).insertOne(
-          {
-            orderId: newOrder.id,
-            tableId: newOrder.tableId,
-            tableNumber: newOrder.tableNumber,
-            session: newOrder.session,
-            date: newOrder.date,
-            time: newOrder.time,
-            items: newOrder.items,
-            totalAmount: newOrder.totalAmount,
-            status: newOrder.status,
-            guestCount: newOrder.guestCount,
-            groupType: newOrder.groupType,
-            tableSessionId: newOrder.tableSessionId,
-            createdAt: now.toISOString(),
-            updatedAt: now.toISOString()
-          },
-          { session }
-        )
-
-        // Clear cart automatically for active session on this table/groupType
-        if (orderData.tableId) {
-          const query: any = {
-            tableId: orderData.tableId,
-            status: 'active'
-          }
-          if (orderData.groupType) {
-            query.groupType = orderData.groupType
-          }
-
-          await db.collection('table_sessions').updateOne(
-            query,
-            {
-              $set: {
-                cartItems: [],
-                updatedAt: now.toISOString()
-              }
-            },
-            { session }
-          )
-        }
-      }, {
-        readConcern: { level: 'snapshot' },
-        writeConcern: { w: 'majority' },
-        readPreference: 'primary'
+      // Insert order into ORDERS collection
+      await db.collection(COLLECTIONS.ORDERS).insertOne({
+        orderId: newOrder.id,
+        tableId: newOrder.tableId,
+        tableNumber: newOrder.tableNumber,
+        session: newOrder.session,
+        date: newOrder.date,
+        time: newOrder.time,
+        items: newOrder.items,
+        totalAmount: newOrder.totalAmount,
+        status: newOrder.status,
+        guestCount: newOrder.guestCount,
+        groupType: newOrder.groupType,
+        tableSessionId: newOrder.tableSessionId,
+        createdAt: now.toISOString(),
+        updatedAt: now.toISOString()
       })
-    } catch (txError: any) {
-      console.error('Order transaction failed:', txError)
-      // Ensure session is ended before returning
-      session.endSession()
+
+      // Clear cart automatically for active session on this table/groupType
+      if (orderData.tableId) {
+        const query: any = {
+          tableId: orderData.tableId,
+          status: 'active'
+        }
+        if (orderData.groupType) {
+          query.groupType = orderData.groupType
+        }
+
+        await db.collection('table_sessions').updateOne(
+          query,
+          {
+            $set: {
+              cartItems: [],
+              updatedAt: now.toISOString()
+            }
+          }
+        )
+      }
+    } catch (error: any) {
+      console.error('Order processing failed:', error)
       return NextResponse.json(
         {
           success: false,
           error: 'Order processing failed',
-          details: txError?.message || 'Transaction aborted'
+          details: error?.message || 'Database operation failed'
         },
         { status: 500 }
       )
     }
-    // End session after successful transaction
-    session.endSession()
 
     // As a backup, also persist to local file (non-critical)
     try {
