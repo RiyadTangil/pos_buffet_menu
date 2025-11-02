@@ -72,7 +72,7 @@ function saveOrders(orders: Order[]) {
 // Get all orders with optional filters
 export async function GET(request: NextRequest) {
   try {
-    console.log("fetching local orders")
+ 
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status')
     const tableNumber = searchParams.get('tableNumber')

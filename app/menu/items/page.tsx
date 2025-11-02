@@ -459,7 +459,7 @@ export default function ItemsPage() {
       )
 
       // Get current total items in cart
-      const currentTotalItems = getTotalItems()
+      const currentTotalItems = getTotalOfFreeItems()
 
       // Check if adding this item would exceed the limit
       if (currentTotalItems >= maxAllowedItems) {
@@ -591,6 +591,14 @@ export default function ItemsPage() {
 
   const getTotalItems = () => {
     return cart.reduce((total, item) => total + item.quantity, 0)
+  }
+  const getTotalOfFreeItems = () => {
+    return cart.reduce((total, item) => {
+      if (item.menuItem.price == 0) {
+        return total + item.quantity
+      }
+      return total
+    }, 0)
   }
 
   const getProductsByCategory = (categoryId: string) => {
@@ -1071,7 +1079,7 @@ export default function ItemsPage() {
         <div className="bg-white border-b border-gray-200 px-6 py-3">
           <ItemsLimitProgress 
             key={progressKey}
-            currentItems={getTotalItems()}
+            currentItems={getTotalOfFreeItems()}
             buffetSettings={buffetSettings}
             currentSession={currentSession.key as 'breakfast' | 'lunch' | 'dinner'}
             tableId={tableSession.tableId}
