@@ -219,6 +219,7 @@ export async function GET() {
           infantLimit: 3
         }
       },
+      specialTableItemsLimit: settings.specialTableItemsLimit || [],
       createdAt: settings.createdAt,
       updatedAt: settings.updatedAt
     }
@@ -240,7 +241,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { sessions, extraDrinksPrice, extraDrinksPricing, sessionSpecificExtraDrinksPricing, itemsLimit, sessionSpecificItemsLimit } = body
+    const { sessions, extraDrinksPrice, extraDrinksPricing, sessionSpecificExtraDrinksPricing, itemsLimit, sessionSpecificItemsLimit, specialTableItemsLimit } = body
 
     // Validation for sessions
     if (sessions) {
@@ -389,6 +390,58 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Validate specialTableItemsLimit
+    if (specialTableItemsLimit !== undefined) {
+      if (!Array.isArray(specialTableItemsLimit)) {
+        return NextResponse.json(
+          { success: false, error: 'specialTableItemsLimit must be an array' },
+          { status: 400 }
+        )
+      }
+      
+      for (let i = 0; i < specialTableItemsLimit.length; i++) {
+        const tableLimit = specialTableItemsLimit[i]
+        if (!tableLimit.tableId || typeof tableLimit.tableId !== 'string') {
+          return NextResponse.json(
+            { success: false, error: `specialTableItemsLimit[${i}].tableId must be a non-empty string` },
+            { status: 400 }
+          )
+        }
+        if (!tableLimit.tableName || typeof tableLimit.tableName !== 'string') {
+          return NextResponse.json(
+            { success: false, error: `specialTableItemsLimit[${i}].tableName must be a non-empty string` },
+            { status: 400 }
+          )
+        }
+        if (!tableLimit.itemsLimit) {
+          return NextResponse.json(
+            { success: false, error: `specialTableItemsLimit[${i}].itemsLimit is required` },
+            { status: 400 }
+          )
+        }
+        
+        const { adultLimit, childLimit, infantLimit } = tableLimit.itemsLimit
+        if (typeof adultLimit !== 'number' || adultLimit < 0) {
+          return NextResponse.json(
+            { success: false, error: `specialTableItemsLimit[${i}].itemsLimit.adultLimit must be a non-negative number` },
+            { status: 400 }
+          )
+        }
+        if (typeof childLimit !== 'number' || childLimit < 0) {
+          return NextResponse.json(
+            { success: false, error: `specialTableItemsLimit[${i}].itemsLimit.childLimit must be a non-negative number` },
+            { status: 400 }
+          )
+        }
+        if (typeof infantLimit !== 'number' || infantLimit < 0) {
+          return NextResponse.json(
+            { success: false, error: `specialTableItemsLimit[${i}].itemsLimit.infantLimit must be a non-negative number` },
+            { status: 400 }
+          )
+        }
+      }
+    }
+
     const db = await getDatabase()
     const settingsCollection = db.collection(COLLECTIONS.SETTINGS)
     const now = new Date()
@@ -474,6 +527,7 @@ export async function POST(request: NextRequest) {
           infantLimit: 3
         }
       },
+      specialTableItemsLimit: specialTableItemsLimit ?? [],
       updatedAt: now
     }
 

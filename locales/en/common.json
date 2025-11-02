@@ -82,7 +82,7 @@
   "orders.waiter_pin": "Waiter PIN",
   "orders.enter_pin": "Enter 4-digit PIN",
   "orders.pin_error": "Please enter a valid 4-digit PIN",
-  "orders.enter_waiter_pin": "Enter waiter PIN to process payment of £{amount}",
+  "orders.enter_waiter_pin": "Enter waiter PIN to process payment of £ ",
   "orders.validated": "✓ Validated:",
   "orders.payment_method": "Payment Method:",
   "orders.cash": "Cash",

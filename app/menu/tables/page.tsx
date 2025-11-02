@@ -63,6 +63,39 @@ export default function TablesPage() {
     includeDrinks: false,
   });
 
+  // Check for existing table selection and redirect if found
+  useEffect(() => {
+    const checkExistingTableSelection = () => {
+      const selectedTableId = localStorage.getItem('selectedTableId');
+      const tableSession = localStorage.getItem('tableSession');
+      const guestCounts = localStorage.getItem('guestCounts');
+      
+      // If user has already selected a table and has session data, redirect to menu/items
+      if (selectedTableId && tableSession && guestCounts) {
+        try {
+          const parsedSession = JSON.parse(tableSession);
+          const parsedGuestCounts = JSON.parse(guestCounts);
+          
+          // Verify that the session data is valid and not ended
+          if (parsedSession && !parsedSession.sessionEnded && 
+              (parsedGuestCounts.adults > 0 || parsedGuestCounts.children > 0 || parsedGuestCounts.infants > 0)) {
+            console.log('User already has table selection, redirecting to menu/items');
+            router.push('/menu/items');
+            return;
+          }
+        } catch (error) {
+          console.error('Error parsing stored session data:', error);
+          // Clear invalid data
+          localStorage.removeItem('selectedTableId');
+          localStorage.removeItem('tableSession');
+          localStorage.removeItem('guestCounts');
+        }
+      }
+    };
+
+    checkExistingTableSelection();
+  }, [router]);
+
   // Shared loader to fetch tables and settings
   const loadData = async () => {
     try {

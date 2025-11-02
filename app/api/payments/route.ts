@@ -113,10 +113,13 @@ export async function POST(request: NextRequest) {
       waiterId,
       waiterName,
       totalAmount,
+      tipAmount,
       paymentMethod,
       sessionType,
       sessionData,
-      groupType
+      groupType,
+      isSplit,
+      splitInfo
     } = body
 
     // Validation
@@ -130,6 +133,14 @@ export async function POST(request: NextRequest) {
     if (totalAmount <= 0) {
       return NextResponse.json(
         { success: false, error: 'Total amount must be greater than 0' },
+        { status: 400 }
+      )
+    }
+
+    // Validate tip amount if provided
+    if (tipAmount !== undefined && tipAmount < 0) {
+      return NextResponse.json(
+        { success: false, error: 'Tip amount cannot be negative' },
         { status: 400 }
       )
     }
@@ -158,6 +169,7 @@ export async function POST(request: NextRequest) {
       waiterId,
       waiterName,
       totalAmount,
+      tipAmount: tipAmount || 0, // Include tip amount, default to 0
       sessionType,
       sessionData,
       groupType,
@@ -165,6 +177,8 @@ export async function POST(request: NextRequest) {
       paymentTime: now.toTimeString().split(' ')[0], // HH:MM:SS format
       status: 'completed',
       paymentMethod: paymentMethod === 'card' ? 'card' : 'cash',
+      isSplit,
+      splitInfo,
       createdAt: now.toISOString(),
       updatedAt: now.toISOString()
     }

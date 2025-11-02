@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Users, Calculator, ShoppingCart, Check, X } from "lucide-react"
+import { Users, Calculator, ShoppingCart, Check, X, CreditCard, DollarSign } from "lucide-react"
 
 interface SplitBillItem {
   id: string
@@ -46,6 +46,7 @@ interface SplitBillModalProps {
 interface SplitResult {
   customerIndex: number
   customerName: string
+  paymentMethod: 'cash' | 'card' // Add payment method to split result
   items: SplitBillItem[]
   sessionCharges: {
     adults: number
@@ -64,11 +65,13 @@ export default function SplitBillModal({
   totalAmount
 }: SplitBillModalProps) {
   const [splitMethod, setSplitMethod] = useState<'equal' | 'items'>('equal')
-  const [numberOfSplits, setNumberOfSplits] = useState(2)
+  const [numberOfSplits, setNumberOfSplits] = useState(sessionData.adults > 1 ? sessionData.adults : 2)
   const [items, setItems] = useState<SplitBillItem[]>([])
   const [customerNames, setCustomerNames] = useState<string[]>([])
+  const [paymentMethods, setPaymentMethods] = useState<('cash' | 'card')[]>([]) // Add payment methods state
   const [splits, setSplits] = useState<SplitResult[]>([])
 
+  useEffect(()=>{setNumberOfSplits(sessionData.adults )},[sessionData])
   // Calculate session charges (buffet prices)
   const sessionCharges = {
     adult: sessionData.adults * sessionData.adultPrice,
@@ -106,10 +109,12 @@ export default function SplitBillModal({
     }
   }, [orders])
 
-  // Initialize customer names
+  // Initialize customer names and payment methods
   useEffect(() => {
-    const names = Array.from({ length: numberOfSplits }, (_, i) => `Customer ${i + 1}`)
+    const names = Array.from({ length: numberOfSplits }, (_, i) => `Adult ${i + 1}`)
+    const methods = Array.from({ length: numberOfSplits }, () => 'cash' as 'cash' | 'card')
     setCustomerNames(names)
+    setPaymentMethods(methods)
   }, [numberOfSplits])
 
   // Calculate equal splits
@@ -120,6 +125,7 @@ export default function SplitBillModal({
     const newSplits: SplitResult[] = customerNames.map((name, index) => ({
       customerIndex: index,
       customerName: name,
+      paymentMethod: paymentMethods[index], // Include payment method
       items: [],
       sessionCharges: {
         adults: Math.round((sessionData.adults / numberOfSplits) * 100) / 100,
@@ -141,6 +147,7 @@ export default function SplitBillModal({
       return {
         customerIndex: index,
         customerName: name,
+        paymentMethod: paymentMethods[index], // Include payment method
         items: customerItems,
         sessionCharges: {
           adults: 0,
@@ -181,6 +188,11 @@ export default function SplitBillModal({
   // Handle customer name change
   const updateCustomerName = (index: number, name: string) => {
     setCustomerNames(prev => prev.map((n, i) => i === index ? name : n))
+  }
+
+  // Handle payment method change
+  const updatePaymentMethod = (index: number, method: 'cash' | 'card') => {
+    setPaymentMethods(prev => prev.map((m, i) => i === index ? method : m))
   }
 
   // Handle confirm
@@ -244,29 +256,63 @@ export default function SplitBillModal({
           {/* Number of Splits (for equal method) */}
           {splitMethod === 'equal' && (
             <div className="space-y-2">
-              <Label>Number of People</Label>
+              <Label>Number of Adults</Label>
               <Input
                 type="number"
-                min="2"
-                max="10"
+                min="1"
+                max="20"
                 value={numberOfSplits}
-                onChange={(e) => setNumberOfSplits(Math.max(2, parseInt(e.target.value) || 2))}
+                onChange={(e) => setNumberOfSplits(Math.max(1, parseInt(e.target.value) || sessionData.adults))}
                 className="w-32"
               />
+              <p className="text-xs text-muted-foreground">
+                Based on {sessionData.adults} adult{sessionData.adults !== 1 ? 's' : ''} in this session
+              </p>
             </div>
           )}
 
-          {/* Customer Names */}
-          <div className="space-y-2">
-            <Label>Customer Names</Label>
-            <div className="grid grid-cols-2 gap-2">
+          {/* Customer Names and Payment Methods */}
+          <div className="space-y-4">
+            <Label>Adult Customer Details</Label>
+            <div className="space-y-3">
               {customerNames.map((name, index) => (
-                <Input
-                  key={index}
-                  value={name}
-                  onChange={(e) => updateCustomerName(index, e.target.value)}
-                  placeholder={`Customer ${index + 1}`}
-                />
+                <Card key={index} className="p-4">
+                  <div className="space-y-3">
+                    <div>
+                      <Label className="text-sm">Adult Customer Name</Label>
+                      <Input
+                        value={name}
+                        onChange={(e) => updateCustomerName(index, e.target.value)}
+                        placeholder={`Adult ${index + 1}`}
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-sm">Payment Method</Label>
+                      <div className="flex gap-2 mt-1">
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant={paymentMethods[index] === 'cash' ? 'default' : 'outline'}
+                          onClick={() => updatePaymentMethod(index, 'cash')}
+                          className={paymentMethods[index] === 'cash' ? 'bg-amber-600 hover:bg-amber-700 text-white' : ''}
+                        >
+                          <DollarSign className="w-4 h-4 mr-1" />
+                          Cash
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant={paymentMethods[index] === 'card' ? 'default' : 'outline'}
+                          onClick={() => updatePaymentMethod(index, 'card')}
+                        >
+                          <CreditCard className="w-4 h-4 mr-1" />
+                          Card
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
               ))}
             </div>
           </div>
@@ -334,12 +380,23 @@ export default function SplitBillModal({
           {splitMethod === 'equal' && (
             <div className="space-y-2">
               <Label>Split Preview</Label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 gap-3">
                 {customerNames.map((name, index) => (
                   <Card key={index} className="p-3">
-                    <div className="font-medium">{name}</div>
-                    <div className="text-lg font-bold text-green-600">
-                      £{(totalAmount / numberOfSplits).toFixed(2)}
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <div className="font-medium">{name}</div>
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                          {paymentMethods[index] === 'cash' ? (
+                            <><DollarSign className="w-4 h-4" /> Cash</>
+                          ) : (
+                            <><CreditCard className="w-4 h-4" /> Card</>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-lg font-bold text-green-600">
+                        £{(totalAmount / numberOfSplits).toFixed(2)}
+                      </div>
                     </div>
                   </Card>
                 ))}
@@ -349,14 +406,14 @@ export default function SplitBillModal({
 
           {/* Action Buttons */}
           <div className="flex justify-end gap-2 pt-4 border-t">
-            <Button variant="outline" onClick={onClose}>
+            <Button variant="outline" onClick={onClose}  className="bg-green-600 hover:bg-green-700 text-white">
               <X className="w-4 h-4 mr-2" />
-              Cancel
+              ok
             </Button>
-            <Button onClick={handleConfirm} className="bg-green-600 hover:bg-green-700">
+            {/* <Button onClick={handleConfirm} className="bg-green-600 hover:bg-green-700">
               <Check className="w-4 h-4 mr-2" />
               Confirm Split
-            </Button>
+            </Button> */}
           </div>
         </div>
       </DialogContent>

@@ -9,6 +9,7 @@ export interface MongoPayment {
   waiterId: string
   waiterName: string
   totalAmount: number
+  tipAmount?: number // New field for tips
   sessionType: 'breakfast' | 'lunch' | 'dinner'
   groupType?: string
   sessionData: {
@@ -47,6 +48,14 @@ export interface MongoPayment {
   paymentTime: string
   status: 'completed' | 'pending' | 'failed'
   paymentMethod: 'cash' | 'card'
+  // Split payment information
+  isSplit?: boolean
+  splitInfo?: {
+    totalSplits: number
+    splitIndex: number // 1-based index (1, 2, 3, etc.)
+    customerName?: string
+    originalTotalAmount: number
+  }
   createdAt: string
   updatedAt: string
 }
@@ -60,6 +69,7 @@ export interface Payment {
   waiterId: string
   waiterName: string
   totalAmount: number
+  tipAmount?: number // New field for tips
   sessionType: 'breakfast' | 'lunch' | 'dinner'
   sessionData: {
     adults: number
@@ -97,6 +107,14 @@ export interface Payment {
   paymentTime: string
   status: 'completed' | 'pending' | 'failed'
   paymentMethod: 'cash' | 'card'
+  // Split payment information
+  isSplit?: boolean
+  splitInfo?: {
+    totalSplits: number
+    splitIndex: number // 1-based index (1, 2, 3, etc.)
+    customerName?: string
+    originalTotalAmount: number
+  }
   createdAt: string
   updatedAt: string
 }
@@ -108,9 +126,18 @@ export interface CreatePaymentRequest {
   waiterId: string
   waiterName: string
   totalAmount: number
+  tipAmount?: number // New field for tips
   paymentMethod?: 'cash' | 'card'
   sessionType: 'breakfast' | 'lunch' | 'dinner'
   groupType?: string
+  // Split payment information
+  isSplit?: boolean
+  splitInfo?: {
+    totalSplits: number
+    splitIndex: number // 1-based index (1, 2, 3, etc.)
+    customerName?: string
+    originalTotalAmount: number
+  }
   sessionData: {
     adults: number
     children: number

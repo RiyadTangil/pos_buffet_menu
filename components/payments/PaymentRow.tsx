@@ -38,6 +38,17 @@ export default function PaymentRow({ payment }: PaymentRowProps) {
     }
   }
 
+  const getPaymentMethodBadgeVariant = (method: string) => {
+    switch (method) {
+      case 'cash':
+        return 'secondary'
+      case 'card':
+        return 'default'
+      default:
+        return 'outline'
+    }
+  }
+
   return (
     <TableRow>
       <TableCell className="font-mono text-xs">
@@ -55,6 +66,11 @@ export default function PaymentRow({ payment }: PaymentRowProps) {
       <TableCell>
         <Badge variant={getSessionBadgeVariant(payment.sessionType)}>
           {payment.sessionType.charAt(0).toUpperCase() + payment.sessionType.slice(1)}
+        </Badge>
+      </TableCell>
+      <TableCell>
+        <Badge variant={getPaymentMethodBadgeVariant(payment.paymentMethod)}>
+          {payment.paymentMethod.charAt(0).toUpperCase() + payment.paymentMethod.slice(1)}
         </Badge>
       </TableCell>
       <TableCell>

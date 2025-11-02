@@ -11,18 +11,32 @@ interface ItemsLimitProgressProps {
   buffetSettings: BuffetSettings
   currentSession: 'breakfast' | 'lunch' | 'dinner'
   guestCounts: { adults: number; children: number; infants: number }
+  tableId?: string
   className?: string
 }
 
-export function ItemsLimitProgress({ currentItems, buffetSettings, currentSession, guestCounts, className }: ItemsLimitProgressProps) {
+export function ItemsLimitProgress({ currentItems, buffetSettings, currentSession, guestCounts, tableId, className }: ItemsLimitProgressProps) {
   // Calculate max items based on guest counts and session-specific limits
   const calculateMaxItems = () => {
-    // Get items limit for current session
+    // Start with general limits as base
     let itemsLimit = buffetSettings.itemsLimit
+    console.log('buffetSettings items limit:', buffetSettings)
     
-    // Check if there's session-specific items limit
+    // Override with session-specific limits if available (medium priority)
     if (buffetSettings.sessionSpecificItemsLimit && buffetSettings.sessionSpecificItemsLimit[currentSession]) {
       itemsLimit = buffetSettings.sessionSpecificItemsLimit[currentSession]
+    }
+    
+    // Finally, override with special table limits if available (highest priority)
+    if (tableId && buffetSettings.specialTableItemsLimit && buffetSettings.specialTableItemsLimit.length > 0) {
+      const specialTableLimit = buffetSettings.specialTableItemsLimit.find(item => item.tableId === tableId)
+      if (specialTableLimit && itemsLimit) {
+        itemsLimit = {
+          adultLimit: (itemsLimit.adultLimit || 0) + (specialTableLimit.itemsLimit.adultLimit || 0),
+          childLimit: (itemsLimit.childLimit || 0) + (specialTableLimit.itemsLimit.childLimit || 0),
+          infantLimit: (itemsLimit.infantLimit || 0) + (specialTableLimit.itemsLimit.infantLimit || 0)
+        }
+      }
     }
 
     // If no items limit is configured, return 0 (no limit)

@@ -333,6 +333,7 @@ export default function PaymentsPage() {
                     <TableHead>Date & Time</TableHead>
                     <TableHead>Table</TableHead>
                     <TableHead>Session</TableHead>
+                    <TableHead>Method</TableHead>
                     <TableHead>Waiter</TableHead>
                     <TableHead>Guests</TableHead>
                     <TableHead>Amount</TableHead>

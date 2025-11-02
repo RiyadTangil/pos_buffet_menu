@@ -255,7 +255,7 @@ export default function SettingsPage() {
         ...(prev.specialTableItemsLimit || []),
         {
           tableId: selectedTableId,
-          tableName: selectedTable.name,
+          tableName: `Table ${selectedTable.number}`,
           itemsLimit: {
             adultLimit: prev.itemsLimit?.adultLimit || 5,
             childLimit: prev.itemsLimit?.childLimit || 4,
@@ -599,58 +599,66 @@ export default function SettingsPage() {
           
           <Separator className="my-4" />
           
-          {settings.specialTableItemsLimit && settings.specialTableItemsLimit.length > 0 ? (
-            <div className="space-y-4">
-              {settings.specialTableItemsLimit.map((tableLimit) => (
-                <div key={tableLimit.tableId} className="border rounded-md p-4">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-medium">{tableLimit.tableName}</h3>
-                    <Button 
-                      variant="destructive" 
-                      size="sm" 
-                      onClick={() => handleRemoveSpecialTableItemLimit(tableLimit.tableId)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <Label htmlFor={`adult-limit-${tableLimit.tableId}`}>Adult Item Limit</Label>
-                      <Input
-                        id={`adult-limit-${tableLimit.tableId}`}
-                        type="number"
-                        value={tableLimit.itemsLimit.adultLimit}
-                        onChange={(e) => handleSpecialTableItemLimitChange(tableLimit.tableId, 'adultLimit', e.target.value)}
-                        min={0}
-                      />
+          {/* Show limits for selected table only */}
+          {selectedTableId && settings.specialTableItemsLimit && settings.specialTableItemsLimit.length > 0 ? (
+            (() => {
+              const selectedTableLimit = settings.specialTableItemsLimit.find(item => item.tableId === selectedTableId)
+              return selectedTableLimit ? (
+                <div className="space-y-4">
+                  <div className="border rounded-md p-4">
+                    <div className="flex justify-between items-center mb-4">
+                      <h3 className="text-lg font-medium">{selectedTableLimit.tableName}</h3>
+                      <Button 
+                        variant="destructive" 
+                        size="sm" 
+                        onClick={() => handleRemoveSpecialTableItemLimit(selectedTableLimit.tableId)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </div>
-                    <div>
-                      <Label htmlFor={`child-limit-${tableLimit.tableId}`}>Child Item Limit</Label>
-                      <Input
-                        id={`child-limit-${tableLimit.tableId}`}
-                        type="number"
-                        value={tableLimit.itemsLimit.childLimit}
-                        onChange={(e) => handleSpecialTableItemLimitChange(tableLimit.tableId, 'childLimit', e.target.value)}
-                        min={0}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor={`infant-limit-${tableLimit.tableId}`}>Infant Item Limit</Label>
-                      <Input
-                        id={`infant-limit-${tableLimit.tableId}`}
-                        type="number"
-                        value={tableLimit.itemsLimit.infantLimit}
-                        onChange={(e) => handleSpecialTableItemLimitChange(tableLimit.tableId, 'infantLimit', e.target.value)}
-                        min={0}
-                      />
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <Label htmlFor={`adult-limit-${selectedTableLimit.tableId}`}>Adult Item Limit</Label>
+                        <Input
+                          id={`adult-limit-${selectedTableLimit.tableId}`}
+                          type="number"
+                          value={selectedTableLimit.itemsLimit.adultLimit}
+                          onChange={(e) => handleSpecialTableItemLimitChange(selectedTableLimit.tableId, 'adultLimit', e.target.value)}
+                          min={0}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor={`child-limit-${selectedTableLimit.tableId}`}>Child Item Limit</Label>
+                        <Input
+                          id={`child-limit-${selectedTableLimit.tableId}`}
+                          type="number"
+                          value={selectedTableLimit.itemsLimit.childLimit}
+                          onChange={(e) => handleSpecialTableItemLimitChange(selectedTableLimit.tableId, 'childLimit', e.target.value)}
+                          min={0}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor={`infant-limit-${selectedTableLimit.tableId}`}>Infant Item Limit</Label>
+                        <Input
+                          id={`infant-limit-${selectedTableLimit.tableId}`}
+                          type="number"
+                          value={selectedTableLimit.itemsLimit.infantLimit}
+                          onChange={(e) => handleSpecialTableItemLimitChange(selectedTableLimit.tableId, 'infantLimit', e.target.value)}
+                          min={0}
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
+              ) : (
+                <p className="text-muted-foreground">No special limits configured for the selected table.</p>
+              )
+            })()
+          ) : selectedTableId ? (
+            <p className="text-muted-foreground">No special limits configured for the selected table.</p>
           ) : (
-            <p className="text-muted-foreground">No special table limits configured yet.</p>
+            <p className="text-muted-foreground">Select a table to view or configure special limits.</p>
           )}
         </CardContent>
       </Card>

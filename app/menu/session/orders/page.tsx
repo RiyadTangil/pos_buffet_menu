@@ -46,11 +46,13 @@ export default function SessionOrdersPage() {
   const router = useRouter();
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
   const [waiterPin, setWaiterPin] = useState("");
-  const [pinError, setPinError] = useState("");
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [paymentComplete, setPaymentComplete] = useState(false);
-  const [orders, setOrders] = useState<any[]>([]);
   const [validatedWaiter, setValidatedWaiter] = useState<any>(null);
+  const [pinError, setPinError] = useState("");
+  const [paymentComplete, setPaymentComplete] = useState(false);
+  const [tipAmount, setTipAmount] = useState<number>(0); // New state for tips
+  const [paymentMethod, setPaymentMethod] = useState<"cash" | "card">("cash");
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [tableNumber, setTableNumber] = useState<any>();
   const [guestCounts, setGuestCounts] = useState({
@@ -369,10 +371,17 @@ export default function SessionOrdersPage() {
         tableNumber: tableNumber,
         waiterId: validatedWaiter.id,
         waiterName: validatedWaiter.name,
-        paymentMethod: paymentMethod,
+        paymentMethod: splitData.paymentMethod, // Use individual payment method
         totalAmount: splitData.total,
         sessionType: currentSession?.key || "lunch",
         groupType: storedGroupType || undefined,
+        isSplit: true, // Mark as split payment
+        splitInfo: {
+          totalSplits: splitBills.length,
+          splitIndex: splitIndex + 1,
+          customerName: splitData.customerName,
+          originalTotalAmount: grandTotal
+        },
         sessionData: {
           adults: splitData.sessionCharges.adults,
           children: splitData.sessionCharges.children,
@@ -382,12 +391,6 @@ export default function SessionOrdersPage() {
           childPrice: sessionData.childPrice,
           infantPrice: sessionData.infantPrice,
           drinkPrice: sessionData.drinkPrice,
-        },
-        splitInfo: {
-          customerName: splitData.customerName,
-          splitIndex: splitIndex + 1,
-          totalSplits: splitBills.length,
-          items: splitData.items,
         },
       };
 
@@ -468,6 +471,7 @@ export default function SessionOrdersPage() {
         waiterName: validatedWaiter.name,
         paymentMethod: paymentMethod,
         totalAmount: grandTotal,
+        tipAmount: tipAmount, // Include tip amount
         sessionType: currentSession?.key || "lunch",
         groupType: storedGroupType || undefined,
         sessionData: {
@@ -532,9 +536,6 @@ export default function SessionOrdersPage() {
       );
     }
   };
-
-  // Payment method selection (cash default)
-  const [paymentMethod, setPaymentMethod] = useState<"cash" | "card">("cash");
 
   return (
     <I18nProvider>
@@ -892,7 +893,7 @@ export default function SessionOrdersPage() {
                         {t("orders.waiter_verification")}
                       </DialogTitle>
                       <DialogDescription>
-                        {t("orders.enter_waiter_pin", { amount: grandTotal })}
+                        {t("orders.enter_waiter_pin")+grandTotal}
                       </DialogDescription>
                     </DialogHeader>
 
@@ -908,7 +909,7 @@ export default function SessionOrdersPage() {
                       </div>
                     ) : (
                       <>
-                        <div className="space-y-4">
+                        <div className="space-y-4 py-4">
                           <div>
                             <Label htmlFor="waiterPin">
                               {t("orders.waiter_pin")}
@@ -978,30 +979,88 @@ export default function SessionOrdersPage() {
                               </Button>
                             </div>
                           </div>
+
+                          {/* Tips Section */}
+                          <div className="space-y-2">
+                            <Label htmlFor="tipAmount">
+                              Add Tip (Optional)
+                            </Label>
+                            <div className="flex items-center space-x-2">
+                              <span className="text-lg font-medium">£</span>
+                              <Input
+                                id="tipAmount"
+                                type="number"
+                                placeholder="0.00"
+                                value={tipAmount || ""}
+                                onChange={(e) => {
+                                  const value = parseFloat(e.target.value) || 0;
+                                  setTipAmount(Math.max(0, value));
+                                }}
+                                min="0"
+                                step="0.01"
+                                className="text-center"
+                              />
+                            </div>
+                            <div className="flex gap-2 mt-2">
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setTipAmount(Math.round(grandTotal * 0.1 * 100) / 100)}
+                                className="text-xs"
+                              >
+                                10%
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setTipAmount(Math.round(grandTotal * 0.15 * 100) / 100)}
+                                className="text-xs"
+                              >
+                                15%
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setTipAmount(Math.round(grandTotal * 0.2 * 100) / 100)}
+                                className="text-xs"
+                              >
+                                20%
+                              </Button>
+                            </div>
+                            {tipAmount > 0 && (
+                              <p className="text-sm text-green-600 mt-1">
+                                Total with tip: £{(grandTotal + tipAmount).toFixed(2)}
+                              </p>
+                            )}
+                          </div>
                         </div>
 
-                        <DialogFooter className="flex-col gap-2">
+                        <DialogFooter className="flex-col gap-2 pt-4 border-t">
                           {validatedWaiter ? (
-                            <>
-                              {isSecondaryDevice && (
+                            <div>
+                              {/* Show split bill button if adults > 1 or if it's a secondary device */}
+                              {(sessionData.adults > 1 || isSecondaryDevice) && (
                                 <Button
                                   onClick={() => setShowSplitBill(true)}
                                   variant="outline"
-                                  className="w-full"
+                                  className="w-full mb-2"
                                 >
-                                  Split Bill
+                                  Split Bill ({sessionData.adults} Adults)
                                 </Button>
                               )}
                               <Button
                                 onClick={handleSinglePayment}
                                 disabled={isProcessing}
-                                className="w-full"
+                                className="w-full bg-green-600 hover:bg-green-700"
                               >
                                 {isProcessing
                                   ? t("orders.processing")
-                                  : t("orders.pay_full_amount") + grandTotal}
+                                  : `${t("orders.pay_full_amount")} ${(grandTotal + tipAmount).toFixed()}`}
                               </Button>
-                            </>
+                            </div>
                           ) : (
                             <Button
                               onClick={handlePayment}
@@ -1010,7 +1069,7 @@ export default function SessionOrdersPage() {
                                 waiterPin.length !== 4 ||
                                 isProcessing
                               }
-                              className="w-full"
+                              className="w-full bg-blue-600 hover:bg-blue-700"
                             >
                               {isProcessing
                                 ? t("orders.validating")

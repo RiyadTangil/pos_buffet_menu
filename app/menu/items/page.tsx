@@ -14,6 +14,8 @@ import { fetchCategories } from "@/lib/api/categories"
 import { fetchProducts, type Product } from "@/lib/api/products"
 import { getBuffetSettings, type BuffetSettings } from "@/lib/api/settings"
 import { getTableSession, setNextOrderAvailable, type TableSession } from "@/lib/api/table-sessions"
+
+import { fetchTableById, type Table } from "@/lib/api/tables"
 import { saveOrder, type SessionOrder } from "@/lib/api/orders-client"
 import { usePrinting } from '@/hooks/usePrinting'
 import { PrintButton } from '@/components/printing/PrintButton'
@@ -110,6 +112,7 @@ export default function ItemsPage() {
   const [categories, setCategories] = useState<any[]>([])
   const [products, setProducts] = useState<any[]>([])
   const [tableSession, setTableSession] = useState<TableSession | null>(null)
+  const [tableData, setTableData] = useState<Table | null>(null)
   const [deviceId, setDeviceId] = useState<string>('')
 
   const [loading, setLoading] = useState(true)
@@ -272,6 +275,16 @@ export default function ItemsPage() {
           setBuffetSettings(settingsResponse.data)
         }
         
+        // Fetch table data if we have a table ID
+        if (storedTableId) {
+          try {
+            const tableInfo = await fetchTableById(storedTableId)
+            setTableData(tableInfo)
+          } catch (error) {
+            console.error('Error fetching table data:', error)
+          }
+        }
+        
         // Get current session to filter categories
         const currentSession = getCurrentSessionFromSettings(settingsResponse.data)
         
@@ -412,22 +425,26 @@ export default function ItemsPage() {
       return
     }
 
-    // Get items limit for current session
+    // Get items limit for current session with proper priority
     const sessionKey = currentSession.key as 'breakfast' | 'lunch' | 'dinner'
-    let itemsLimit = buffetSettings.itemsLimit
     const tableId = tableSession?.tableId
     
-    // First check for special table item limits
+    // Start with general limits as base
+    let itemsLimit = buffetSettings.itemsLimit
+    
+    // Override with session-specific limits if available (medium priority)
+    if (buffetSettings.sessionSpecificItemsLimit && buffetSettings.sessionSpecificItemsLimit[sessionKey]) {
+      itemsLimit = buffetSettings.sessionSpecificItemsLimit[sessionKey]
+      console.log('Using session-specific item limits for session:', sessionKey)
+    }
+    
+    // Finally, override with special table limits if available (highest priority)
     if (tableId && buffetSettings.specialTableItemsLimit && buffetSettings.specialTableItemsLimit.length > 0) {
       const specialTableLimit = buffetSettings.specialTableItemsLimit.find(item => item.tableId === tableId)
       if (specialTableLimit) {
         itemsLimit = specialTableLimit.itemsLimit
         console.log('Using special table item limits for table:', tableId)
       }
-    } 
-    // If no special table limits, use session-specific limits
-    else if (buffetSettings.sessionSpecificItemsLimit && buffetSettings.sessionSpecificItemsLimit[sessionKey]) {
-      itemsLimit = buffetSettings.sessionSpecificItemsLimit[sessionKey]
     }
 
     // If no items limit is set, skip validation
@@ -847,9 +864,23 @@ export default function ItemsPage() {
                 />
               </div>
               
+              {/* Table and Session Display */}
+              {(tableData) && (
+                <div className="flex items-center gap-2 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg px-4 py-2 border border-blue-200">
+           
+                  <div className="text-sm">
+                    <div className="font-semibold text-blue-900">
+                      { tableData  ? (
+                        `Table-${tableData.number}`
+                      ) : ''}
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               {/* Current Session Display / Countdown */}
               {currentSession ? (
-                <SessionCountdown currentSession={currentSession} />
+                <SessionCountdown currentSession={currentSession}  />
               ) : buffetSettings && (
                 <div className="flex items-center gap-4 bg-gray-50 rounded-lg px-4 py-2 border border-gray-200">
                 <Clock className="h-5 w-5 text-gray-600" />
@@ -1043,6 +1074,7 @@ export default function ItemsPage() {
             currentItems={getTotalItems()}
             buffetSettings={buffetSettings}
             currentSession={currentSession.key as 'breakfast' | 'lunch' | 'dinner'}
+            tableId={tableSession.tableId}
             guestCounts={{
               adults: tableSession.guestCounts.adults,
               children: tableSession.guestCounts.children,
