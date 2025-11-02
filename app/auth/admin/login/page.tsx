@@ -33,7 +33,9 @@ export default function AdminLoginPage() {
         // Verify session and redirect
         const session = await getSession()
         const userRole = session?.user?.role
-        if (['admin', 'waiter', 'stall_manager'].includes(userRole)) {
+        if (userRole === 'waiter') {
+          router.push("/admin/profile")
+        } else if (userRole === 'admin' || userRole === 'stall_manager') {
           router.push("/admin/dashboard")
         } else {
           setError("Access denied. Valid role required (admin, waiter, or stall manager).")

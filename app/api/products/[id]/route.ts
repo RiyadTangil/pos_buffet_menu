@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getDatabase } from '@/lib/mongodb'
 import { ObjectId } from 'mongodb'
+import { unlink } from 'fs/promises'
+import { join } from 'path'
+import { existsSync } from 'fs'
 
 // GET - Fetch a single product by ID
 export async function GET(
@@ -160,6 +163,34 @@ export async function PUT(
       { $set: updateData }
     )
 
+    // If image changed or cleared, and previous image was a local upload, remove the old file
+    const previousImage: string = existingProduct.image || ''
+    const newImage: string = updateData.image || ''
+    const isLocalProductImage = (url: string) => url.startsWith('/images/products/')
+
+    if (previousImage && previousImage !== newImage && isLocalProductImage(previousImage)) {
+      // Ensure no other products reference the same image
+      const othersUsing = await db.collection('products').countDocuments({
+        image: previousImage,
+        _id: { $ne: new ObjectId(id) }
+      })
+
+      if (othersUsing === 0) {
+        const relative = previousImage.replace('/images/products/', '')
+        // Prevent path traversal by rejecting suspicious segments
+        if (!relative.includes('..')) {
+          const filePath = join(process.cwd(), 'public', 'images', 'products', relative)
+          try {
+            if (existsSync(filePath)) {
+              await unlink(filePath)
+            }
+          } catch (e) {
+            console.warn('Failed to remove old product image:', e)
+          }
+        }
+      }
+    }
+
     const updatedProduct = {
       id,
       ...updateData,
@@ -228,6 +259,30 @@ export async function DELETE(
 
     // Delete the product
     await db.collection('products').deleteOne({ _id: new ObjectId(id) })
+
+    // If product had a local image, and no other products reference it, remove the file
+    const imageToDelete: string = existingProduct.image || ''
+    const isLocalProductImage = (url: string) => url.startsWith('/images/products/')
+    if (imageToDelete && isLocalProductImage(imageToDelete)) {
+      const othersUsing = await db.collection('products').countDocuments({
+        image: imageToDelete,
+        _id: { $ne: new ObjectId(id) }
+      })
+
+      if (othersUsing === 0) {
+        const relative = imageToDelete.replace('/images/products/', '')
+        if (!relative.includes('..')) {
+          const filePath = join(process.cwd(), 'public', 'images', 'products', relative)
+          try {
+            if (existsSync(filePath)) {
+              await unlink(filePath)
+            }
+          } catch (e) {
+            console.warn('Failed to remove product image on delete:', e)
+          }
+        }
+      }
+    }
 
     const deletedProduct = {
       id: existingProduct._id.toString(),

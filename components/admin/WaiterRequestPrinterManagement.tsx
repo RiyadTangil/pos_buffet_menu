@@ -90,21 +90,16 @@ export default function WaiterRequestPrinterManagement() {
   const loadData = async () => {
     try {
       setLoading(true)
-      const [mappingsResponse, ipPrintersResponse, usbPrintersResponse] = await Promise.all([
+      const [mappingsList, ipPrintersList, usbPrintersList] = await Promise.all([
         fetchWaiterRequestMappings(),
         fetchPrinters(),
         fetchUSBPrinters()
       ])
 
-      // fetchWaiterRequestMappings returns array directly, not wrapped in success/data
-      setMappings(mappingsResponse)
-      
-      if (ipPrintersResponse.success) {
-        setIPPrinters(ipPrintersResponse.data)
-      }
-      if (usbPrintersResponse.success) {
-        setUSBPrinters(usbPrintersResponse.data)
-      }
+      // Each API returns arrays directly
+      setMappings(mappingsList)
+      setIPPrinters(ipPrintersList)
+      setUSBPrinters(usbPrintersList)
     } catch (error) {
       console.error('Error loading data:', error)
       toast.error('Failed to load waiter request printer mappings')
@@ -149,6 +144,18 @@ export default function WaiterRequestPrinterManagement() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Validation: Check if same request type already exists for same printer
+    const existingMapping = mappings.find(mapping => 
+      mapping.requestType === formData.requestType && 
+      mapping.printerId === formData.printerId &&
+      (!editingMapping || mapping.requestType !== editingMapping.requestType)
+    )
+    
+    if (existingMapping) {
+      toast.error(`Request type "${REQUEST_TYPE_LABELS[formData.requestType]}" is already assigned to printer "${formData.printerName}". Please select a different printer or request type.`)
+      return
+    }
     
     try {
       const mappingData = {
@@ -206,19 +213,22 @@ export default function WaiterRequestPrinterManagement() {
   const handlePrinterChange = (printerId: string) => {
     const printer = formData.connectionType === 'ip' 
       ? ipPrinters.find(p => p.id === printerId)
-      : usbPrinters.find(p => p.id === printerId)
+      : (usbPrinters.find(p => p.id === printerId) || localPrinters.find(lp => lp.name === printerId))
     
     if (printer) {
       setFormData({
         ...formData,
         printerId,
-        printerName: printer.name
+        printerName: ("name" in printer ? (printer as any).name : (printer as LocalPrinter).displayName)
       })
     }
   }
 
   const getAvailablePrinters = () => {
-    return formData.connectionType === 'ip' ? ipPrinters : usbPrinters
+    if (formData.connectionType === 'ip') return ipPrinters
+    // Fallback to local printers if no USB printers are configured
+    if (usbPrinters.length > 0) return usbPrinters
+    return localPrinters.map(lp => ({ id: lp.name, name: lp.displayName })) as any
   }
 
   const getRequestTypeIcon = (requestType: WaiterRequestType) => {
@@ -233,7 +243,8 @@ export default function WaiterRequestPrinterManagement() {
       <Usb className="h-4 w-4 text-green-500" />
     )
   }
-
+console.log("formData => ",formData)
+console.log("getAvailablePrinters => ",getAvailablePrinters())
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -350,21 +361,42 @@ export default function WaiterRequestPrinterManagement() {
 
               <div>
                 <Label htmlFor="printerId">Printer</Label>
-                <Select
-                  value={formData.printerId}
-                  onValueChange={handlePrinterChange}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select printer" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {getAvailablePrinters().map((printer) => (
-                      <SelectItem key={printer.id} value={printer.id}>
-                        {printer.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {formData.printerName ? (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between p-3 border rounded-md bg-gray-50">
+                      <div className="flex items-center gap-2">
+                        {getConnectionIcon(formData.connectionType)}
+                        <span className="font-medium">{formData.printerName}</span>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setFormData({ ...formData, printerId: '', printerName: '' })}
+                      >
+                        Change
+                      </Button>
+                    </div>
+                  </div>
+                ) : null
+                // (
+                //   <Select
+                //     value={formData.printerId}
+                //     onValueChange={handlePrinterChange}
+                //   >
+                //     <SelectTrigger>
+                //       <SelectValue placeholder="Select printer" />
+                //     </SelectTrigger>
+                //     <SelectContent>
+                //       {getAvailablePrinters().map((printer) => (
+                //         <SelectItem key={printer.id} value={printer.id}>
+                //           {printer.name}
+                //         </SelectItem>
+                //       ))}
+                //     </SelectContent>
+                //   </Select>
+                // )
+                }
               </div>
 
               <div className="flex items-center space-x-2">

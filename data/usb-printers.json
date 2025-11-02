@@ -1,18 +1,18 @@
 [
   {
-    "id": "1761678661333",
+    "id": "1762052799396",
     "name": "Microsoft Print to PDF",
     "localPrinterName": "Microsoft Print to PDF",
     "displayName": "Microsoft Print to PDF",
     "type": "thermal",
     "isActive": true,
     "categories": [
-      "68c99fb9991d23a92d66f077"
+      "68c167f8c85542d7fb04fe24"
     ],
     "isDefault": false,
     "status": "Ready",
     "description": "Microsoft Print To PDF",
-    "createdAt": "2025-10-28T19:11:01.333Z",
-    "updatedAt": "2025-10-28T19:11:01.333Z"
+    "createdAt": "2025-11-02T03:06:39.396Z",
+    "updatedAt": "2025-11-02T03:06:39.396Z"
   }
 ]

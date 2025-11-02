@@ -219,5 +219,57 @@
     "createdAt": "2025-10-28T16:36:13.241Z",
     "retryCount": 0,
     "printedAt": "2025-10-28T16:36:26.855Z"
+  },
+  {
+    "id": "wrpj_1762052952436_n4ss7phpm",
+    "requestId": "wr_1762052950110_kmvaggg4y",
+    "printerId": "OneNote (Desktop)",
+    "printerName": "OneNote (Desktop)",
+    "tableNumber": 68,
+    "requestType": "waiter",
+    "message": "Customer is requesting waiter assistance",
+    "status": "completed",
+    "createdAt": "2025-11-02T03:09:12.436Z",
+    "retryCount": 0,
+    "printedAt": "2025-11-02T03:09:21.918Z"
+  },
+  {
+    "id": "wrpj_1762053010446_cidde3nn4",
+    "requestId": "wr_1762053009905_hgeis24wo",
+    "printerId": "OneNote (Desktop)",
+    "printerName": "OneNote (Desktop)",
+    "tableNumber": 68,
+    "requestType": "waiter",
+    "message": "Customer is requesting waiter assistance",
+    "status": "failed",
+    "createdAt": "2025-11-02T03:10:10.446Z",
+    "retryCount": 0,
+    "errorMessage": "Failed to print to configured printer"
+  },
+  {
+    "id": "wrpj_1762054356928_7ffaq2akw",
+    "requestId": "wr_1762054355606_6m1hffj39",
+    "printerId": "Microsoft Print to PDF",
+    "printerName": "Microsoft Print to PDF",
+    "tableNumber": 68,
+    "requestType": "cleaning",
+    "message": "Table needs cleaning service",
+    "status": "completed",
+    "createdAt": "2025-11-02T03:32:36.928Z",
+    "retryCount": 0,
+    "printedAt": "2025-11-02T03:32:44.367Z"
+  },
+  {
+    "id": "wrpj_1762054367256_zorb30xaz",
+    "requestId": "wr_1762054366766_la4dnumz2",
+    "printerId": "OneNote (Desktop)",
+    "printerName": "OneNote (Desktop)",
+    "tableNumber": 68,
+    "requestType": "waiter",
+    "message": "Customer is requesting waiter assistance",
+    "status": "completed",
+    "createdAt": "2025-11-02T03:32:47.256Z",
+    "retryCount": 0,
+    "printedAt": "2025-11-02T03:32:59.727Z"
   }
 ]

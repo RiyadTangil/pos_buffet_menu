@@ -36,10 +36,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Plus, Edit, Trash2, Search, Leaf, Flame, Eye, EyeOff } from "lucide-react"
+import { Plus, Edit, Trash2, Search, Leaf, Flame, Eye, EyeOff, Upload, Link } from "lucide-react"
 import { toast } from "sonner"
 import { fetchProducts, createProduct, updateProduct, deleteProduct, type Product, type CreateProductData } from "@/lib/api/products"
 import { fetchCategories, type Category } from "@/lib/api/categories"
+import { uploadFile, validateImageFile } from "@/lib/api/upload"
 import { PermissionGuard } from "@/lib/rbac-client"
 
 interface ProductFormData {
@@ -94,6 +95,8 @@ function ProductsPageContent() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [imageUploadMethod, setImageUploadMethod] = useState<'url' | 'file'>('url')
+  const [uploadingImage, setUploadingImage] = useState(false)
 
   // Load products and categories
   useEffect(() => {
@@ -134,6 +137,31 @@ function ProductsPageContent() {
   // Handle form input changes
   const handleInputChange = (field: keyof ProductFormData, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }))
+  }
+
+  // Handle file upload
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    // Validate file
+    const validationError = validateImageFile(file)
+    if (validationError) {
+      toast.error(validationError)
+      return
+    }
+
+    try {
+      setUploadingImage(true)
+      const imageUrl = await uploadFile(file)
+      handleInputChange('image', imageUrl)
+      toast.success('Image uploaded successfully')
+    } catch (error: any) {
+      console.error('Error uploading image:', error)
+      toast.error(error.message || 'Failed to upload image')
+    } finally {
+      setUploadingImage(false)
+    }
   }
 
   // Validate form data
@@ -252,6 +280,7 @@ function ProductsPageContent() {
       isSpicy: product.isSpicy || false,
       isAvailable: product.isAvailable !== false
     })
+    setImageUploadMethod('url')
     setIsEditDialogOpen(true)
   }
 
@@ -310,7 +339,10 @@ function ProductsPageContent() {
               </div>
               <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button onClick={() => setFormData(initialFormData)}>
+                  <Button onClick={() => {
+                    setFormData(initialFormData)
+                    setImageUploadMethod('url')
+                  }}>
                     <Plus className="h-4 w-4 mr-2" />
                     Add Product
                   </Button>
@@ -333,25 +365,72 @@ function ProductsPageContent() {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="image">Product Image URL</Label>
-                      <Input
-                        id="image"
-                        value={formData.image}
-                        onChange={(e) => handleInputChange('image', e.target.value)}
-                        placeholder="Enter image URL"
-                      />
-                      {formData.image && (
-                        <div className="mt-2">
-                          <img 
-                            src={formData.image} 
-                            alt="Preview"
-                            className="w-20 h-20 object-cover rounded-lg border"
-                            onError={(e) => {
-                              e.currentTarget.style.display = 'none'
-                            }}
-                          />
+                      <Label>Product Image</Label>
+                      <div className="space-y-3">
+                        {/* Upload Method Selector */}
+                        <div className="flex space-x-2">
+                          <Button
+                            type="button"
+                            variant={imageUploadMethod === 'url' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setImageUploadMethod('url')}
+                            className="flex items-center gap-2"
+                          >
+                            <Link className="h-4 w-4" />
+                            URL
+                          </Button>
+                          <Button
+                            type="button"
+                            variant={imageUploadMethod === 'file' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setImageUploadMethod('file')}
+                            className="flex items-center gap-2"
+                          >
+                            <Upload className="h-4 w-4" />
+                            Upload File
+                          </Button>
                         </div>
-                      )}
+
+                        {/* URL Input */}
+                        {imageUploadMethod === 'url' && (
+                          <Input
+                            id="image-url"
+                            value={formData.image}
+                            onChange={(e) => handleInputChange('image', e.target.value)}
+                            placeholder="Enter image URL"
+                          />
+                        )}
+
+                        {/* File Upload */}
+                        {imageUploadMethod === 'file' && (
+                          <div className="space-y-2">
+                            <Input
+                              id="image-file"
+                              type="file"
+                              accept="image/*"
+                              onChange={handleFileUpload}
+                              disabled={uploadingImage}
+                            />
+                            {uploadingImage && (
+                              <div className="text-sm text-gray-500">Uploading image...</div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Image Preview */}
+                        {formData.image && (
+                          <div className="mt-2">
+                            <img 
+                              src={formData.image} 
+                              alt="Preview"
+                              className="w-20 h-20 object-cover rounded-lg border"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none'
+                              }}
+                            />
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <div>
                       <Label htmlFor="category">Category</Label>
@@ -567,25 +646,72 @@ function ProductsPageContent() {
               />
             </div>
             <div>
-              <Label htmlFor="edit-image">Product Image URL</Label>
-              <Input
-                id="edit-image"
-                value={formData.image}
-                onChange={(e) => handleInputChange('image', e.target.value)}
-                placeholder="Enter image URL"
-              />
-              {formData.image && (
-                <div className="mt-2">
-                  <img 
-                    src={formData.image} 
-                    alt="Preview"
-                    className="w-20 h-20 object-cover rounded-lg border"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none'
-                    }}
-                  />
+              <Label>Product Image</Label>
+              <div className="space-y-3">
+                {/* Upload Method Selector */}
+                <div className="flex space-x-2">
+                  <Button
+                    type="button"
+                    variant={imageUploadMethod === 'url' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setImageUploadMethod('url')}
+                    className="flex items-center gap-2"
+                  >
+                    <Link className="h-4 w-4" />
+                    URL
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={imageUploadMethod === 'file' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setImageUploadMethod('file')}
+                    className="flex items-center gap-2"
+                  >
+                    <Upload className="h-4 w-4" />
+                    Upload File
+                  </Button>
                 </div>
-              )}
+
+                {/* URL Input */}
+                {imageUploadMethod === 'url' && (
+                  <Input
+                    id="edit-image-url"
+                    value={formData.image}
+                    onChange={(e) => handleInputChange('image', e.target.value)}
+                    placeholder="Enter image URL"
+                  />
+                )}
+
+                {/* File Upload */}
+                {imageUploadMethod === 'file' && (
+                  <div className="space-y-2">
+                    <Input
+                      id="edit-image-file"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileUpload}
+                      disabled={uploadingImage}
+                    />
+                    {uploadingImage && (
+                      <div className="text-sm text-gray-500">Uploading image...</div>
+                    )}
+                  </div>
+                )}
+
+                {/* Image Preview */}
+                {formData.image && (
+                  <div className="mt-2">
+                    <img 
+                      src={formData.image} 
+                      alt="Preview"
+                      className="w-20 h-20 object-cover rounded-lg border"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none'
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
             <div>
               <Label htmlFor="edit-category">Category</Label>
