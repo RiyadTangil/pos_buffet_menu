@@ -5814,5 +5814,120 @@
       "orderTime": "2025-11-02T09:20:57.725Z",
       "totalAmount": 0
     }
+  },
+  {
+    "id": "order-1762095491467-3po3ov",
+    "type": "order",
+    "printerName": "Microsoft Print to PDF",
+    "status": "completed",
+    "items": [
+      {
+        "id": "68c19d3a3b67d81cc1cc2e82",
+        "name": "Normal Vagitable",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-11-02T14:58:11.469Z",
+    "updatedAt": "2025-11-02T14:58:19.399Z",
+    "meta": {
+      "orderId": "order-1762095487871-i2b6x01l8",
+      "tableNumber": "68c15318c85542d7fb04fe20",
+      "guestCount": 1,
+      "orderTime": "2025-11-02T14:58:09.076Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "order-1762095854716-hqtkw4",
+    "type": "order",
+    "printerName": "USB/Spooler",
+    "status": "completed",
+    "items": [
+      {
+        "id": "wr_1762095854261",
+        "name": "Cleaning Request",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-11-02T15:04:14.718Z",
+    "updatedAt": "2025-11-02T15:04:20.777Z",
+    "meta": {
+      "orderId": "waiter_request_1762095854261",
+      "tableNumber": 68,
+      "guestCount": 1,
+      "orderTime": "2025-11-02T15:04:14.261Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "order-1762095963280-lcfgcj",
+    "type": "order",
+    "printerName": "USB/Spooler",
+    "status": "completed",
+    "items": [
+      {
+        "id": "wr_1762095962902",
+        "name": "Waiter Request",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-11-02T15:06:03.282Z",
+    "updatedAt": "2025-11-02T15:06:08.026Z",
+    "meta": {
+      "orderId": "waiter_request_1762095962902",
+      "tableNumber": 68,
+      "guestCount": 1,
+      "orderTime": "2025-11-02T15:06:02.902Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "order-1762096123636-4n6oa7",
+    "type": "order",
+    "printerName": "USB/Spooler",
+    "status": "completed",
+    "items": [
+      {
+        "id": "wr_1762096123357",
+        "name": "Waiter Request",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-11-02T15:08:43.637Z",
+    "updatedAt": "2025-11-02T15:09:09.232Z",
+    "meta": {
+      "orderId": "waiter_request_1762096123357",
+      "tableNumber": 68,
+      "guestCount": 1,
+      "orderTime": "2025-11-02T15:08:43.357Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "order-1762096784604-49tyvs",
+    "type": "order",
+    "printerName": "USB/Spooler",
+    "status": "completed",
+    "items": [
+      {
+        "id": "wr_1762096784024",
+        "name": "REQUEST WAITER",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-11-02T15:19:44.606Z",
+    "updatedAt": "2025-11-02T15:19:52.970Z",
+    "meta": {
+      "orderId": "waiter_request_1762096784024",
+      "tableNumber": 68,
+      "guestCount": 1,
+      "orderTime": "2025-11-02T15:19:44.024Z",
+      "totalAmount": 0
+    }
   }
 ]

@@ -84,153 +84,193 @@ async function buildOrderPDF(
 
   const margin = 30
   const pageWidth = 300
+  const pageHeight = 600
   const centerX = pageWidth / 2
-  let y = 570
+  let y = pageHeight - 30 // Start from top with margin
 
-  // Title - KITCHEN ORDER
-  page.setFont(boldFont)
-  page.setFontSize(18)
-  const titleWidth = boldFont.widthOfTextAtSize(title, 18)
-  page.drawText(title, { 
-    x: centerX - titleWidth / 2, 
-    y, 
-    color: rgb(0,0,0) 
-  })
-  y -= 20
+  // Check if this is a waiter request
+  const isWaiterRequest = title.includes('REQUEST') || meta.orderId.includes('waiter_request')
 
-  // Table number
-  page.setFontSize(14)
-  const tableText = `Table ${meta.tableNumber ?? 'N/A'}`
-  const tableWidth = boldFont.widthOfTextAtSize(tableText, 14)
-  page.drawText(tableText, { 
-    x: centerX - tableWidth / 2, 
-    y,
-    color: rgb(0,0,0) 
-  })
-  y -= 30
+  if (isWaiterRequest) {
+    // Simplified waiter request format
+    page.setFont(boldFont)
+    page.setFontSize(20)
+    const titleWidth = boldFont.widthOfTextAtSize(title, 20)
+    page.drawText(title, { 
+      x: centerX - titleWidth / 2, 
+      y, 
+      color: rgb(0,0,0) 
+    })
+    y -= 40
 
-  // Horizontal line
-  page.drawLine({
-    start: { x: margin, y },
-    end: { x: pageWidth - margin, y },
-    thickness: 1,
-    color: rgb(0,0,0),
-  })
-  y -= 15
+    // Table number (larger for waiter requests)
+    page.setFontSize(24)
+    const tableText = `TABLE ${meta.tableNumber ?? 'N/A'}`
+    const tableWidth = boldFont.widthOfTextAtSize(tableText, 24)
+    page.drawText(tableText, { 
+      x: centerX - tableWidth / 2, 
+      y,
+      color: rgb(0,0,0) 
+    })
+    y -= 60
 
-  // Order info
-  page.setFont(font)
-  page.setFontSize(10)
-  page.drawText(`Order ID: ${meta.orderId}`, { x: margin, y }); y -= 14
-  page.drawText(`Guests: ${meta.guestCount ?? 0}`, { x: margin, y }); y -= 14
-  page.drawText(`Date & Time: ${meta.orderTime ? new Date(meta.orderTime).toLocaleString() : new Date().toLocaleString()}`, { x: margin, y }); y -= 20
+    // Date and time
+    page.setFont(font)
+    page.setFontSize(12)
+    const dateTime = new Date().toLocaleString()
+    const dateTimeWidth = font.widthOfTextAtSize(dateTime, 12)
+    page.drawText(dateTime, { 
+      x: centerX - dateTimeWidth / 2, 
+      y,
+      color: rgb(0,0,0) 
+    })
 
-  // Horizontal line
-  page.drawLine({
-    start: { x: margin, y },
-    end: { x: pageWidth - margin, y },
-    thickness: 1,
-    color: rgb(0,0,0),
-  })
-  y -= 20
+  } else {
+    // Original kitchen order format
+    page.setFont(boldFont)
+    page.setFontSize(18)
+    const titleWidth = boldFont.widthOfTextAtSize(title, 18)
+    page.drawText(title, { 
+      x: centerX - titleWidth / 2, 
+      y, 
+      color: rgb(0,0,0) 
+    })
+    y -= 20
 
-  // Items header
-  page.setFont(boldFont)
-  page.setFontSize(12)
-  const itemsHeader = "ITEMS TO PREPARE"
-  const headerWidth = boldFont.widthOfTextAtSize(itemsHeader, 12)
-  page.drawText(itemsHeader, { 
-    x: centerX - headerWidth / 2, 
-    y,
-    color: rgb(0,0,0) 
-  })
-  y -= 15
+    // Table number
+    page.setFontSize(14)
+    const tableText = `Table ${meta.tableNumber ?? 'N/A'}`
+    const tableWidth = boldFont.widthOfTextAtSize(tableText, 14)
+    page.drawText(tableText, { 
+      x: centerX - tableWidth / 2, 
+      y,
+      color: rgb(0,0,0) 
+    })
+    y -= 30
 
-  // Column headers
-  page.setFontSize(10)
-  page.drawText("Item", { x: margin, y })
-  page.drawText("Qty", { x: pageWidth - margin - 40, y })
-  y -= 10
+    // Horizontal line
+    page.drawLine({
+      start: { x: margin, y },
+      end: { x: pageWidth - margin, y },
+      thickness: 1,
+      color: rgb(0,0,0),
+    })
+    y -= 15
 
-  // Horizontal line
-  page.drawLine({
-    start: { x: margin, y },
-    end: { x: pageWidth - margin, y },
-    thickness: 0.5,
-    color: rgb(0,0,0),
-  })
-  y -= 15
+    // Order info
+    page.setFont(font)
+    page.setFontSize(10)
+    page.drawText(`Order ID: ${meta.orderId}`, { x: margin, y }); y -= 14
+    page.drawText(`Guests: ${meta.guestCount ?? 0}`, { x: margin, y }); y -= 14
+    page.drawText(`Date & Time: ${meta.orderTime ? new Date(meta.orderTime).toLocaleString() : new Date().toLocaleString()}`, { x: margin, y }); y -= 20
 
-  // Items
-  page.setFont(font)
-  for (const item of items) {
-    if (y < 60) {
-      const p = pdfDoc.addPage([300, 600])
-      p.setFont(font)
-      p.setFontSize(10)
-      y = 570
+    // Horizontal line
+    page.drawLine({
+      start: { x: margin, y },
+      end: { x: pageWidth - margin, y },
+      thickness: 1,
+      color: rgb(0,0,0),
+    })
+    y -= 20
+
+    // Items header
+    page.setFont(boldFont)
+    page.setFontSize(12)
+    const itemsHeader = "ITEMS TO PREPARE"
+    const headerWidth = boldFont.widthOfTextAtSize(itemsHeader, 12)
+    page.drawText(itemsHeader, { 
+      x: centerX - headerWidth / 2, 
+      y,
+      color: rgb(0,0,0) 
+    })
+    y -= 15
+
+    // Column headers
+    page.setFontSize(10)
+    page.drawText("Item", { x: margin, y })
+    page.drawText("Qty", { x: pageWidth - margin - 40, y })
+    y -= 10
+
+    // Horizontal line
+    page.drawLine({
+      start: { x: margin, y },
+      end: { x: pageWidth - margin, y },
+      thickness: 0.5,
+      color: rgb(0,0,0),
+    })
+    y -= 15
+
+    // Items
+    page.setFont(font)
+    for (const item of items) {
+      if (y < 60) {
+        const newPage = pdfDoc.addPage([300, 600])
+        newPage.setFont(font)
+        newPage.setFontSize(10)
+        y = pageHeight - 30 // Reset to top of new page
+      }
+      
+      // Item name with truncation if needed
+      let itemName = item.name
+      if (itemName.length > 25) {
+        itemName = itemName.substring(0, 22) + '...'
+      }
+      
+      page.drawText(itemName, { x: margin, y })
+      
+      // Quantity (right-aligned)
+      const qtyText = `${item.quantity}`
+      const qtyWidth = font.widthOfTextAtSize(qtyText, 10)
+      page.drawText(qtyText, { 
+        x: pageWidth - margin - qtyWidth, 
+        y 
+      })
+      
+      y -= 15
     }
-    
-    // Item name with truncation if needed
-    let itemName = item.name
-    if (itemName.length > 25) {
-      itemName = itemName.substring(0, 22) + '...'
-    }
-    
-    page.drawText(itemName, { x: margin, y })
-    
-    // Quantity (right-aligned)
-    const qtyText = `${item.quantity}`
-    const qtyWidth = font.widthOfTextAtSize(qtyText, 10)
-    page.drawText(qtyText, { 
-      x: pageWidth - margin - qtyWidth, 
+
+    // Horizontal line
+    y -= 5
+    page.drawLine({
+      start: { x: margin, y },
+      end: { x: pageWidth - margin, y },
+      thickness: 1,
+      color: rgb(0,0,0),
+    })
+    y -= 20
+
+    // Total items count
+    const totalItems = items.reduce((sum, item) => sum + item.quantity, 0)
+    page.setFont(boldFont)
+    page.setFontSize(12)
+    const totalText = `ITEMS: ${totalItems}`
+    const totalWidth = boldFont.widthOfTextAtSize(totalText, 12)
+    page.drawText(totalText, { 
+      x: centerX - totalWidth / 2, 
       y 
     })
-    
+    y -= 25
+
+    // Footer
+    page.setFont(boldFont)
+    page.setFontSize(12)
+    const footerText = "PREPARE IMMEDIATELY"
+    const footerWidth = boldFont.widthOfTextAtSize(footerText, 12)
+    page.drawText(footerText, { 
+      x: centerX - footerWidth / 2, 
+      y 
+    })
     y -= 15
+    
+    page.setFont(font)
+    page.setFontSize(8)
+    const printedText = `Printed: ${new Date().toLocaleString()}`
+    const printedWidth = font.widthOfTextAtSize(printedText, 8)
+    page.drawText(printedText, { 
+      x: centerX - printedWidth / 2, 
+      y 
+    })
   }
-
-  // Horizontal line
-  y -= 5
-  page.drawLine({
-    start: { x: margin, y },
-    end: { x: pageWidth - margin, y },
-    thickness: 1,
-    color: rgb(0,0,0),
-  })
-  y -= 20
-
-  // Total items count
-  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0)
-  page.setFont(boldFont)
-  page.setFontSize(12)
-  const totalText = `ITEMS: ${totalItems}`
-  const totalWidth = boldFont.widthOfTextAtSize(totalText, 12)
-  page.drawText(totalText, { 
-    x: centerX - totalWidth / 2, 
-    y 
-  })
-  y -= 25
-
-  // Footer
-  page.setFont(boldFont)
-  page.setFontSize(12)
-  const footerText = "PREPARE IMMEDIATELY"
-  const footerWidth = boldFont.widthOfTextAtSize(footerText, 12)
-  page.drawText(footerText, { 
-    x: centerX - footerWidth / 2, 
-    y 
-  })
-  y -= 15
-  
-  page.setFont(font)
-  page.setFontSize(8)
-  const printedText = `Printed: ${new Date().toLocaleString()}`
-  const printedWidth = font.widthOfTextAtSize(printedText, 8)
-  page.drawText(printedText, { 
-    x: centerX - printedWidth / 2, 
-    y 
-  })
 
   const pdfBytes = await pdfDoc.save()
   fs.writeFileSync(filePath, pdfBytes)
@@ -251,7 +291,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { orderId, orderItems, tableNumber, guestCount, orderTime, printerName } = body || {}
+    const { orderId, orderItems, tableNumber, guestCount, orderTime, printerName, customContent } = body || {}
 
     if (!orderId || !Array.isArray(orderItems) || orderItems.length === 0) {
       return NextResponse.json({ success: false, error: 'Order ID and items are required' }, { status: 400 })
@@ -282,7 +322,19 @@ export async function POST(request: NextRequest) {
     writeJson(PRINT_JOBS_FILE, jobs)
 
     const pdfPath = path.join(TMP_DIR, `${jobId}.pdf`)
-    await buildOrderPDF('Kitchen Order', items, printJob.meta!, pdfPath)
+    
+    // Determine the title based on whether this is a waiter request or regular order
+    let title = 'Kitchen Order'
+    if (orderId.includes('waiter_request')) {
+      // Extract the request type from the item name for waiter requests
+      const requestItem = items[0]?.name || ''
+      if (requestItem.includes('REQUEST WAITER')) title = 'REQUEST WAITER'
+      else if (requestItem.includes('REQUEST CLEANING')) title = 'REQUEST CLEANING'
+      else if (requestItem.includes('REQUEST BILL')) title = 'REQUEST BILL'
+      else title = 'SERVICE REQUEST'
+    }
+    
+    await buildOrderPDF(title, items, printJob.meta!, pdfPath)
 
     updatePrintJob(jobId, j => { j.status = 'printing' })
     const sumatraPath = process.env.SUMATRA_PDF || process.env.SUMATRA_PDF_PATH

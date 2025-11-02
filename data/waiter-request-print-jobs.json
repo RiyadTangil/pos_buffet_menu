@@ -271,5 +271,57 @@
     "createdAt": "2025-11-02T03:32:47.256Z",
     "retryCount": 0,
     "printedAt": "2025-11-02T03:32:59.727Z"
+  },
+  {
+    "id": "wrpj_1762095854260_lvnjvygz3",
+    "requestId": "wr_1762095851142_5o6gtwus1",
+    "printerId": "Microsoft Print to PDF",
+    "printerName": "Microsoft Print to PDF",
+    "tableNumber": 68,
+    "requestType": "cleaning",
+    "message": "Table needs cleaning service",
+    "status": "completed",
+    "createdAt": "2025-11-02T15:04:14.260Z",
+    "retryCount": 0,
+    "printedAt": "2025-11-02T15:04:20.786Z"
+  },
+  {
+    "id": "wrpj_1762095962901_g88x6e0of",
+    "requestId": "wr_1762095959187_xguj1hi3m",
+    "printerId": "Microsoft Print to PDF",
+    "printerName": "Microsoft Print to PDF",
+    "tableNumber": 68,
+    "requestType": "waiter",
+    "message": "Customer is requesting waiter assistance",
+    "status": "completed",
+    "createdAt": "2025-11-02T15:06:02.901Z",
+    "retryCount": 0,
+    "printedAt": "2025-11-02T15:06:08.038Z"
+  },
+  {
+    "id": "wrpj_1762096123357_x83ziefcv",
+    "requestId": "wr_1762096120409_9r1xbncke",
+    "printerId": "Microsoft Print to PDF",
+    "printerName": "Microsoft Print to PDF",
+    "tableNumber": 68,
+    "requestType": "waiter",
+    "message": "Customer is requesting waiter assistance",
+    "status": "completed",
+    "createdAt": "2025-11-02T15:08:43.357Z",
+    "retryCount": 0,
+    "printedAt": "2025-11-02T15:09:09.251Z"
+  },
+  {
+    "id": "wrpj_1762096784023_re2lx6e3g",
+    "requestId": "wr_1762096782811_ydtr00d97",
+    "printerId": "Microsoft Print to PDF",
+    "printerName": "Microsoft Print to PDF",
+    "tableNumber": 68,
+    "requestType": "waiter",
+    "message": "Customer is requesting waiter assistance",
+    "status": "completed",
+    "createdAt": "2025-11-02T15:19:44.023Z",
+    "retryCount": 0,
+    "printedAt": "2025-11-02T15:19:52.978Z"
   }
 ]

@@ -243,14 +243,14 @@ export default function SplitBillModal({
               <Users className="w-4 h-4" />
               Equal Parts
             </Button>
-            {/* <Button
+            <Button
               variant={splitMethod === 'items' ? 'default' : 'outline'}
               onClick={() => setSplitMethod('items')}
               className="flex items-center gap-2"
             >
               <ShoppingCart className="w-4 h-4" />
               By Items
-            </Button> */}
+            </Button>
           </div>
 
           {/* Number of Splits (for equal method) */}
