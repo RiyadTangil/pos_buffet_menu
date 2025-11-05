@@ -24,6 +24,7 @@ interface SplitBillModalProps {
   isOpen: boolean
   onClose: () => void
   onConfirm: (splits: SplitResult[]) => void
+  onChange?: (data: { hasChanges: boolean; numberOfSplits: number; splitMethod: 'equal' | 'items' }) => void
   orders: any[]
   sessionData: {
     adults: number
@@ -60,6 +61,7 @@ export default function SplitBillModal({
   isOpen,
   onClose,
   onConfirm,
+  onChange,
   orders,
   sessionData,
   totalAmount
@@ -70,6 +72,27 @@ export default function SplitBillModal({
   const [customerNames, setCustomerNames] = useState<string[]>([])
   const [paymentMethods, setPaymentMethods] = useState<('cash' | 'card')[]>([]) // Add payment methods state
   const [splits, setSplits] = useState<SplitResult[]>([])
+  const [hasChanges, setHasChanges] = useState(false)
+
+  // Track initial defaults to compare for changes
+  useEffect(() => {
+    // Reset change tracking when modal opens
+    if (isOpen) {
+      setHasChanges(false)
+      if (onChange) {
+        onChange({ hasChanges: false, numberOfSplits, splitMethod })
+      }
+    }
+  }, [isOpen])
+
+  const markChanged = () => {
+    if (!hasChanges) {
+      setHasChanges(true)
+    }
+    if (onChange) {
+      onChange({ hasChanges: true, numberOfSplits, splitMethod })
+    }
+  }
 
   useEffect(()=>{setNumberOfSplits(sessionData.adults )},[sessionData])
   // Calculate session charges (buffet prices)
@@ -183,16 +206,19 @@ export default function SplitBillModal({
         ? { ...item, assignedTo: item.assignedTo === customerIndex ? undefined : customerIndex }
         : item
     ))
+    markChanged()
   }
 
   // Handle customer name change
   const updateCustomerName = (index: number, name: string) => {
     setCustomerNames(prev => prev.map((n, i) => i === index ? name : n))
+    markChanged()
   }
 
   // Handle payment method change
   const updatePaymentMethod = (index: number, method: 'cash' | 'card') => {
     setPaymentMethods(prev => prev.map((m, i) => i === index ? method : m))
+    markChanged()
   }
 
   // Handle confirm
@@ -237,7 +263,7 @@ export default function SplitBillModal({
           <div className="flex gap-4">
             <Button
               variant={splitMethod === 'equal' ? 'default' : 'outline'}
-              onClick={() => setSplitMethod('equal')}
+              onClick={() => { setSplitMethod('equal'); markChanged() }}
               className="flex items-center gap-2"
             >
               <Users className="w-4 h-4" />
@@ -245,7 +271,7 @@ export default function SplitBillModal({
             </Button>
             <Button
               variant={splitMethod === 'items' ? 'default' : 'outline'}
-              onClick={() => setSplitMethod('items')}
+              onClick={() => { setSplitMethod('items'); markChanged() }}
               className="flex items-center gap-2"
             >
               <ShoppingCart className="w-4 h-4" />
@@ -262,7 +288,7 @@ export default function SplitBillModal({
                 min="1"
                 max="20"
                 value={numberOfSplits}
-                onChange={(e) => setNumberOfSplits(Math.max(1, parseInt(e.target.value) || sessionData.adults))}
+                onChange={(e) => { setNumberOfSplits(Math.max(1, parseInt(e.target.value) || sessionData.adults)); markChanged() }}
                 className="w-32"
               />
               <p className="text-xs text-muted-foreground">

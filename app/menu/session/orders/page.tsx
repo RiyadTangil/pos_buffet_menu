@@ -67,6 +67,8 @@ export default function SessionOrdersPage() {
   const [splitBills, setSplitBills] = useState<any[]>([]);
   const [currentSplitIndex, setCurrentSplitIndex] = useState(0);
   const [isSecondaryDevice, setIsSecondaryDevice] = useState<boolean>(false);
+  const [hasSplitChanges, setHasSplitChanges] = useState(false);
+  const [splitMeta, setSplitMeta] = useState<{ totalSplits: number; splitMethod: 'equal' | 'items' }>({ totalSplits: 0, splitMethod: 'equal' });
 
   // Get current session based on time
   const getCurrentSession = () => {
@@ -485,6 +487,16 @@ export default function SessionOrdersPage() {
           drinkPrice: sessionData.drinkPrice,
         },
       };
+
+      // Include split meta only if user made changes in Split Bill modal
+      if (hasSplitChanges) {
+        (paymentData as any).isSplit = true;
+        (paymentData as any).splitInfo = {
+          totalSplits: splitMeta.totalSplits || sessionData.adults || 1,
+          splitIndex: 0, // indicates non-distributed single payment with split intent recorded
+          originalTotalAmount: grandTotal,
+        };
+      }
 
       // Call payment API
       const response = await fetch("/api/payments", {
@@ -1097,6 +1109,10 @@ export default function SessionOrdersPage() {
           isOpen={showSplitBill}
           onClose={() => setShowSplitBill(false)}
           onConfirm={handleSplitBillConfirm}
+          onChange={({ hasChanges, numberOfSplits, splitMethod }) => {
+            setHasSplitChanges(hasChanges);
+            setSplitMeta({ totalSplits: numberOfSplits, splitMethod });
+          }}
           orders={orders}
           sessionData={sessionData}
           totalAmount={grandTotal}

@@ -34,6 +34,15 @@ export interface ApiResponse<T> {
   message?: string
 }
 
+export interface ResetOptions {
+  groupType?: 'same' | 'different'
+  paymentMethod?: 'cash' | 'card'
+}
+
+export interface ResetResult {
+  payments?: any[]
+}
+
 // Fetch all tables
 export async function fetchTables(): Promise<Table[]> {
   try {
@@ -242,5 +251,39 @@ export async function getTableStatistics(): Promise<{
   } catch (error) {
     console.error('Error getting table statistics:', error)
     throw error
+  }
+}
+
+// Reset a table: end sessions, record payment(s), mark available
+export async function resetTable(id: string, options?: ResetOptions): Promise<ResetResult> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/tables/${id}/reset`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(options || {}),
+    })
+
+    if (!response.ok) {
+      let errorMessage = `HTTP error! status: ${response.status}`
+      try {
+        const errorResult = await response.json()
+        errorMessage = errorResult.error || errorMessage
+      } catch (parseError) {
+        console.error('Failed to parse error response:', parseError)
+      }
+      throw new Error(errorMessage)
+    }
+
+    const result: ApiResponse<ResetResult> = await response.json()
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to reset table')
+    }
+    return result.data || {}
+  } catch (error) {
+    console.error('Error resetting table:', error)
+    if (error instanceof Error) throw error
+    throw new Error('An unexpected error occurred while resetting the table')
   }
 }

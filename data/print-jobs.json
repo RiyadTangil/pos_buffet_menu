@@ -5958,5 +5958,28 @@
       "orderTime": "2025-11-02T15:48:28.972Z",
       "totalAmount": 770
     }
+  },
+  {
+    "id": "order-1762312988134-6otd8o",
+    "type": "order",
+    "printerName": "Microsoft Print to PDF",
+    "status": "completed",
+    "items": [
+      {
+        "id": "68c19c383b67d81cc1cc2e80",
+        "name": "Toast bread",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-11-05T03:23:08.137Z",
+    "updatedAt": "2025-11-05T03:23:15.483Z",
+    "meta": {
+      "orderId": "order-1762312984722-gnwmqlyyy",
+      "tableNumber": "68c15318c85542d7fb04fe20",
+      "guestCount": 1,
+      "orderTime": "2025-11-05T03:23:05.524Z",
+      "totalAmount": 0
+    }
   }
 ]

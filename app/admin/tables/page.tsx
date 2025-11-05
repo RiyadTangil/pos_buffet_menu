@@ -9,6 +9,7 @@ import {
   deleteTable,
   updateTableStatus,
   getTableStatistics,
+  resetTable,
   type Table,
   type CreateTableData,
   type UpdateTableData
@@ -48,7 +49,7 @@ import {
 } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "@/components/ui/use-toast"
-import { Plus, Edit, Trash2, Users, Clock, CheckCircle, XCircle } from "lucide-react"
+import { Plus, Edit, Trash2, Users, Clock, CheckCircle, XCircle, RefreshCw, Loader2 } from "lucide-react"
 
 interface TableStats {
   total: number
@@ -72,6 +73,8 @@ export default function TablesPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false)
+  const [resetLoading, setResetLoading] = useState(false)
   const [selectedTable, setSelectedTable] = useState<Table | null>(null)
   const [newTable, setNewTable] = useState<CreateTableData>({
     number: 1,
@@ -225,6 +228,36 @@ export default function TablesPage() {
     setIsDeleteModalOpen(true)
   }
 
+  // Open reset modal
+  const openResetModal = (table: Table) => {
+    setSelectedTable(table)
+    setIsResetModalOpen(true)
+  }
+
+  // Handle reset table
+  const handleResetTable = async () => {
+    if (!selectedTable) return
+    try {
+      setResetLoading(true)
+      const result = await resetTable(selectedTable.id, { paymentMethod: 'cash' })
+      toast({
+        title: "Table reset",
+        description: `Table ${selectedTable.number} reset successfully${result?.payments?.length ? `, ${result.payments.length} payment(s) recorded` : ''}.`,
+      })
+      setIsResetModalOpen(false)
+      setSelectedTable(null)
+      loadTables()
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to reset table.",
+        variant: "destructive",
+      })
+    } finally {
+      setResetLoading(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -360,6 +393,14 @@ export default function TablesPage() {
                         onClick={() => openEditModal(table)}
                       >
                         <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => openResetModal(table)}
+                        className="text-orange-600 hover:text-orange-700"
+                      >
+                        <RefreshCw className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="outline"
@@ -524,6 +565,30 @@ export default function TablesPage() {
             </Button>
             <Button variant="destructive" onClick={handleDeleteTable}>
               Delete Table
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reset Table Modal */}
+      <Dialog open={isResetModalOpen} onOpenChange={setIsResetModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reset Table {selectedTable?.number}</DialogTitle>
+            <DialogDescription>
+              This will end any active sessions, record payment(s) based on guests and orders, clear sessions, and mark the table as available.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsResetModalOpen(false)} disabled={resetLoading}>
+              Cancel
+            </Button>
+            <Button onClick={handleResetTable} className="bg-orange-600 hover:bg-orange-700" disabled={resetLoading}>
+              {resetLoading ? (
+                <span className="flex items-center"><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Resetting...</span>
+              ) : (
+                'Reset Table'
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
