@@ -37,6 +37,9 @@ export interface ApiResponse<T> {
 export interface ResetOptions {
   groupType?: 'same' | 'different'
   paymentMethod?: 'cash' | 'card'
+  waiterId?: string
+  waiterName?: string
+  isSplit?: boolean
 }
 
 export interface ResetResult {

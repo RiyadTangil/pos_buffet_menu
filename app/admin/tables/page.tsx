@@ -82,6 +82,12 @@ export default function TablesPage() {
     status: 'available'
   })
   const [editTable, setEditTable] = useState<UpdateTableData>({})
+  // Waiter verification and payment selection for Reset
+  const [waiterPin, setWaiterPin] = useState<string>('')
+  const [validatedWaiter, setValidatedWaiter] = useState<{ id: string; name: string } | null>(null)
+  const [pinError, setPinError] = useState<string>('')
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card'>('cash')
+  const [isSplit, setIsSplit] = useState<boolean>(false)
 
   // Load tables and statistics
   const loadTables = async () => {
@@ -231,6 +237,12 @@ export default function TablesPage() {
   // Open reset modal
   const openResetModal = (table: Table) => {
     setSelectedTable(table)
+    // Reset modal-specific state
+    setWaiterPin('')
+    setValidatedWaiter(null)
+    setPinError('')
+    setPaymentMethod('cash')
+    setIsSplit(false)
     setIsResetModalOpen(true)
   }
 
@@ -239,7 +251,33 @@ export default function TablesPage() {
     if (!selectedTable) return
     try {
       setResetLoading(true)
-      const result = await resetTable(selectedTable.id, { paymentMethod: 'cash' })
+      // Validate waiter PIN if not already validated
+      if (!validatedWaiter) {
+        if (!waiterPin || waiterPin.trim().length !== 4) {
+          setPinError('Please enter a valid 4-digit PIN')
+          setResetLoading(false)
+          return
+        }
+        const pinResponse = await fetch('/api/users/validate-pin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pin: waiterPin })
+        })
+        const pinResult = await pinResponse.json()
+        if (!pinResponse.ok || !pinResult.success) {
+          setPinError(pinResult.error || 'Invalid PIN')
+          setResetLoading(false)
+          return
+        }
+        setValidatedWaiter({ id: pinResult.data.id, name: pinResult.data.name })
+      }
+
+      const result = await resetTable(selectedTable.id, {
+        paymentMethod,
+        waiterId: validatedWaiter?.id,
+        waiterName: validatedWaiter?.name,
+        isSplit,
+      })
       toast({
         title: "Table reset",
         description: `Table ${selectedTable.number} reset successfully${result?.payments?.length ? `, ${result.payments.length} payment(s) recorded` : ''}.`,
@@ -579,6 +617,48 @@ export default function TablesPage() {
               This will end any active sessions, record payment(s) based on guests and orders, clear sessions, and mark the table as available.
             </DialogDescription>
           </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="waiterPin">Waiter PIN</Label>
+              <Input
+                id="waiterPin"
+                type="password"
+                maxLength={4}
+                value={waiterPin}
+                onChange={(e) => { setWaiterPin(e.target.value); setPinError('') }}
+                placeholder="Enter 4-digit PIN"
+              />
+              {pinError && (
+                <p className="text-red-600 text-sm mt-1">{pinError}</p>
+              )}
+            </div>
+            <div>
+              <Label>Payment Method</Label>
+              <div className="flex gap-2 mt-2">
+                <Button
+                  variant={paymentMethod === 'cash' ? 'default' : 'outline'}
+                  onClick={() => setPaymentMethod('cash')}
+                >
+                  Cash
+                </Button>
+                <Button
+                  variant={paymentMethod === 'card' ? 'default' : 'outline'}
+                  onClick={() => setPaymentMethod('card')}
+                >
+                  Card
+                </Button>
+              </div>
+            </div>
+            {/* <div className="flex items-center gap-2">
+              <input
+                id="splitOption"
+                type="checkbox"
+                checked={isSplit}
+                onChange={(e) => setIsSplit(e.target.checked)}
+              />
+              <Label htmlFor="splitOption">Split payment</Label>
+            </div> */}
+          </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsResetModalOpen(false)} disabled={resetLoading}>
               Cancel

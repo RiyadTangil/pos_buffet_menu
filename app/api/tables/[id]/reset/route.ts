@@ -36,6 +36,9 @@ export async function POST(
     const body = await request.json().catch(() => ({}))
     const groupType: 'same'|'different'|undefined = body?.groupType
     const paymentMethod: 'cash'|'card' = body?.paymentMethod === 'card' ? 'card' : 'cash'
+    const waiterIdOverride: string | undefined = body?.waiterId
+    const waiterNameOverride: string | undefined = body?.waiterName
+    const isSplitFlag: boolean = !!body?.isSplit
 
     const db = await getDatabase()
 
@@ -126,8 +129,8 @@ export async function POST(
         paymentId,
         tableId: id,
         tableNumber: tableDoc.number,
-        waiterId: 'admin-reset',
-        waiterName: 'Admin Reset',
+        waiterId: waiterIdOverride || 'admin-reset',
+        waiterName: waiterNameOverride || 'Admin Reset',
         totalAmount: total,
         tipAmount: 0,
         sessionType: sessionKey,
@@ -147,6 +150,7 @@ export async function POST(
         paymentTime: now.toTimeString().split(' ')[0],
         status: 'completed',
         paymentMethod: paymentMethod,
+        isSplit: isSplitFlag,
         createdAt: now.toISOString(),
         updatedAt: now.toISOString(),
       }
