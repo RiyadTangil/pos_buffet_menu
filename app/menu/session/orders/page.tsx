@@ -118,10 +118,10 @@ export default function SessionOrdersPage() {
       currentSession?.type
     ] ||
       buffetSettings?.extraDrinksPricing || {
-        adultPrice: 5,
-        childPrice: 3,
-        infantPrice: 0,
-      },
+      adultPrice: 5,
+      childPrice: 3,
+      infantPrice: 0,
+    },
   };
 
   // Note: Split Bill is gated by table session's isSecondaryDevice
@@ -181,19 +181,19 @@ export default function SessionOrdersPage() {
         let tableSession = localStorage.getItem("tableSession");
         tableSession = tableSession ? JSON.parse(tableSession) : null;
         let tableOrders = [];
-        console.log("tableSession=> ",tableSession)
+
         if (tableSession && tableSession?.id) {
           // Use the new API endpoint that fetches orders by tableSessionId
           tableOrders = await getOrdersByTableSession(tableSession.id);
-          console.log("tableOrders => ",tableOrders)
-      
+    
+
         } else {
           // Fallback to old method if tableSessionId is not available
           const selectedTableId =
             localStorage.getItem("selectedTableId") || `table-${tableNumber}`;
           const storedGroupType = localStorage.getItem("groupType");
           const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
-          
+
           tableOrders = await getOrders({
             tableId: selectedTableId,
             date: today,
@@ -344,8 +344,7 @@ export default function SessionOrdersPage() {
       console.error("PIN validation error:", error);
       setIsProcessing(false);
       setPinError(
-        `Validation failed: ${
-          error instanceof Error ? error.message : "Unknown error"
+        `Validation failed: ${error instanceof Error ? error.message : "Unknown error"
         }`
       );
     }
@@ -355,110 +354,10 @@ export default function SessionOrdersPage() {
     setSplitBills(splits);
     setShowSplitBill(false);
     setCurrentSplitIndex(0);
-
-    // Process first split payment
-    if (splits.length > 0) {
-      processPayment(splits[0], 0);
-    }
+  
   };
 
-  const processPayment = async (splitData: any, splitIndex: number) => {
-    setIsProcessing(true);
-
-    try {
-      const selectedTableId = localStorage.getItem("selectedTableId");
-      const storedGroupType = localStorage.getItem("groupType");
-      const paymentData = {
-        tableId: selectedTableId || `table-${tableNumber}`,
-        tableNumber: tableNumber,
-        waiterId: validatedWaiter.id,
-        waiterName: validatedWaiter.name,
-        paymentMethod: splitData.paymentMethod, // Use individual payment method
-        totalAmount: splitData.total,
-        sessionType: currentSession?.key || "lunch",
-        groupType: storedGroupType || undefined,
-        isSplit: true, // Mark as split payment
-        splitInfo: {
-          totalSplits: splitBills.length,
-          splitIndex: splitIndex + 1,
-          customerName: splitData.customerName,
-          originalTotalAmount: grandTotal
-        },
-        sessionData: {
-          adults: splitData.sessionCharges.adults,
-          children: splitData.sessionCharges.children,
-          infants: splitData.sessionCharges.infants,
-          extraDrinks: sessionData.extraDrinks,
-          adultPrice: sessionData.adultPrice,
-          childPrice: sessionData.childPrice,
-          infantPrice: sessionData.infantPrice,
-          drinkPrice: sessionData.drinkPrice,
-        },
-      };
-
-      // Call payment API
-      const response = await fetch("/api/payments", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(paymentData),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok || !result.success) {
-        throw new Error(result.error || "Payment failed");
-      }
-
-      console.log(
-        `Payment ${splitIndex + 1}/${splitBills.length} of £${
-          splitData.total
-        } successfully recorded for ${splitData.customerName}:`,
-        result.data
-      );
-
-      // Check if there are more splits to process
-      if (splitIndex + 1 < splitBills.length) {
-        setCurrentSplitIndex(splitIndex + 1);
-        // Process next split after a short delay
-        setTimeout(() => {
-          processPayment(splitBills[splitIndex + 1], splitIndex + 1);
-        }, 1000);
-      } else {
-        // All payments completed
-        setIsProcessing(false);
-        setPaymentComplete(true);
-
-        // Clear all localStorage data after successful payment
-        localStorage.removeItem("tableId");
-        localStorage.removeItem("guestCounts");
-        localStorage.removeItem("sessionData");
-        localStorage.removeItem("buffetSettings");
-        localStorage.removeItem("waiters");
-        localStorage.removeItem("orders");
-        localStorage.removeItem("currentSession");
-        localStorage.removeItem("selectedWaiterId");
-
-        // Clear any other session-related data
-        localStorage.clear();
-
-        // Redirect to tables page after 2 seconds
-        setTimeout(() => {
-          router.push("/menu/tables");
-        }, 2000);
-      }
-    } catch (error) {
-      console.error("Payment error:", error);
-      setIsProcessing(false);
-      setPinError(
-        `Payment failed: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
-      );
-    }
-  };
-
+  
   const handleSinglePayment = async () => {
     setIsProcessing(true);
 
@@ -476,6 +375,16 @@ export default function SessionOrdersPage() {
         tipAmount: tipAmount, // Include tip amount
         sessionType: currentSession?.key || "lunch",
         groupType: storedGroupType || undefined,
+        // Mark as split when splits exist
+        isSplit: Array.isArray(splitBills) && splitBills.length > 0,
+        // Persist simplified split summary alongside detailed splitPayments
+        splitInfo: Array.isArray(splitBills) && splitBills.length > 0 ? {
+          totalSplits: splitBills.length,
+          splitIndex: 1, // aggregated summary, not per-index
+          originalTotalAmount: grandTotal,
+        } : undefined,
+        splitPayments: splitBills,
+        
         sessionData: {
           adults: sessionData.adults,
           children: sessionData.children,
@@ -488,16 +397,10 @@ export default function SessionOrdersPage() {
         },
       };
 
-      // Include split meta only if user made changes in Split Bill modal
-      if (hasSplitChanges) {
-        (paymentData as any).isSplit = true;
-        (paymentData as any).splitInfo = {
-          totalSplits: splitMeta.totalSplits || sessionData.adults || 1,
-          splitIndex: 0, // indicates non-distributed single payment with split intent recorded
-          originalTotalAmount: grandTotal,
-        };
-      }
-
+      // Do not include split info for single payment path when no splits.
+      // console.log("paymentData=> ", paymentData)
+      //     setIsProcessing(false);
+      // return
       // Call payment API
       const response = await fetch("/api/payments", {
         method: "POST",
@@ -542,8 +445,7 @@ export default function SessionOrdersPage() {
       console.error("Payment error:", error);
       setIsProcessing(false);
       setPinError(
-        `Payment failed: ${
-          error instanceof Error ? error.message : "Unknown error"
+        `Payment failed: ${error instanceof Error ? error.message : "Unknown error"
         }`
       );
     }
@@ -599,13 +501,13 @@ export default function SessionOrdersPage() {
                     <div className="text-sm text-blue-700">
                       {sessionData.extraDrinks
                         ? `${t("orders.included")} (+£${(
-                            sessionData.adults *
-                              sessionData.extraDrinksPricing.adultPrice +
-                            sessionData.children *
-                              sessionData.extraDrinksPricing.childPrice +
-                            sessionData.infants *
-                              sessionData.extraDrinksPricing.infantPrice
-                          ).toFixed(2)})`
+                          sessionData.adults *
+                          sessionData.extraDrinksPricing.adultPrice +
+                          sessionData.children *
+                          sessionData.extraDrinksPricing.childPrice +
+                          sessionData.infants *
+                          sessionData.extraDrinksPricing.infantPrice
+                        ).toFixed(2)})`
                         : t("orders.not_included")}
                     </div>
                   </div>
@@ -887,7 +789,7 @@ export default function SessionOrdersPage() {
                       {t("orders.payment_required")}
                     </h3>
                     <p className="text-amber-700">
-                     Please pay £{grandTotal} {t("orders.please_pay",)}
+                      Please pay £{grandTotal} {t("orders.please_pay",)}
                     </p>
                   </div>
                 </div>
@@ -905,7 +807,7 @@ export default function SessionOrdersPage() {
                         {t("orders.waiter_verification")}
                       </DialogTitle>
                       <DialogDescription>
-                        {t("orders.enter_waiter_pin")+grandTotal}
+                        {t("orders.enter_waiter_pin") + grandTotal}
                       </DialogDescription>
                     </DialogHeader>
 
@@ -939,9 +841,8 @@ export default function SessionOrdersPage() {
                                 if (pinError) setPinError("");
                               }}
                               maxLength={4}
-                              className={`mt-1 text-center text-lg tracking-widest ${
-                                pinError ? "border-red-500" : ""
-                              }`}
+                              className={`mt-1 text-center text-lg tracking-widest ${pinError ? "border-red-500" : ""
+                                }`}
                             />
                             {pinError && (
                               <p className="text-sm text-red-600 mt-1">

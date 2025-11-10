@@ -303,9 +303,9 @@ export default function PaymentsPage() {
             </CardTitle>
             <div className="flex items-center gap-2">
               <PrintPaymentsTableButton payments={payments} variant="outline" size="sm" />
-              <SendPaymentsToPrintersButton payments={payments} />
+              {/* <SendPaymentsToPrintersButton payments={payments} />
               <SendPaymentsToBluetoothPrintersButton payments={payments} />
-              <SendPaymentsToUSBPrintersButton payments={payments} />
+              <SendPaymentsToUSBPrintersButton payments={payments} /> */}
             </div>
           </div>
         </CardHeader>

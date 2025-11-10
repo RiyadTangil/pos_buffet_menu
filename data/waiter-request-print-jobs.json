@@ -323,5 +323,31 @@
     "createdAt": "2025-11-02T15:19:44.023Z",
     "retryCount": 0,
     "printedAt": "2025-11-02T15:19:52.978Z"
+  },
+  {
+    "id": "wrpj_1762777088561_s5x3gb30o",
+    "requestId": "wr_1762777085617_u5lihdjt3",
+    "printerId": "Microsoft Print to PDF",
+    "printerName": "Microsoft Print to PDF",
+    "tableNumber": 68,
+    "requestType": "waiter",
+    "message": "Customer is requesting waiter assistance",
+    "status": "completed",
+    "createdAt": "2025-11-10T12:18:08.561Z",
+    "retryCount": 0,
+    "printedAt": "2025-11-10T12:18:16.066Z"
+  },
+  {
+    "id": "wrpj_1762777127522_g7y7hywzu",
+    "requestId": "wr_1762777127056_8r8p1xoi7",
+    "printerId": "Microsoft Print to PDF",
+    "printerName": "Microsoft Print to PDF",
+    "tableNumber": 68,
+    "requestType": "cleaning",
+    "message": "Table needs cleaning service",
+    "status": "completed",
+    "createdAt": "2025-11-10T12:18:47.522Z",
+    "retryCount": 0,
+    "printedAt": "2025-11-10T12:18:52.293Z"
   }
 ]

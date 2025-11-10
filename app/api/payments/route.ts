@@ -74,12 +74,17 @@ export async function GET(request: NextRequest) {
       waiterId: payment.waiterId,
       waiterName: payment.waiterName,
       totalAmount: payment.totalAmount,
+      tipAmount: payment.tipAmount ?? 0,
       sessionType: payment.sessionType,
       sessionData: payment.sessionData,
       paymentDate: payment.paymentDate,
       paymentTime: payment.paymentTime,
       status: payment.status,
       paymentMethod: payment.paymentMethod,
+      // Include split metadata for frontend
+      isSplit: payment.isSplit ?? false,
+      splitInfo: payment.splitInfo ?? undefined,
+      splitPayments: payment.splitPayments ?? undefined,
       createdAt: payment.createdAt,
       updatedAt: payment.updatedAt
     }))
@@ -119,7 +124,8 @@ export async function POST(request: NextRequest) {
       sessionData,
       groupType,
       isSplit,
-      splitInfo
+      splitInfo,
+      splitPayments
     } = body
 
     // Validation
@@ -179,6 +185,7 @@ export async function POST(request: NextRequest) {
       paymentMethod: paymentMethod === 'card' ? 'card' : 'cash',
       isSplit,
       splitInfo,
+      splitPayments,
       createdAt: now.toISOString(),
       updatedAt: now.toISOString()
     }

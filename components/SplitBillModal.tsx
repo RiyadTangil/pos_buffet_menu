@@ -117,10 +117,15 @@ export default function SplitBillModal({
       orders.forEach(order => {
         if (order.items && Array.isArray(order.items)) {
           order.items.forEach((item: any, index: number) => {
+            const price = item.price || 0
+            const isFree = item.isFree === true || price <= 0
+            if (isFree) {
+              return // Skip free items; only show paid items
+            }
             orderItems.push({
               id: `${order.id}-${index}`,
               name: item.name,
-              price: item.price,
+              price,
               quantity: item.quantity || 1,
               category: item.category || 'Other',
               selected: false
@@ -159,6 +164,7 @@ export default function SplitBillModal({
     }))
     
     setSplits(newSplits)
+    return newSplits
   }
 
   // Calculate item-based splits
@@ -197,6 +203,7 @@ export default function SplitBillModal({
     }
     
     setSplits(newSplits)
+    return newSplits
   }
 
   // Handle item assignment
@@ -223,20 +230,17 @@ export default function SplitBillModal({
 
   // Handle confirm
   const handleConfirm = () => {
-    if (splitMethod === 'equal') {
-      calculateEqualSplits()
-    } else {
-      calculateItemSplits()
-    }
+    const computedSplits = splitMethod === 'equal' ? calculateEqualSplits() : calculateItemSplits()
     
-    // Validate splits
-    const validSplits = splits.filter(split => split.total > 0)
-    if (validSplits.length === 0) {
-      alert('Please assign items to customers or use equal split method')
-      return
-    }
+    // Always include all adults, even if total is 0 or no items
+    const normalizedSplits = computedSplits.map((split, idx) => ({
+      ...split,
+      paymentMethod: split.paymentMethod || 'cash',
+      items: Array.isArray(split.items) ? split.items : []
+    }))
+    console.log("normalizedSplits => ",normalizedSplits)
     
-    onConfirm(validSplits)
+    onConfirm(normalizedSplits)
   }
 
   // Calculate totals for validation
@@ -432,14 +436,14 @@ export default function SplitBillModal({
 
           {/* Action Buttons */}
           <div className="flex justify-end gap-2 pt-4 border-t">
-            <Button variant="outline" onClick={onClose}  className="bg-green-600 hover:bg-green-700 text-white">
+            <Button variant="outline" onClick={onClose}>
               <X className="w-4 h-4 mr-2" />
-              ok
+              Cancel
             </Button>
-            {/* <Button onClick={handleConfirm} className="bg-green-600 hover:bg-green-700">
+            <Button onClick={handleConfirm} className="bg-green-600 hover:bg-green-700 text-white">
               <Check className="w-4 h-4 mr-2" />
               Confirm Split
-            </Button> */}
+            </Button>
           </div>
         </div>
       </DialogContent>

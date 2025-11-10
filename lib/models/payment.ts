@@ -55,7 +55,28 @@ export interface MongoPayment {
     splitIndex: number // 1-based index (1, 2, 3, etc.)
     customerName?: string
     originalTotalAmount: number
+    amount?: number
+    paymentMethod?: 'cash' | 'card'
+    items?: {
+      id: string
+      name: string
+      price: number
+      quantity: number
+    }[]
   }
+  // Aggregated split payments (one record can include all adults)
+  splitPayments?: Array<{
+    customerIndex: number
+    customerName: string
+    paymentMethod: 'cash' | 'card'
+    amount: number
+    items?: {
+      id: string
+      name: string
+      price: number
+      quantity: number
+    }[]
+  }>
   createdAt: string
   updatedAt: string
 }
@@ -114,7 +135,27 @@ export interface Payment {
     splitIndex: number // 1-based index (1, 2, 3, etc.)
     customerName?: string
     originalTotalAmount: number
+    amount?: number
+    paymentMethod?: 'cash' | 'card'
+    items?: {
+      id: string
+      name: string
+      price: number
+      quantity: number
+    }[]
   }
+  splitPayments?: Array<{
+    customerIndex: number
+    customerName: string
+    paymentMethod: 'cash' | 'card'
+    amount: number
+    items?: {
+      id: string
+      name: string
+      price: number
+      quantity: number
+    }[]
+  }>
   createdAt: string
   updatedAt: string
 }
@@ -137,7 +178,27 @@ export interface CreatePaymentRequest {
     splitIndex: number // 1-based index (1, 2, 3, etc.)
     customerName?: string
     originalTotalAmount: number
+    amount?: number
+    paymentMethod?: 'cash' | 'card'
+    items?: {
+      id: string
+      name: string
+      price: number
+      quantity: number
+    }[]
   }
+  splitPayments?: Array<{
+    customerIndex: number
+    customerName: string
+    paymentMethod: 'cash' | 'card'
+    amount: number
+    items?: {
+      id: string
+      name: string
+      price: number
+      quantity: number
+    }[]
+  }>
   sessionData: {
     adults: number
     children: number

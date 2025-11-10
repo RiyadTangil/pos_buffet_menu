@@ -69,9 +69,23 @@ export default function PaymentRow({ payment }: PaymentRowProps) {
         </Badge>
       </TableCell>
       <TableCell>
-        <Badge variant={getPaymentMethodBadgeVariant(payment.paymentMethod)}>
-          {payment.paymentMethod.charAt(0).toUpperCase() + payment.paymentMethod.slice(1)}
-        </Badge>
+        {payment.isSplit && Array.isArray(payment.splitPayments) && payment.splitPayments.length > 0 ? (
+          <div className="flex flex-col gap-1">
+            <Badge variant="outline">Split</Badge>
+            <div className="flex flex-wrap gap-1">
+              {payment.splitPayments.map((sp, idx) => (
+                <Badge key={`${payment.paymentId}-sp-${idx}`} variant={getPaymentMethodBadgeVariant(sp.paymentMethod || 'cash')}>
+                  {(sp.customerName || (sp.customerIndex !== undefined ? `Adult ${sp.customerIndex}` : `Adult ${idx + 1}`))}: {sp.paymentMethod || 'cash'} 
+                  {/* {formatCurrency(sp.amount ?? 0)} */}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <Badge variant={getPaymentMethodBadgeVariant(payment.paymentMethod)}>
+            {payment.paymentMethod.charAt(0).toUpperCase() + payment.paymentMethod.slice(1)}
+          </Badge>
+        )}
       </TableCell>
       <TableCell>
         <div className="flex flex-col">

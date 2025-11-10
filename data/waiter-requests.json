@@ -318,5 +318,37 @@
     "message": "Customer is requesting waiter assistance",
     "status": "pending",
     "createdAt": "2025-11-02T15:19:42.811Z"
+  },
+  {
+    "id": "wr_1762777085617_u5lihdjt3",
+    "tableNumber": 68,
+    "requestType": "waiter",
+    "message": "Customer is requesting waiter assistance",
+    "status": "pending",
+    "createdAt": "2025-11-10T12:18:05.617Z"
+  },
+  {
+    "id": "wr_1762777125257_ti2qqej18",
+    "tableNumber": 68,
+    "requestType": "bill",
+    "message": "Customer is requesting the bill",
+    "status": "pending",
+    "createdAt": "2025-11-10T12:18:45.257Z"
+  },
+  {
+    "id": "wr_1762777127056_8r8p1xoi7",
+    "tableNumber": 68,
+    "requestType": "cleaning",
+    "message": "Table needs cleaning service",
+    "status": "pending",
+    "createdAt": "2025-11-10T12:18:47.056Z"
+  },
+  {
+    "id": "wr_1762777468104_80emi136t",
+    "tableNumber": 68,
+    "requestType": "waiter",
+    "message": "Customer is requesting waiter assistance",
+    "status": "pending",
+    "createdAt": "2025-11-10T12:24:28.104Z"
   }
 ]
