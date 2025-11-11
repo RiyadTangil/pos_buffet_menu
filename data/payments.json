@@ -1,0 +1,95 @@
+[
+  {
+    "id": "6913bbb120f0d13870c3745d",
+    "paymentId": "PAY-1762900913503-afyqmb32g",
+    "tableId": "68c1555bc85542d7fb04fe21",
+    "tableNumber": 1,
+    "waiterId": "68d2830153bbcc90acc12c04",
+    "waiterName": "waiter ",
+    "totalAmount": 300,
+    "tipAmount": 0,
+    "sessionType": "breakfast",
+    "sessionData": {
+      "adults": 3,
+      "children": 1,
+      "infants": 1,
+      "extraDrinks": false,
+      "adultPrice": 25,
+      "childPrice": 15,
+      "infantPrice": 0,
+      "drinkPrice": 5
+    },
+    "groupType": "same",
+    "paymentDate": "2025-11-11",
+    "paymentTime": "04:41:53",
+    "status": "completed",
+    "paymentMethod": "cash",
+    "isSplit": true,
+    "splitInfo": {
+      "totalSplits": 3,
+      "splitIndex": 1,
+      "originalTotalAmount": 300
+    },
+    "splitPayments": [
+      {
+        "customerIndex": 0,
+        "customerName": "Adult 1",
+        "paymentMethod": "cash",
+        "items": [
+          {
+            "id": "order-1762899280818-37i2sknzt-1",
+            "name": "Riyad Hasan",
+            "price": 70,
+            "quantity": 1,
+            "category": "68c167f8c85542d7fb04fe24",
+            "selected": false,
+            "assignedTo": 0
+          }
+        ],
+        "sessionCharges": {
+          "adults": 1,
+          "children": 0.33,
+          "infants": 0.33
+        },
+        "total": 100
+      },
+      {
+        "customerIndex": 1,
+        "customerName": "Adult 2",
+        "paymentMethod": "cash",
+        "items": [
+          {
+            "id": "order-1762899207506-qkt85ht8o-0",
+            "name": "Riyad Hasan",
+            "price": 70,
+            "quantity": 2,
+            "category": "68c167f8c85542d7fb04fe24",
+            "selected": false,
+            "assignedTo": 1
+          }
+        ],
+        "sessionCharges": {
+          "adults": 1,
+          "children": 0.33,
+          "infants": 0.33
+        },
+        "total": 170
+      },
+      {
+        "customerIndex": 2,
+        "customerName": "Adult 3",
+        "paymentMethod": "cash",
+        "items": [],
+        "sessionCharges": {
+          "adults": 1,
+          "children": 0.33,
+          "infants": 0.33
+        },
+        "total": 30
+      }
+    ],
+    "createdAt": "2025-11-11T22:41:53.503Z",
+    "updatedAt": "2025-11-11T22:41:53.503Z",
+    "_id": "6913bbb120f0d13870c3745d"
+  }
+]

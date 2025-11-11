@@ -265,7 +265,7 @@ export default function TablesPage() {
           body: JSON.stringify({ pin: waiterPin })
         })
         const pinResult = await pinResponse.json()
-        console.log(pinResult.data, pinResult.data.id, pinResult.data.name)
+    
         if (!pinResponse.ok || !pinResult.success) {
           setPinError(pinResult.error || 'Invalid PIN')
           setResetLoading(false)
@@ -274,7 +274,7 @@ export default function TablesPage() {
         setValidatedWaiter({ id: pinResult.data.id, name: pinResult.data.name })
         waiterInfo = ({ id: pinResult.data.id, name: pinResult.data.name })
       }
-      console.log("validatedWaiter=> ", validatedWaiter)
+   
 
       const result = await resetTable(selectedTable.id, {
         paymentMethod,

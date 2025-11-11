@@ -350,5 +350,13 @@
     "message": "Customer is requesting waiter assistance",
     "status": "pending",
     "createdAt": "2025-11-10T12:24:28.104Z"
+  },
+  {
+    "id": "wr_1762899249576_0a3m21a8q",
+    "tableNumber": 68,
+    "requestType": "waiter",
+    "message": "Customer is requesting waiter assistance",
+    "status": "pending",
+    "createdAt": "2025-11-11T22:14:09.576Z"
   }
 ]

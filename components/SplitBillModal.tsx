@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -110,6 +110,33 @@ export default function SplitBillModal({
 
   const totalSessionCharges = sessionCharges.adult + sessionCharges.child + sessionCharges.infant + sessionCharges.drinks
 
+  // Live preview for item-based splits (industry-standard per-person summary)
+  const itemPreviewSplits = useMemo(() => {
+    // Industry standard: session charges are equally distributed among all customers
+    // Then add any assigned item totals per customer
+    const sessionPerCustomer = customerNames.length > 0
+      ? Math.round((totalSessionCharges / customerNames.length) * 100) / 100
+      : 0
+
+    const baseSplits = customerNames.map((name, index) => {
+      const customerItems = items.filter(item => item.assignedTo === index)
+      const itemsTotal = customerItems.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+      const itemsSubtotal = Math.round(itemsTotal * 100) / 100
+      const total = Math.round((itemsSubtotal + sessionPerCustomer) * 100) / 100
+      return {
+        customerIndex: index,
+        customerName: name,
+        paymentMethod: paymentMethods[index],
+        items: customerItems,
+        itemsSubtotal,
+        sessionShare: sessionPerCustomer,
+        total,
+      }
+    })
+
+    return baseSplits
+  }, [customerNames, items, paymentMethods, totalSessionCharges])
+
   // Initialize items from orders
   useEffect(() => {
     if (orders && orders.length > 0) {
@@ -169,39 +196,29 @@ export default function SplitBillModal({
 
   // Calculate item-based splits
   const calculateItemSplits = () => {
+    // Equally distribute session charges among all customers first,
+    // then add any assigned item totals
+    const count = customerNames.length || 1
+    const sessionPerCustomer = totalSessionCharges / count
+
     const newSplits: SplitResult[] = customerNames.map((name, index) => {
       const customerItems = items.filter(item => item.assignedTo === index)
       const itemsTotal = customerItems.reduce((sum, item) => sum + (item.price * item.quantity), 0)
-      
+
       return {
         customerIndex: index,
         customerName: name,
         paymentMethod: paymentMethods[index], // Include payment method
         items: customerItems,
         sessionCharges: {
-          adults: 0,
-          children: 0,
-          infants: 0
+          adults: Math.round((sessionData.adults / count) * 100) / 100,
+          children: Math.round((sessionData.children / count) * 100) / 100,
+          infants: Math.round((sessionData.infants / count) * 100) / 100
         },
-        total: itemsTotal
+        total: Math.round((itemsTotal + sessionPerCustomer) * 100) / 100
       }
     })
-    
-    // Distribute session charges equally among customers who have items
-    const customersWithItems = newSplits.filter(split => split.items.length > 0)
-    if (customersWithItems.length > 0) {
-      const sessionPerCustomer = totalSessionCharges / customersWithItems.length
-      customersWithItems.forEach(split => {
-        split.sessionCharges = {
-          adults: sessionData.adults / customersWithItems.length,
-          children: sessionData.children / customersWithItems.length,
-          infants: sessionData.infants / customersWithItems.length
-        }
-        split.total += sessionPerCustomer
-        split.total = Math.round(split.total * 100) / 100
-      })
-    }
-    
+
     setSplits(newSplits)
     return newSplits
   }
@@ -384,6 +401,44 @@ export default function SplitBillModal({
                     </div>
                   </Card>
                 ))}
+              </div>
+
+              {/* Industry-standard per-person preview for item-based splits */}
+              <div className="space-y-2">
+                <Label>Split Preview</Label>
+                {unassignedItemsTotal > 0 && (
+                  <p className="text-xs text-amber-700">
+                    £{unassignedItemsTotal.toFixed(2)} of items are unassigned. Assign them to include in totals.
+                  </p>
+                )}
+                <div className="grid grid-cols-1 gap-3">
+                  {itemPreviewSplits.map((split) => (
+                    <Card key={split.customerIndex} className="p-3">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <div className="font-medium">{split.customerName}</div>
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            {split.paymentMethod === 'cash' ? (
+                              <><DollarSign className="w-4 h-4" /> Cash</>
+                            ) : (
+                              <><CreditCard className="w-4 h-4" /> Card</>
+                            )}
+                            <span className="ml-2">• {split.items.length} item{split.items.length !== 1 ? 's' : ''}</span>
+                          </div>
+                        </div>
+                        <div className="text-lg font-bold text-green-600">
+                          £{split.total.toFixed(2)}
+                        </div>
+                      </div>
+                      <div className="mt-2 text-xs text-gray-600">
+                        Items: £{split.itemsSubtotal.toFixed(2)}
+                        {split.items.length > 0 && (
+                          <span className="ml-2">• Session share: £{split.sessionShare.toFixed(2)}</span>
+                        )}
+                      </div>
+                    </Card>
+                  ))}
+                </div>
               </div>
             </div>
           )}

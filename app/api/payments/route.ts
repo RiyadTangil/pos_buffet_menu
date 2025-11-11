@@ -3,6 +3,8 @@ import { getDatabase, COLLECTIONS } from '@/lib/mongodb'
 import { ObjectId } from 'mongodb'
 import { MongoPayment, CreatePaymentRequest } from '@/lib/models/payment'
 import { broadcastTablesUpdate } from '@/app/api/socket/route'
+import fs from 'fs'
+import path from 'path'
 
 // GET - Fetch all payments with optional filtering
 export async function GET(request: NextRequest) {
@@ -292,6 +294,34 @@ export async function POST(request: NextRequest) {
     const createdPayment = {
       id: result.insertedId.toString(),
       ...payment
+    }
+
+    // Also persist to local file as a simple audit trail (similar to orders.json)
+    try {
+      const dataDir = path.join(process.cwd(), 'data')
+      if (!fs.existsSync(dataDir)) {
+        fs.mkdirSync(dataDir, { recursive: true })
+      }
+
+      const paymentsFilePath = path.join(dataDir, 'payments.json')
+      let payments: any[] = []
+      if (fs.existsSync(paymentsFilePath)) {
+        const raw = fs.readFileSync(paymentsFilePath, 'utf8')
+        try {
+          payments = JSON.parse(raw)
+          if (!Array.isArray(payments)) {
+            payments = []
+          }
+        } catch {
+          payments = []
+        }
+      }
+
+      payments.push(createdPayment)
+      fs.writeFileSync(paymentsFilePath, JSON.stringify(payments, null, 2))
+    } catch (fileErr) {
+      console.warn('Failed to write payments backup file:', fileErr)
+      // Non-blocking: continue even if local backup fails
     }
 
     return NextResponse.json({
