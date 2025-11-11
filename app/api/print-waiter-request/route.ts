@@ -101,8 +101,8 @@ async function printToIPPrinter(printer: PrinterConfig, content: string): Promis
   }
 }
 
-// Print to USB printer
-async function printToUSBPrinter(printer: USBPrinterConfig, content: string, tableNumber: number, requestType: string): Promise<boolean> {
+// Print to USB/local spooler printer by name
+async function printToUSBPrinter(printerName: string, content: string, tableNumber: number, requestType: string): Promise<boolean> {
   try {
     // Create a simplified waiter request content for USB printing
     const requestTypeInfo = {
@@ -172,7 +172,7 @@ async function printToUSBPrinter(printer: USBPrinterConfig, content: string, tab
         tableNumber: tableNumber,
         guestCount: 1,
         orderTime: new Date().toISOString(),
-        printerName: printer.localPrinterName,
+        printerName,
         customContent: usbContent // Pass custom content for waiter requests
       }),
     })
@@ -532,13 +532,18 @@ export async function POST(request: NextRequest) {
         printSuccess = await printToIPPrinter(printer, content)
       }
     } else if (mapping.connectionType === 'usb') {
-      // Find USB printer
-      // const usbPrinters = await readUSBPrinters()
-    // console.log("usbPrinters => ",usbPrinters)
-    //   const printer = usbPrinters.find(p => p.id === mapping.printerId& p.isActive)
-      
-      if (mappings) {
-        printSuccess = await printToUSBPrinter(mappings, content, tableNumber, requestType)
+      // Resolve USB/local printer name
+      const usbPrinters = await readUSBPrinters()
+      const usbPrinter = usbPrinters.find(p => p.id === mapping.printerId && p.isActive)
+      // Fallback: some mappings may store OS printer name directly
+      const printerNameToUse = usbPrinter?.localPrinterName || mapping.printerName || mapping.printerId
+
+      if (!printerNameToUse) {
+        console.error('USB printing failed: No printer name resolved for mapping', mapping)
+        printSuccess = false
+      } else {
+        console.log('Printing waiter request to USB/local printer:', printerNameToUse)
+        printSuccess = await printToUSBPrinter(printerNameToUse, content, tableNumber, requestType)
       }
     }
 

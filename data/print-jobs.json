@@ -6517,5 +6517,28 @@
       "orderTime": "2025-11-11T22:18:49.554Z",
       "totalAmount": 70
     }
+  },
+  {
+    "id": "order-1762902435133-ikr4uc",
+    "type": "order",
+    "printerName": "Microsoft Print to PDF",
+    "status": "completed",
+    "items": [
+      {
+        "id": "wr_1762902434688",
+        "name": "REQUEST WAITER",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-11-11T23:07:15.136Z",
+    "updatedAt": "2025-11-11T23:07:20.918Z",
+    "meta": {
+      "orderId": "waiter_request_1762902434688",
+      "tableNumber": 68,
+      "guestCount": 1,
+      "orderTime": "2025-11-11T23:07:14.688Z",
+      "totalAmount": 0
+    }
   }
 ]
