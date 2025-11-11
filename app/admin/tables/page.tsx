@@ -139,7 +139,7 @@ export default function TablesPage() {
   // Handle edit table
   const handleEditTable = async () => {
     if (!selectedTable) return
-    
+
     try {
       await updateTable(selectedTable.id, editTable)
       toast({
@@ -163,7 +163,7 @@ export default function TablesPage() {
   // Handle delete table
   const handleDeleteTable = async () => {
     if (!selectedTable) return
-    
+
     try {
       await deleteTable(selectedTable.id)
       toast({
@@ -249,6 +249,7 @@ export default function TablesPage() {
   // Handle reset table
   const handleResetTable = async () => {
     if (!selectedTable) return
+    let waiterInfo: { id: string; name: string } | null = null
     try {
       setResetLoading(true)
       // Validate waiter PIN if not already validated
@@ -264,18 +265,21 @@ export default function TablesPage() {
           body: JSON.stringify({ pin: waiterPin })
         })
         const pinResult = await pinResponse.json()
+        console.log(pinResult.data, pinResult.data.id, pinResult.data.name)
         if (!pinResponse.ok || !pinResult.success) {
           setPinError(pinResult.error || 'Invalid PIN')
           setResetLoading(false)
           return
         }
         setValidatedWaiter({ id: pinResult.data.id, name: pinResult.data.name })
+        waiterInfo = ({ id: pinResult.data.id, name: pinResult.data.name })
       }
+      console.log("validatedWaiter=> ", validatedWaiter)
 
       const result = await resetTable(selectedTable.id, {
         paymentMethod,
-        waiterId: validatedWaiter?.id,
-        waiterName: validatedWaiter?.name,
+        waiterId: waiterInfo?.id,
+        waiterName: waiterInfo?.name,
         isSplit,
       })
       toast({
@@ -331,7 +335,7 @@ export default function TablesPage() {
             <div className="text-2xl font-bold">{stats.total}</div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Available</CardTitle>
@@ -341,7 +345,7 @@ export default function TablesPage() {
             <div className="text-2xl font-bold text-green-600">{stats.available}</div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Occupied</CardTitle>
@@ -351,7 +355,7 @@ export default function TablesPage() {
             <div className="text-2xl font-bold text-red-600">{stats.occupied}</div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Cleaning</CardTitle>
@@ -361,7 +365,7 @@ export default function TablesPage() {
             <div className="text-2xl font-bold text-yellow-600">{stats.cleaning}</div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Selected</CardTitle>
@@ -418,7 +422,7 @@ export default function TablesPage() {
                   <TableCell>{table.currentGuests} guests</TableCell>
                   <TableCell>{table.currentOrders || 0}</TableCell>
                   <TableCell>
-                    {table.status === 'occupied' || table.status === 'selected' 
+                    {table.status === 'occupied' || table.status === 'selected'
                       ? `Served / ${table.totalItems || 0} Items`
                       : '-'
                     }
