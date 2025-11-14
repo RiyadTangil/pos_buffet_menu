@@ -362,5 +362,57 @@
     "createdAt": "2025-11-11T23:07:14.685Z",
     "retryCount": 0,
     "printedAt": "2025-11-11T23:07:20.927Z"
+  },
+  {
+    "id": "wrpj_1762902680963_ts0ike6z3",
+    "requestId": "wr_1762902680471_jiqdy388l",
+    "printerId": "OneNote (Desktop)",
+    "printerName": "OneNote (Desktop)",
+    "tableNumber": 68,
+    "requestType": "cleaning",
+    "message": "Table needs cleaning service",
+    "status": "completed",
+    "createdAt": "2025-11-11T23:11:20.963Z",
+    "retryCount": 0,
+    "printedAt": "2025-11-11T23:11:21.897Z"
+  },
+  {
+    "id": "wrpj_1762902701715_4snp890iv",
+    "requestId": "wr_1762902701253_w67zg4t19",
+    "printerId": "OneNote (Desktop)",
+    "printerName": "OneNote (Desktop)",
+    "tableNumber": 68,
+    "requestType": "cleaning",
+    "message": "Table needs cleaning service",
+    "status": "completed",
+    "createdAt": "2025-11-11T23:11:41.715Z",
+    "retryCount": 0,
+    "printedAt": "2025-11-11T23:11:42.538Z"
+  },
+  {
+    "id": "wrpj_1762902731030_9e50irgrp",
+    "requestId": "wr_1762902730485_6v1ebyjz9",
+    "printerId": "Microsoft Print to PDF",
+    "printerName": "Microsoft Print to PDF",
+    "tableNumber": 68,
+    "requestType": "waiter",
+    "message": "Customer is requesting waiter assistance",
+    "status": "completed",
+    "createdAt": "2025-11-11T23:12:11.030Z",
+    "retryCount": 0,
+    "printedAt": "2025-11-11T23:12:16.243Z"
+  },
+  {
+    "id": "wrpj_1762902740083_6f2aajspj",
+    "requestId": "wr_1762902739594_evy66lnaa",
+    "printerId": "OneNote (Desktop)",
+    "printerName": "OneNote (Desktop)",
+    "tableNumber": 68,
+    "requestType": "cleaning",
+    "message": "Table needs cleaning service",
+    "status": "completed",
+    "createdAt": "2025-11-11T23:12:20.083Z",
+    "retryCount": 0,
+    "printedAt": "2025-11-11T23:12:20.823Z"
   }
 ]

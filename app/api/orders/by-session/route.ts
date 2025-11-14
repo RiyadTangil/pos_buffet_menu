@@ -16,6 +16,7 @@ export async function GET(request: NextRequest) {
     
     const db = await getDatabase()
     const ordersCollection = db.collection(COLLECTIONS.ORDERS)
+    const sessionsCollection = db.collection('table_sessions')
     
     // Find orders by tableSessionId
     const orders = await ordersCollection
@@ -39,9 +40,31 @@ export async function GET(request: NextRequest) {
       tableSessionId: order.tableSessionId
     }))
     
+    // Also fetch the table session document to avoid a second API call
+    const sessionDoc = await sessionsCollection.findOne({ _id: new ObjectId(tableSessionId) })
+    let formattedSession = null
+    if (sessionDoc) {
+      formattedSession = {
+        id: sessionDoc._id.toString(),
+        tableId: sessionDoc.tableId,
+        deviceId: sessionDoc.deviceId,
+        secondaryDeviceId: sessionDoc.secondaryDeviceId,
+        guestCounts: sessionDoc.guestCounts,
+        cartItems: sessionDoc.cartItems || [],
+        nextOrderAvailableUntil: sessionDoc.nextOrderAvailableUntil,
+        sessionEnded: sessionDoc.sessionEnded || false,
+        status: sessionDoc.status,
+        createdAt: sessionDoc.createdAt,
+        updatedAt: sessionDoc.updatedAt,
+        isSecondaryDevice: sessionDoc.isSecondaryDevice || false,
+        groupType: sessionDoc.groupType || 'same'
+      }
+    }
+
     return NextResponse.json({ 
       success: true,
-      orders: formattedOrders 
+      orders: formattedOrders,
+      session: formattedSession
     })
   } catch (error) {
     console.error('Error fetching orders by session:', error)

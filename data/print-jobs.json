@@ -6540,5 +6540,97 @@
       "orderTime": "2025-11-11T23:07:14.688Z",
       "totalAmount": 0
     }
+  },
+  {
+    "id": "order-1762902681105-62mc93",
+    "type": "order",
+    "printerName": "OneNote (Desktop)",
+    "status": "completed",
+    "items": [
+      {
+        "id": "wr_1762902680970",
+        "name": "REQUEST CLEANING",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-11-11T23:11:21.108Z",
+    "updatedAt": "2025-11-11T23:11:21.885Z",
+    "meta": {
+      "orderId": "waiter_request_1762902680970",
+      "tableNumber": 68,
+      "guestCount": 1,
+      "orderTime": "2025-11-11T23:11:20.970Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "order-1762902701915-7myrpo",
+    "type": "order",
+    "printerName": "OneNote (Desktop)",
+    "status": "completed",
+    "items": [
+      {
+        "id": "wr_1762902701722",
+        "name": "REQUEST CLEANING",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-11-11T23:11:41.918Z",
+    "updatedAt": "2025-11-11T23:11:42.532Z",
+    "meta": {
+      "orderId": "waiter_request_1762902701721",
+      "tableNumber": 68,
+      "guestCount": 1,
+      "orderTime": "2025-11-11T23:11:41.722Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "order-1762902731155-xr7dsu",
+    "type": "order",
+    "printerName": "Microsoft Print to PDF",
+    "status": "completed",
+    "items": [
+      {
+        "id": "wr_1762902731034",
+        "name": "REQUEST WAITER",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-11-11T23:12:11.157Z",
+    "updatedAt": "2025-11-11T23:12:16.234Z",
+    "meta": {
+      "orderId": "waiter_request_1762902731034",
+      "tableNumber": 68,
+      "guestCount": 1,
+      "orderTime": "2025-11-11T23:12:11.034Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "order-1762902740227-fnnt5j",
+    "type": "order",
+    "printerName": "OneNote (Desktop)",
+    "status": "completed",
+    "items": [
+      {
+        "id": "wr_1762902740094",
+        "name": "REQUEST CLEANING",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-11-11T23:12:20.229Z",
+    "updatedAt": "2025-11-11T23:12:20.813Z",
+    "meta": {
+      "orderId": "waiter_request_1762902740094",
+      "tableNumber": 68,
+      "guestCount": 1,
+      "orderTime": "2025-11-11T23:12:20.094Z",
+      "totalAmount": 0
+    }
   }
 ]

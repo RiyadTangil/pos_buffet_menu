@@ -20,7 +20,7 @@ export function ItemsLimitProgress({ currentItems, buffetSettings, currentSessio
   const calculateMaxItems = () => {
     // Start with general limits as base
     let itemsLimit = buffetSettings.itemsLimit
-    console.log('buffetSettings items limit:', buffetSettings)
+    // console.log('buffetSettings items limit:', buffetSettings)
     
     // Override with session-specific limits if available (medium priority)
     if (buffetSettings.sessionSpecificItemsLimit && buffetSettings.sessionSpecificItemsLimit[currentSession]) {

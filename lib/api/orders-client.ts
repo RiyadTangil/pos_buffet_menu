@@ -11,7 +11,7 @@ export interface OrderItem {
 }
 
 // Function to get orders by tableSessionId
-export async function getOrdersByTableSession(tableSessionId: string) {
+export async function getOrdersByTableSession(tableSessionId: string): Promise<{ orders: any[]; session: any | null }> {
   try {
     const response = await fetch(`/api/orders/by-session?tableSessionId=${tableSessionId}`, {
       method: 'GET',
@@ -25,10 +25,10 @@ export async function getOrdersByTableSession(tableSessionId: string) {
     }
 
     const data = await response.json();
-    return data.orders || [];
+    return { orders: data.orders || [], session: data.session || null };
   } catch (error) {
     console.error('Error fetching orders by tableSessionId:', error);
-    return [];
+    return { orders: [], session: null };
   }
 }
 

@@ -317,6 +317,22 @@ export default function SettingsPage() {
           title: "Success",
           description: "Buffet settings saved successfully"
         })
+        // Broadcast a global refresh so menu pages update immediately
+        try {
+          await fetch('/api/socket', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'broadcast',
+              room: 'tables',
+              event: 'tablesUpdate',
+              data: { type: 'refresh', source: 'settings' }
+            })
+          })
+          console.log('📡 Emitted settings refresh via tablesUpdate')
+        } catch (err) {
+          console.warn('Failed to emit settings refresh:', err)
+        }
       } else {
         toast({
           title: "Error",

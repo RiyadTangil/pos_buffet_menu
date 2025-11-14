@@ -11,6 +11,7 @@ export interface Product {
   isVegetarian?: boolean
   isSpicy?: boolean
   isAvailable?: boolean
+  isPremium?: boolean
   createdAt?: string
   updatedAt?: string
 }
@@ -25,6 +26,7 @@ export interface CreateProductData {
   isVegetarian?: boolean
   isSpicy?: boolean
   isAvailable?: boolean
+  isPremium?: boolean
 }
 
 export interface UpdateProductData {
@@ -37,6 +39,7 @@ export interface UpdateProductData {
   isVegetarian?: boolean
   isSpicy?: boolean
   isAvailable?: boolean
+  isPremium?: boolean
 }
 
 export interface ApiResponse<T> {
@@ -47,9 +50,10 @@ export interface ApiResponse<T> {
 }
 
 // Fetch all products
-export async function fetchProducts(): Promise<Product[]> {
+export async function fetchProducts(params?: { onlyAvailable?: boolean }): Promise<Product[]> {
   try {
-    const response = await fetch('/api/products', {
+    const query = params?.onlyAvailable ? '?onlyAvailable=true' : ''
+    const response = await fetch(`/api/products${query}` , {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

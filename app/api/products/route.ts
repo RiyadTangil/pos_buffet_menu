@@ -12,13 +12,17 @@ interface CreateProductData {
   isVegetarian?: boolean
   isSpicy?: boolean
   isAvailable?: boolean
+  isPremium?: boolean
 }
 
 // GET - Fetch all products
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const { searchParams } = new URL(request.url)
+    const onlyAvailable = searchParams.get('onlyAvailable') === 'true'
     const db = await getDatabase()
-    const products = await db.collection('products').find({}).toArray()
+    const query = onlyAvailable ? { $or: [{ isAvailable: { $exists: false } }, { isAvailable: true }] } : {}
+    const products = await db.collection('products').find(query).toArray()
     
     // Convert MongoDB _id to id and format response
     const formattedProducts = products.map(product => ({
@@ -32,6 +36,7 @@ export async function GET() {
       isVegetarian: product.isVegetarian || false,
       isSpicy: product.isSpicy || false,
       isAvailable: product.isAvailable !== false, // Default to true
+      isPremium: product.isPremium || false,
       createdAt: product.createdAt,
       updatedAt: product.updatedAt
     }))
@@ -62,7 +67,8 @@ export async function POST(request: NextRequest) {
       image = '',
       isVegetarian = false, 
       isSpicy = false,
-      isAvailable = true
+      isAvailable = true,
+      isPremium = false
     } = body
 
     // Validation
@@ -123,6 +129,7 @@ export async function POST(request: NextRequest) {
       isVegetarian: Boolean(isVegetarian),
       isSpicy: Boolean(isSpicy),
       isAvailable: Boolean(isAvailable),
+      isPremium: Boolean(isPremium),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }

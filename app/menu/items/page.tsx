@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { ItemsLimitProgress } from '@/components/ui/items-limit-progress'
 import { SessionCountdown } from '@/components/ui/session-countdown'
-import { ShoppingCart, Plus, Minus, Leaf, Flame, X, Clock, Users, Utensils, ChefHat, Coffee, Cake, DollarSign, Loader2 } from "lucide-react"
+import { ShoppingCart, Plus, Minus, Leaf, Flame, X, Clock, Users, Utensils, ChefHat, Coffee, Cake, DollarSign, Loader2, Star } from "lucide-react"
 import { type MenuCategory } from "@/lib/mockData"
 import { fetchCategories } from "@/lib/api/categories"
 import { fetchProducts, type Product } from "@/lib/api/products"
@@ -20,7 +20,7 @@ import { saveOrder, type SessionOrder } from "@/lib/api/orders-client"
 import { usePrinting } from '@/hooks/usePrinting'
 import { PrintButton } from '@/components/printing/PrintButton'
 import { PrintJobStatus } from '@/components/printing/PrintJobStatus'
-import { initializeSocketClient, joinTableRoom, leaveTableRoom, onTableSessionUpdate, offTableSessionUpdate, onCartUpdate, offCartUpdate, emitCartUpdate, onOrderConfirmation, offOrderConfirmation, emitOrderConfirmation } from '@/lib/socket-client'
+import { initializeSocketClient, joinTableRoom, leaveTableRoom, joinTablesRoom, leaveTablesRoom, onTablesUpdate, offTablesUpdate, onTableSessionUpdate, offTableSessionUpdate, onCartUpdate, offCartUpdate, emitCartUpdate, onOrderConfirmation, offOrderConfirmation, emitOrderConfirmation } from '@/lib/socket-client'
 import { addToCartApi, updateCartApi, removeFromCartApi, updateCartItemQuantityApi } from '@/lib/api/cart'
 
 import Confetti from "react-confetti"
@@ -221,6 +221,36 @@ export default function ItemsPage() {
             }, 3000)
           }
         })
+
+        // Join global tables room and listen for refresh updates
+        try {
+          await joinTablesRoom()
+          onTablesUpdate(async (update) => {
+            if (update?.type === 'refresh') {
+              console.log('🔄 Received global refresh, reloading settings and menu')
+              try {
+                const settingsResponse = await getBuffetSettings()
+                if (settingsResponse.success && settingsResponse.data) {
+                  setBuffetSettings(settingsResponse.data)
+                  const currentSession = getCurrentSessionFromSettings(settingsResponse.data)
+                  const [categoriesData, productsData] = await Promise.all([
+                    currentSession ? fetchCategories(`?session=${currentSession.key}`) : fetchCategories(),
+                    fetchProducts({ onlyAvailable: true })
+                  ])
+                  setCategories(categoriesData)
+                  setProducts(productsData)
+                  setSelectedCategory((prev) =>
+                    categoriesData.some(c => c.id === prev) ? prev : (categoriesData[0]?.id || prev)
+                  )
+                }
+              } catch (err) {
+                console.error('Error refreshing menu on update:', err)
+              }
+            }
+          })
+        } catch (err) {
+          console.warn('Failed to join tables room:', err)
+        }
         
         // Try to get fresh session data from API, fallback to stored session
         let sessionData: TableSession | null = null
@@ -291,7 +321,7 @@ export default function ItemsPage() {
         // Fetch categories and products with session filtering
         const [categoriesData, productsData] = await Promise.all([
           currentSession ? fetchCategories(`?session=${currentSession.key}`) : fetchCategories(),
-          fetchProducts()
+          fetchProducts({ onlyAvailable: true })
         ])
         setCategories(categoriesData)
         setProducts(productsData)
@@ -359,6 +389,10 @@ export default function ItemsPage() {
         if (storedTableId) {
           leaveTableRoom(storedTableId, storedGroupType || undefined)
         }
+      
+      // Leave global tables room and remove refresh listener
+      leaveTablesRoom()
+      offTablesUpdate()
       }
       offTableSessionUpdate()
       offCartUpdate()
@@ -462,7 +496,8 @@ export default function ItemsPage() {
       const currentTotalItems = getTotalOfFreeItems()
 
       // Check if adding this item would exceed the limit
-      if (currentTotalItems >= maxAllowedItems) {
+      // Premium items are exempt from the buffet round limit
+      if (!product.isPremium && currentTotalItems >= maxAllowedItems) {
         alert(`You have reached the maximum limit of ${maxAllowedItems} items per round. Please complete your current order before adding more items.`)
         return
       }
@@ -594,7 +629,9 @@ export default function ItemsPage() {
   }
   const getTotalOfFreeItems = () => {
     return cart.reduce((total, item) => {
-      if (item.menuItem.price == 0) {
+      const isFree = (item.menuItem.price || 0) === 0
+      const isPremium = !!(item.menuItem as any).isPremium
+      if (isFree && !isPremium) {
         return total + item.quantity
       }
       return total
@@ -1178,6 +1215,12 @@ export default function ItemsPage() {
                               <Badge className="bg-red-500/90 text-white shadow-lg backdrop-blur-sm">
                                 <Flame className="w-3 h-3 mr-1" />
                                 Spicy
+                              </Badge>
+                            )}
+                            {item.isPremium && (
+                              <Badge className="bg-purple-600/90 text-white shadow-lg backdrop-blur-sm">
+                                <Star className="w-3 h-3 mr-1" />
+                                Premium
                               </Badge>
                             )}
                           </div>

@@ -42,6 +42,7 @@ export async function GET(
       isVegetarian: product.isVegetarian || false,
       isSpicy: product.isSpicy || false,
       isAvailable: product.isAvailable !== false,
+      isPremium: product.isPremium || false,
       createdAt: product.createdAt,
       updatedAt: product.updatedAt
     }
@@ -76,7 +77,8 @@ export async function PUT(
       image,
       isVegetarian, 
       isSpicy,
-      isAvailable
+      isAvailable,
+      isPremium
     } = body
 
     // Validate ObjectId
@@ -155,6 +157,7 @@ export async function PUT(
       isVegetarian: Boolean(isVegetarian),
       isSpicy: Boolean(isSpicy),
       isAvailable: Boolean(isAvailable),
+      isPremium: Boolean(isPremium),
       updatedAt: new Date().toISOString()
     }
 
@@ -294,6 +297,7 @@ export async function DELETE(
       isVegetarian: existingProduct.isVegetarian || false,
       isSpicy: existingProduct.isSpicy || false,
       isAvailable: existingProduct.isAvailable !== false,
+      isPremium: existingProduct.isPremium || false,
       createdAt: existingProduct.createdAt,
       updatedAt: existingProduct.updatedAt
     }

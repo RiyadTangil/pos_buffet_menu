@@ -36,7 +36,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Plus, Edit, Trash2, Search, Leaf, Flame, Eye, EyeOff, Upload, Link } from "lucide-react"
+import { Plus, Edit, Trash2, Search, Leaf, Flame, Eye, EyeOff, Upload, Link, Star } from "lucide-react"
 import { toast } from "sonner"
 import { fetchProducts, createProduct, updateProduct, deleteProduct, type Product, type CreateProductData } from "@/lib/api/products"
 import { fetchCategories, type Category } from "@/lib/api/categories"
@@ -53,6 +53,7 @@ interface ProductFormData {
   isVegetarian: boolean
   isSpicy: boolean
   isAvailable: boolean
+  isPremium: boolean
 }
 
 const initialFormData: ProductFormData = {
@@ -64,7 +65,8 @@ const initialFormData: ProductFormData = {
   image: '',
   isVegetarian: false,
   isSpicy: false,
-  isAvailable: true
+  isAvailable: true,
+  isPremium: false
 }
 
 export default function ProductsPage() {
@@ -193,7 +195,8 @@ function ProductsPageContent() {
         image: formData.image,
         isVegetarian: formData.isVegetarian,
         isSpicy: formData.isSpicy,
-        isAvailable: formData.isAvailable
+        isAvailable: formData.isAvailable,
+        isPremium: formData.isPremium
       }
 
       const newProduct = await createProduct(productData)
@@ -230,7 +233,8 @@ function ProductsPageContent() {
         image: formData.image,
         isVegetarian: formData.isVegetarian,
         isSpicy: formData.isSpicy,
-        isAvailable: formData.isAvailable
+        isAvailable: formData.isAvailable,
+        isPremium: formData.isPremium
       }
 
       const updatedProduct = await updateProduct(editingProduct.id, productData)
@@ -505,6 +509,14 @@ function ProductsPageContent() {
                           onCheckedChange={(checked) => handleInputChange('isAvailable', checked)}
                         />
                       </div>
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="premium">Premium</Label>
+                        <Switch
+                          id="premium"
+                          checked={formData.isPremium}
+                          onCheckedChange={(checked) => handleInputChange('isPremium', checked)}
+                        />
+                      </div>
                     </div>
                   </div>
                   <DialogFooter>
@@ -580,6 +592,12 @@ function ProductsPageContent() {
                               <Badge variant="destructive" className="text-xs">
                                 <Flame className="h-3 w-3 mr-1" />
                                 Spicy
+                              </Badge>
+                            )}
+                            {product.isPremium && (
+                              <Badge variant="default" className="text-xs">
+                                <Star className="h-3 w-3 mr-1" />
+                                Premium
                               </Badge>
                             )}
                           </div>
@@ -784,6 +802,14 @@ function ProductsPageContent() {
                   id="edit-available"
                   checked={formData.isAvailable}
                   onCheckedChange={(checked) => handleInputChange('isAvailable', checked)}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="edit-premium">Premium</Label>
+                <Switch
+                  id="edit-premium"
+                  checked={formData.isPremium}
+                  onCheckedChange={(checked) => handleInputChange('isPremium', checked)}
                 />
               </div>
             </div>
