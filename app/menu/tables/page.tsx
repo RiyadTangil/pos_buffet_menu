@@ -26,7 +26,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import { WaiterVerificationModal } from "@/components/ui/waiter-verification-modal";
-import { Users, Shield } from "lucide-react";
+import { Shield } from "lucide-react";
 import I18nProvider from "@/components/providers/i18n-provider";
 import LanguageSwitcher from "@/components/ui/language-switcher";
 import { useTranslation } from "react-i18next";
@@ -110,10 +110,9 @@ export default function TablesPage() {
         tablesData.map(async (table) => {
           try {
             const session = await getTableSession(table.id);
-            const totalGuests = session 
-              ? (session.guestCounts.adults + session.guestCounts.children + session.guestCounts.infants)
-              : 0;
-            const availableAdultCapacity = Math.max(0, table.capacity - totalGuests);
+            // Capacity considers only adult guests
+            const adultGuests = session ? session.guestCounts.adults : 0;
+            const availableAdultCapacity = Math.max(0, table.capacity - adultGuests);
 
             return {
               ...table,
@@ -390,9 +389,10 @@ export default function TablesPage() {
                       <div className="flex items-center justify-between">
                         <div className="text-base sm:text-lg font-bold">Table {table.number}</div>
                         {table.session && (
-                          <div className="flex items-center text-xs text-blue-600">
-                            <Users className="w-3 h-3 mr-1" />
-                            <span>{table.session.guestCounts.adults + table.session.guestCounts.children + table.session.guestCounts.infants}</span>
+                          <div className="flex items-center text-xs text-blue-600 gap-2">
+                            <span title="Adults">👨 {table.session.guestCounts.adults}</span>
+                            <span title="Children">🧒 {table.session.guestCounts.children}</span>
+                            <span title="Infants">👶 {table.session.guestCounts.infants}</span>
                           </div>
                         )}
                       </div>
