@@ -103,7 +103,7 @@ export default function SplitBillModal({
     }
   }
 
-  useEffect(()=>{setNumberOfSplits(sessionData.adults )},[sessionData])
+  useEffect(() => { setNumberOfSplits(sessionData.adults) }, [sessionData.adults])
   // Calculate session charges (buffet prices)
   const sessionCharges = {
     adult: sessionData.adults * sessionData.adultPrice,
@@ -253,7 +253,19 @@ export default function SplitBillModal({
     }
 
     setSessionUnits(units)
-  }, [sessionData])
+  }, [
+    sessionData.adults,
+    sessionData.children,
+    sessionData.infants,
+    sessionData.adultPrice,
+    sessionData.childPrice,
+    sessionData.infantPrice,
+    sessionData.extraDrinks,
+    sessionData.drinkPrice,
+    sessionData.extraDrinksPricing?.adultPrice,
+    sessionData.extraDrinksPricing?.childPrice,
+    sessionData.extraDrinksPricing?.infantPrice,
+  ])
 
   // Initialize customer names and payment methods
   useEffect(() => {
@@ -351,6 +363,9 @@ export default function SplitBillModal({
 
   // Handle confirm
   const handleConfirm = () => {
+    if (splitMethod === 'items' && !isReadyToConfirm) {
+      return
+    }
     const computedSplits = splitMethod === 'equal' ? calculateEqualSplits() : calculateItemSplits()
     
     // Always include all adults, even if total is 0 or no items
@@ -380,6 +395,11 @@ export default function SplitBillModal({
   const unassignedSessionTotal = sessionUnits
     .filter(u => u.assignedTo === undefined)
     .reduce((sum, u) => sum + u.price, 0)
+
+  // Confirm enabled only when all items and session charges are assigned (for items method)
+  const isReadyToConfirm = splitMethod === 'items'
+    ? (unassignedItemsTotal === 0 && unassignedSessionTotal === 0)
+    : true
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -536,6 +556,7 @@ export default function SplitBillModal({
                           {customerNames.map((name, customerIndex) => (
                             <Button
                               key={customerIndex}
+                              type="button"
                               size="sm"
                               variant={u.assignedTo === customerIndex ? 'default' : 'outline'}
                               onClick={() => assignSessionUnitToCustomer(u.id, customerIndex)}
@@ -651,10 +672,15 @@ export default function SplitBillModal({
               <X className="w-4 h-4 mr-2" />
               Cancel
             </Button>
-            <Button onClick={handleConfirm} className="bg-green-600 hover:bg-green-700 text-white">
+            <Button onClick={handleConfirm} disabled={!isReadyToConfirm} className="bg-green-600 hover:bg-green-700 text-white disabled:opacity-50 disabled:hover:bg-green-600">
               <Check className="w-4 h-4 mr-2" />
               Confirm Split
             </Button>
+            {/* {!isReadyToConfirm && splitMethod === 'items' && (
+              <p className="text-xs text-amber-700">
+                Assign all items and all session charges to enable confirmation.
+              </p>
+            )} */}
           </div>
         </div>
       </DialogContent>

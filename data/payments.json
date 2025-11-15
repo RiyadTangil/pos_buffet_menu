@@ -153,5 +153,88 @@
     "createdAt": "2025-11-15T06:35:49.929Z",
     "updatedAt": "2025-11-15T06:35:49.929Z",
     "_id": "69181f46a963464fa12ce4d0"
+  },
+  {
+    "id": "6918241ca963464fa12ce4d3",
+    "paymentId": "PAY-1763189787924-sb9k0wh8b",
+    "tableId": "68c1555bc85542d7fb04fe21",
+    "tableNumber": 1,
+    "waiterId": "68d2830153bbcc90acc12c04",
+    "waiterName": "waiter ",
+    "totalAmount": 253,
+    "tipAmount": 0,
+    "sessionType": "lunch",
+    "sessionData": {
+      "adults": 3,
+      "children": 1,
+      "infants": 1,
+      "extraDrinks": true,
+      "adultPrice": 30,
+      "childPrice": 18,
+      "infantPrice": 0,
+      "drinkPrice": 5
+    },
+    "groupType": "same",
+    "paymentDate": "2025-11-15",
+    "paymentTime": "12:56:27",
+    "status": "completed",
+    "paymentMethod": "cash",
+    "isSplit": true,
+    "splitInfo": {
+      "totalSplits": 3,
+      "splitIndex": 1,
+      "originalTotalAmount": 253
+    },
+    "splitPayments": [
+      {
+        "customerIndex": 0,
+        "customerName": "Adult 1",
+        "paymentMethod": "cash",
+        "items": [
+          {
+            "id": "order-1763188585916-ijuzaek2t-2",
+            "name": "Riyad Hasan",
+            "price": 70,
+            "quantity": 1,
+            "category": "68c167f8c85542d7fb04fe24",
+            "selected": false,
+            "assignedTo": 0
+          }
+        ],
+        "sessionCharges": {
+          "adults": 1,
+          "children": 0,
+          "infants": 0
+        },
+        "total": 135
+      },
+      {
+        "customerIndex": 1,
+        "customerName": "Adult 2",
+        "paymentMethod": "cash",
+        "items": [],
+        "sessionCharges": {
+          "adults": 2,
+          "children": 1,
+          "infants": 1
+        },
+        "total": 118
+      },
+      {
+        "customerIndex": 2,
+        "customerName": "Adult 3",
+        "paymentMethod": "cash",
+        "items": [],
+        "sessionCharges": {
+          "adults": 0,
+          "children": 0,
+          "infants": 0
+        },
+        "total": 0
+      }
+    ],
+    "createdAt": "2025-11-15T06:56:27.924Z",
+    "updatedAt": "2025-11-15T06:56:27.924Z",
+    "_id": "6918241ca963464fa12ce4d3"
   }
 ]
