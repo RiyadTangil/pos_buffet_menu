@@ -330,7 +330,7 @@ export default function ProfilePage() {
       </div>
 
       <Tabs defaultValue="personal" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3">
           <TabsTrigger value="personal">Personal Info</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
           <TabsTrigger value="activity">Activity</TabsTrigger>
@@ -341,16 +341,16 @@ export default function ProfilePage() {
           {/* Profile Header */}
           <Card>
             <CardContent className="pt-6">
-              <div className="flex items-center space-x-4">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                 <Avatar className="w-20 h-20">
                   <AvatarImage src={profile.avatar} alt={profile.name} />
                   <AvatarFallback className="text-lg">
                     {profile.name.split(' ').map(n => n[0]).join('')}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex-1">
-                  <h2 className="text-xl font-semibold text-gray-900">{profile.name}</h2>
-                  <p className="text-gray-600">{profile.email}</p>
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-xl font-semibold text-gray-900 break-words">{profile.name}</h2>
+                  <p className="text-gray-600 break-words">{profile.email}</p>
                   <div className="flex items-center space-x-2 mt-2">
                     <Badge variant="secondary" className="capitalize">
                       {profile.role}

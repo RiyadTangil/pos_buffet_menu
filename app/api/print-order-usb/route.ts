@@ -105,7 +105,7 @@ async function buildOrderPDF(
 
     // Table number (larger for waiter requests)
     page.setFontSize(24)
-    const tableText = `TABLE ${meta.tableNumber ?? 'N/A'}`
+    const tableText = `TABLE - ${meta.tableNumber ?? 'N/A'}`
     const tableWidth = boldFont.widthOfTextAtSize(tableText, 24)
     page.drawText(tableText, { 
       x: centerX - tableWidth / 2, 
@@ -139,7 +139,7 @@ async function buildOrderPDF(
 
     // Table number
     page.setFontSize(14)
-    const tableText = `Table ${meta.tableNumber ?? 'N/A'}`
+    const tableText = `Table - ${meta.tableNumber ?? 'N/A'}`
     const tableWidth = boldFont.widthOfTextAtSize(tableText, 14)
     page.drawText(tableText, { 
       x: centerX - tableWidth / 2, 

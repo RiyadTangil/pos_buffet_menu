@@ -1359,7 +1359,7 @@ export default function ItemsPage() {
               name: categories.find(cat => cat.id === item.menuItem.categoryId)?.name || 'Unknown'
             }
           }))}
-          tableNumber={tableSession?.tableId}
+          tableNumber={tableData?.number ?? tableSession?.tableId}
           guestCount={(tableSession?.guestCounts.adults || 0) + (tableSession?.guestCounts.children || 0) + (tableSession?.guestCounts.infants || 0)}
           orderTime={new Date().toISOString()}
           onPrintComplete={(success, errors) => {

@@ -178,7 +178,7 @@ export default function PrintersPage() {
 
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
           <Tabs defaultValue="ip-printers" className="w-full">
-            <TabsList className="grid w-full grid-cols-3 bg-gray-100 p-1 rounded-lg h-12">
+            <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 bg-gray-100 p-1 rounded-lg gap-1 sm:gap-0 h-auto sm:h-12">
               <TabsTrigger 
                 value="ip-printers" 
                 className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm rounded-md transition-all duration-200"

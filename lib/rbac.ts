@@ -4,7 +4,7 @@
 import { UserRole } from './userTypes'
 
 // Define all possible permissions in the system
-export type Permission = 
+export type Permission =
   | 'dashboard.view'
   | 'users.view'
   | 'users.create'
@@ -82,7 +82,7 @@ export const DEFAULT_ROLE_CONFIGS: Record<UserRole, RoleConfig> = {
       'roles.manage'
     ],
     defaultNavigation: [
-      'dashboard', 'users', 'tables', 'categories', 'products', 
+      'dashboard', 'users', 'tables', 'categories', 'products',
       'order-management', 'payments', 'printers', 'role-management', 'settings', 'profile'
     ],
     canBeCustomized: true
@@ -94,29 +94,33 @@ export const DEFAULT_ROLE_CONFIGS: Record<UserRole, RoleConfig> = {
       'dashboard.view',
       'tables.view',
       'orders.view', 'orders.create', 'orders.edit',
-      'payments.view', 'payments.process',  'my-payments.view',
+      'payments.view', 'payments.process', 'my-payments.view',
       'products.view',
       'categories.view',
       'profile.view', 'profile.edit'
     ],
-    defaultNavigation: ['dashboard', 'profile', 'payments','my-payments', 'products', 'categories'],
+    defaultNavigation: ['dashboard', 'profile', 'payments', 'my-payments', 'products', 'categories'],
     canBeCustomized: true
   },
   stall_manager: {
     name: 'stall_manager',
     displayName: 'Stall Manager',
     permissions: [
-      'dashboard.view',
+   'dashboard.view',
+      'users.view', 'users.create', 'users.edit', 'users.delete',
       'tables.view', 'tables.manage',
       'categories.view', 'categories.manage',
       'products.view', 'products.manage',
       'orders.view', 'orders.manage',
       'payments.view', 'payments.manage',
+      'printers.view', 'printers.manage',
+      'settings.view', 'settings.manage',
       'profile.view', 'profile.edit',
-      'reports.view'
+      'reports.view', 'reports.generate',
+      'roles.manage'
     ],
     defaultNavigation: [
-      'dashboard', 'tables', 'categories', 'products', 
+      'dashboard', 'tables', 'categories', 'products',
       'order-management', 'payments', 'profile'
     ],
     canBeCustomized: true
@@ -244,7 +248,7 @@ export class RBACManager {
     const roleConfig = DEFAULT_ROLE_CONFIGS[userRole]
     const hasRolePermission = roleConfig.permissions.includes(permission)
     const hasCustomPermission = customPermissions?.includes(permission) || false
-    
+
     return hasRolePermission || hasCustomPermission
   }
 
@@ -254,7 +258,7 @@ export class RBACManager {
   static getUserPermissions(userRole: UserRole, customPermissions?: Permission[]): Permission[] {
     const rolePermissions = DEFAULT_ROLE_CONFIGS[userRole].permissions
     const allPermissions = [...rolePermissions]
-    
+
     if (customPermissions) {
       customPermissions.forEach(permission => {
         if (!allPermissions.includes(permission)) {
@@ -262,7 +266,7 @@ export class RBACManager {
         }
       })
     }
-    
+
     return allPermissions
   }
 
@@ -270,23 +274,23 @@ export class RBACManager {
    * Get navigation items for a user based on their role and custom config
    */
   static getNavigationItems(
-    userRole: UserRole, 
+    userRole: UserRole,
     customNavConfig?: UserNavigationConfig,
     customPermissions?: Permission[]
   ): NavigationItem[] {
     const roleConfig = DEFAULT_ROLE_CONFIGS[userRole]
     const visibleNavIds = customNavConfig?.visibleNavItems || roleConfig.defaultNavigation
-    
+
     return ALL_NAVIGATION_ITEMS
       .filter(item => {
         // Check if item is in visible nav items
         const isVisible = visibleNavIds.includes(item.id)
-        
+
         // Check if user has required permissions
-        const hasPermissions = item.requiredPermissions.every(permission => 
+        const hasPermissions = item.requiredPermissions.every(permission =>
           this.hasPermission(userRole, permission, customPermissions)
         )
-        
+
         return isVisible && hasPermissions && item.isVisible
       })
       .sort((a, b) => a.order - b.order)
@@ -296,18 +300,18 @@ export class RBACManager {
    * Check if a user can access a specific route
    */
   static canAccessRoute(
-    userRole: UserRole, 
-    route: string, 
+    userRole: UserRole,
+    route: string,
     customPermissions?: Permission[]
   ): boolean {
     const navItem = ALL_NAVIGATION_ITEMS.find(item => item.href === route)
-    
+
     if (!navItem) {
       // If route is not in navigation items, check basic role access
       return userRole === 'admin'
     }
-    
-    return navItem.requiredPermissions.every(permission => 
+
+    return navItem.requiredPermissions.every(permission =>
       this.hasPermission(userRole, permission, customPermissions)
     )
   }
@@ -317,9 +321,9 @@ export class RBACManager {
    */
   static getAvailableNavItems(userRole: UserRole): NavigationItem[] {
     const userPermissions = this.getUserPermissions(userRole)
-    
-    return ALL_NAVIGATION_ITEMS.filter(item => 
-      item.requiredPermissions.some(permission => 
+
+    return ALL_NAVIGATION_ITEMS.filter(item =>
+      item.requiredPermissions.some(permission =>
         userPermissions.includes(permission)
       )
     )
@@ -329,14 +333,14 @@ export class RBACManager {
    * Validate navigation configuration for a user
    */
   static validateNavigationConfig(
-    userRole: UserRole, 
+    userRole: UserRole,
     navItemIds: string[],
     customPermissions?: Permission[]
   ): { valid: boolean; errors: string[] } {
     const errors: string[] = []
     const availableItems = this.getAvailableNavItems(userRole)
     const availableIds = availableItems.map(item => item.id)
-    
+
     navItemIds.forEach(navId => {
       if (!availableIds.includes(navId)) {
         const navItem = ALL_NAVIGATION_ITEMS.find(item => item.id === navId)
@@ -347,7 +351,7 @@ export class RBACManager {
         }
       }
     })
-    
+
     return {
       valid: errors.length === 0,
       errors

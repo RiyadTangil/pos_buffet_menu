@@ -185,7 +185,7 @@ export default function UsersPage() {
             )}
 
             {/* Add User Section */}
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-3">
               <div>
                 <h3 className="text-lg font-semibold">User Management</h3>
                 <p className="text-sm text-gray-600">Manage admin and waiter accounts</p>
@@ -299,21 +299,21 @@ export default function UsersPage() {
 
             {/* Users List */}
             <div className="border rounded-lg overflow-hidden">
-              <div className="bg-gray-50 px-6 py-3 border-b">
-                <div className="grid grid-cols-12 gap-4 text-sm font-medium text-gray-700">
-                  <div className="col-span-2">Name</div>
-                  <div className="col-span-3">Email</div>
-                  <div className="col-span-2">Role</div>
-                  <div className="col-span-1">PIN</div>
-                  <div className="col-span-2">Status</div>
-                  <div className="col-span-2">Actions</div>
+              <div className="bg-gray-50 px-4 md:px-6 py-3 border-b">
+                <div className="hidden md:grid md:grid-cols-12 gap-4 text-sm font-medium text-gray-700">
+                  <div className="md:col-span-2">Name</div>
+                  <div className="md:col-span-3">Email</div>
+                  <div className="md:col-span-2">Role</div>
+                  <div className="md:col-span-1">PIN</div>
+                  <div className="md:col-span-2">Status</div>
+                  <div className="md:col-span-2">Actions</div>
                 </div>
               </div>
               <div className="divide-y">
                 {users.map((user) => (
-                  <div key={user.id} className="px-6 py-4 hover:bg-gray-50">
-                    <div className="grid grid-cols-12 gap-4 items-center">
-                      <div className="col-span-2">
+                  <div key={user.id} className="px-4 md:px-6 py-4 hover:bg-gray-50">
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start md:items-center">
+                      <div className="md:col-span-2">
                         <div className="flex items-center space-x-3">
                           <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                             <span className="text-sm font-medium text-blue-600">
@@ -321,32 +321,32 @@ export default function UsersPage() {
                             </span>
                           </div>
                           <div>
-                            <p className="font-medium">{user.name}</p>
-                            <p className="text-sm text-gray-500">ID: {user.id}</p>
+                            <p className="font-medium break-words">{user.name}</p>
+                            <p className="text-sm text-gray-500 break-all">ID: {user.id}</p>
                           </div>
                         </div>
                       </div>
-                      <div className="col-span-3">
-                        <p className="text-sm">{user.email}</p>
+                      <div className="md:col-span-3">
+                        <p className="text-sm break-all">{user.email}</p>
                         <p className="text-xs text-gray-500">Joined {user.createdAt}</p>
                       </div>
-                      <div className="col-span-2">
+                      <div className="md:col-span-2">
                         <Badge variant={user.role === 'admin' ? 'default' : 'secondary'}>
                           {getRoleDisplayName(user.role)}
                         </Badge>
                       </div>
-                      <div className="col-span-1">
+                      <div className="md:col-span-1">
                         <span className="text-sm font-mono">
                           {user.pin || 'N/A'}
                         </span>
                       </div>
-                      <div className="col-span-2">
+                      <div className="md:col-span-2">
                         <Badge variant={user.status === 'active' ? 'default' : 'secondary'}>
                           {getStatusDisplayName(user.status)}
                         </Badge>
                       </div>
-                      <div className="col-span-2">
-                        <div className="flex space-x-2">
+                      <div className="md:col-span-2">
+                        <div className="flex flex-wrap gap-2">
                           <Button 
                              size="sm"
                              variant="outline"

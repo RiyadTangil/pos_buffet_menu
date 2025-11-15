@@ -371,7 +371,7 @@ export default function OrderManagementPage() {
                       ))}
                     </div>
                     
-                    <div className="flex gap-1 pt-1">
+                    <div className="flex flex-wrap gap-1 pt-1">
                       <Button 
                          size="sm" 
                          variant={order.status === 'preparing' ? 'default' : 'outline'}

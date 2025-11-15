@@ -365,7 +365,7 @@ export default function SettingsPage() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-3xl font-bold">Restaurant Settings</h1>
           <p className="text-gray-600">Configure buffet session pricing and timing settings</p>
@@ -593,7 +593,7 @@ export default function SettingsPage() {
           <CardDescription>Configure item limits for specific tables</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-end gap-4 mb-4">
+          <div className="flex items-end gap-4 mb-4 flex-wrap">
             <div className="flex-1">
               <Label htmlFor="table-select">Select Table</Label>
               <Select value={selectedTableId} onValueChange={setSelectedTableId}>

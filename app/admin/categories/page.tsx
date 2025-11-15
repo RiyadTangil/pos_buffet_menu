@@ -202,8 +202,8 @@ function CategoriesPage() {
               {categories.map((category) => {
                 const itemCount = getCategoryItemCount(category.id)
                 return (
-                  <div key={category.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                    <div className="flex-1">
+                  <div key={category.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-3 mb-2">
                         <h3 className="font-semibold text-lg">{category.name}</h3>
                         <Badge variant="secondary" className="text-xs">
@@ -211,10 +211,10 @@ function CategoriesPage() {
                         </Badge>
                       </div>
                       {category.description && (
-                        <p className="text-gray-600 text-sm">{category.description}</p>
+                        <p className="text-gray-600 text-sm break-words">{category.description}</p>
                       )}
                       {category.sessions && category.sessions.length > 0 && (
-                        <div className="flex gap-1 mt-2">
+                        <div className="flex flex-wrap gap-1 mt-2">
                           {category.sessions.map((session) => (
                             <Badge key={session} variant="outline" className="text-xs capitalize">
                               {session}
@@ -223,7 +223,7 @@ function CategoriesPage() {
                         </div>
                       )}
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap sm:shrink-0">
                       <Button
                         variant="outline"
                         size="sm"

@@ -532,7 +532,7 @@ function ProductsPageContent() {
             </div>
 
             {/* Products Table */}
-            <div className="border rounded-lg">
+            <div className="border rounded-lg overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -572,7 +572,7 @@ function ProductsPageContent() {
                            <div>
                              <div className="font-medium">{product.name}</div>
                              {product.description && (
-                               <div className="text-sm text-gray-500 truncate max-w-xs">
+                               <div className="text-sm text-gray-500 break-words max-w-[10rem] sm:max-w-xs">
                                  {product.description}
                                </div>
                              )}
@@ -612,7 +612,7 @@ function ProductsPageContent() {
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
+                          <div className="flex justify-end gap-2 flex-wrap sm:flex-nowrap">
                             <Button
                               variant="outline"
                               size="sm"

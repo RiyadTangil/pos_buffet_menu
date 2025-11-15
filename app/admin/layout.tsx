@@ -52,7 +52,7 @@ export default function AdminLayout({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <DynamicNavigation 
+      <DynamicNavigation
         userRole={userRole}
         userId={userId}
         userName={userName}
@@ -61,8 +61,8 @@ export default function AdminLayout({
         setSidebarOpen={setSidebarOpen}
         onLogout={handleLogout}
       />
-      {/* Fixed top header with AdminHeader component */}
-      <div className={`fixed top-0 right-0 z-20 transition-all duration-300 ${sidebarOpen ? 'left-64' : 'left-16'}`}>
+      {/* Fixed top header with AdminHeader component (full width on small screens) */}
+      <div className={`fixed top-0 right-0 z-20 transition-all duration-300 ${sidebarOpen ? 'md:left-64 left-0' : 'md:left-16 left-0'}`}>
         <AdminHeader
           userRole={userRole}
           userName={userName}
@@ -71,7 +71,7 @@ export default function AdminLayout({
           onLogout={handleLogout}
         />
       </div>
-      <main className={`transition-all duration-300 pt-16 ${sidebarOpen ? 'ml-64' : 'ml-16'}`}>
+      <main className={`transition-all duration-300 pt-16 ${sidebarOpen ? 'md:ml-64 ml-0' : 'md:ml-16 ml-0'}`}>
         <div className="px-4 py-6 sm:px-6 lg:px-8">
           {children}
         </div>

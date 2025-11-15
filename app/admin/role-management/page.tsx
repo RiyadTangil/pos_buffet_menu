@@ -10,13 +10,13 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Separator } from "@/components/ui/separator"
-import { 
-  Settings, 
-  Users, 
-  Shield, 
-  Eye, 
-  EyeOff, 
-  Save, 
+import {
+  Settings,
+  Users,
+  Shield,
+  Eye,
+  EyeOff,
+  Save,
   RotateCcw,
   Plus,
   Trash2,
@@ -42,14 +42,14 @@ interface NavigationItemConfig {
   roles: UserRole[]
 }
 
-function RolePermissionCard({ 
-  role, 
-  config, 
-  onUpdate 
-}: { 
+function RolePermissionCard({
+  role,
+  config,
+  onUpdate
+}: {
   role: UserRole
   config: RolePermissionConfig
-  onUpdate: (role: UserRole, config: RolePermissionConfig) => void 
+  onUpdate: (role: UserRole, config: RolePermissionConfig) => void
 }) {
   const [localConfig, setLocalConfig] = useState(config)
   const [isEditing, setIsEditing] = useState(false)
@@ -67,20 +67,20 @@ function RolePermissionCard({
 
   const getAvailableNavItems = (role: UserRole) => {
     const allNavItems = [
-      'dashboard', 'users', 'tables', 'categories', 'products', 
-      'order-management', 'payments', 'settings', 'profile','my-payments'
+      'dashboard', 'users', 'tables', 'categories', 'products',
+      'order-management', 'payments', 'settings', 'profile', 'my-payments', 'printers'
     ]
-    
+
     // For waiter role, show all navigation items
     if (role === 'waiter') {
       return allNavItems
     }
-    
+
     // For stall manager role, exclude 'my-payments'
     if (role === 'stall_manager') {
       return allNavItems.filter(item => item !== 'my-payments')
     }
-    
+
     // For other roles (admin), show all items
     return allNavItems
   }
@@ -91,7 +91,7 @@ function RolePermissionCard({
     const newPermissions = localConfig.permissions.includes(permission)
       ? localConfig.permissions.filter(p => p !== permission)
       : [...localConfig.permissions, permission]
-    
+
     setLocalConfig(prev => ({ ...prev, permissions: newPermissions }))
   }
 
@@ -99,7 +99,7 @@ function RolePermissionCard({
     const newNavItems = localConfig.navigationItems.includes(navItem)
       ? localConfig.navigationItems.filter(n => n !== navItem)
       : [...localConfig.navigationItems, navItem]
-    
+
     setLocalConfig(prev => ({ ...prev, navigationItems: newNavItems }))
   }
 
@@ -198,8 +198,8 @@ function RolePermissionCard({
                   onCheckedChange={() => handleNavItemToggle(navItem)}
                   disabled={!isEditing}
                 />
-                <Label 
-                  htmlFor={`${role}-nav-${navItem}`} 
+                <Label
+                  htmlFor={`${role}-nav-${navItem}`}
                   className="text-sm cursor-pointer"
                 >
                   {navItem.replace('-', ' ')}
@@ -229,25 +229,25 @@ function RolePermissionCard({
 
 function RoleManagementPage() {
   const [roleConfigs, setRoleConfigs] = useState<Record<UserRole, RolePermissionConfig>>({})
-  
+
   const [loading, setLoading] = useState(false)
 
   // Load role configurations from the database on component mount
   useEffect(() => {
     console.log('🔄 Role Management: useEffect triggered - loading configurations...')
-    
+
     const loadRoleConfigurations = async () => {
       try {
         setLoading(true)
         console.log('📡 Role Management: Making API call to /api/rbac/public')
-        
+
         const response = await fetch('/api/rbac/public')
         console.log('📡 Role Management: API response status:', response.status)
-        
+
         if (response.ok) {
           const result = await response.json()
           console.log('📡 Role Management: API response data:', result)
-          
+
           if (result.success && result.data) {
             console.log('✅ Role Management: Setting role configs:', result.data)
             setRoleConfigs(result.data)
@@ -284,13 +284,13 @@ function RoleManagementPage() {
     try {
       // Update local state
       setRoleConfigs(prev => ({ ...prev, [role]: config }))
-      
+
       // Save to backend via RBAC API
       const response = await fetch('/api/rbac', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          role, 
+        body: JSON.stringify({
+          role,
           config: {
             role,
             permissions: config.permissions,
@@ -298,19 +298,19 @@ function RoleManagementPage() {
           }
         })
       })
-      
+
       if (!response.ok) {
         throw new Error('Failed to update role configuration')
       }
-      
+
       const result = await response.json()
       if (!result.success) {
         throw new Error(result.error || 'Failed to update role configuration')
       }
-      
+
       toast.success(`${role} configuration updated successfully`)
       console.log('Updated role configuration:', { role, config })
-      
+
     } catch (error) {
       toast.error('Failed to update role configuration')
       console.error('Error updating role:', error)
@@ -330,7 +330,7 @@ function RoleManagementPage() {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Role Management</h1>
           <p className="text-gray-600">Configure permissions and navigation for different user roles</p>
@@ -354,13 +354,13 @@ function RoleManagementPage() {
           {(Object.keys(roleConfigs) as UserRole[])
             .filter(role => role !== 'admin') // Exclude admin from configuration
             .map(role => (
-            <RolePermissionCard
-              key={role}
-              role={role}
-              config={roleConfigs[role]}
-              onUpdate={handleRoleUpdate}
-            />
-          ))}
+              <RolePermissionCard
+                key={role}
+                role={role}
+                config={roleConfigs[role]}
+                onUpdate={handleRoleUpdate}
+              />
+            ))}
         </div>
       ) : null}
 

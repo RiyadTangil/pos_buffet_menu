@@ -81,7 +81,20 @@ export function DynamicNavigation({
   const roleInfo = getRoleDisplayInfo(userRole)
 
   return (
-    <div className={`fixed left-0 top-0 h-full z-30 ${sidebarOpen ? 'w-64' : 'w-16'} bg-white shadow-lg transition-all duration-300 flex flex-col`}>
+    <>
+    {/* Mobile overlay backdrop */}
+    {sidebarOpen && (
+      <div
+        className="fixed inset-0 z-20 bg-black/30 md:hidden"
+        onClick={() => setSidebarOpen(false)}
+      />
+    )}
+    <div
+      className={`fixed left-0 top-0 h-full z-30 bg-white shadow-lg flex flex-col transition-all duration-300
+        ${sidebarOpen ? 'w-64 md:w-64' : 'w-64 md:w-16'}
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+      `}
+    >
       <div className="p-6">
         <div className={`flex items-center transition-all duration-300 ${
           sidebarOpen ? "space-x-3" : "justify-center"
@@ -166,5 +179,6 @@ export function DynamicNavigation({
         })}
       </nav>
     </div>
+    </>
   )
 }

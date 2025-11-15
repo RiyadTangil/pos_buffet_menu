@@ -326,6 +326,7 @@ export default function PaymentsPage() {
             </div>
           ) : (
             <>
+              <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -346,6 +347,7 @@ export default function PaymentsPage() {
                   ))}
                 </TableBody>
               </Table>
+              </div>
 
               {/* Pagination */}
               {pagination && pagination.totalPages > 1 && (
