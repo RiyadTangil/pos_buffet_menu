@@ -247,11 +247,50 @@ export async function POST(request: NextRequest) {
       // Don't fail the payment if table update fails, just log the error
     }
 
-    // Clear table session data for this table and groupType after successful payment
+    // Backup and then clear table session data for this table and groupType after successful payment
     try {
       const sessionDeleteFilter: any = { tableId }
       if (groupType) {
         sessionDeleteFilter.groupType = groupType
+      }
+      // Fetch existing sessions to back them up locally before deletion
+      const existingSessions = await db.collection('table_sessions').find(sessionDeleteFilter).toArray()
+
+      // Persist sessions to local file as a simple audit trail (similar to payments.json)
+      try {
+        const dataDir = path.join(process.cwd(), 'data')
+        if (!fs.existsSync(dataDir)) {
+          fs.mkdirSync(dataDir, { recursive: true })
+        }
+
+        const sessionsFilePath = path.join(dataDir, 'table-sessions.json')
+        let backups: any[] = []
+        if (fs.existsSync(sessionsFilePath)) {
+          const raw = fs.readFileSync(sessionsFilePath, 'utf8')
+          try {
+            backups = JSON.parse(raw)
+            if (!Array.isArray(backups)) {
+              backups = []
+            }
+          } catch {
+            backups = []
+          }
+        }
+
+        const backupEntry = {
+          backupDate: now.toISOString(),
+          paymentId: paymentId,
+          tableId,
+          tableNumber: (typeof resolvedTableNumber === 'number' ? resolvedTableNumber : null),
+          groupType: groupType || null,
+          sessions: existingSessions
+        }
+
+        backups.push(backupEntry)
+        fs.writeFileSync(sessionsFilePath, JSON.stringify(backups, null, 2))
+      } catch (fileErr) {
+        console.warn('Failed to write table-sessions backup file:', fileErr)
+        // Non-blocking: continue even if local backup fails
       }
       
       await db.collection('table_sessions').deleteMany(sessionDeleteFilter)

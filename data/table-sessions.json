@@ -1,0 +1,30 @@
+[
+  {
+    "backupDate": "2025-11-15T09:58:46.601Z",
+    "paymentId": "PAY-1763200726601-zb15d1pqd",
+    "tableId": "68c1555bc85542d7fb04fe21",
+    "tableNumber": 1,
+    "groupType": "same",
+    "sessions": [
+      {
+        "_id": "6918271ca963464fa12ce4d4",
+        "tableId": "68c1555bc85542d7fb04fe21",
+        "deviceId": "device_76p97x786_1763188554303",
+        "guestCounts": {
+          "adults": 4,
+          "children": 1,
+          "infants": 1,
+          "includeDrinks": true
+        },
+        "cartItems": [],
+        "status": "active",
+        "createdAt": "2025-11-15T07:09:16.689Z",
+        "updatedAt": "2025-11-15T09:58:46.601Z",
+        "isSecondaryDevice": false,
+        "groupType": "same",
+        "nextOrderAvailableUntil": "2025-11-15T07:53:06.920Z",
+        "sessionEnded": true
+      }
+    ]
+  }
+]

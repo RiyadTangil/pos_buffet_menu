@@ -247,12 +247,12 @@ console.log("formData => ",formData)
 console.log("getAvailablePrinters => ",getAvailablePrinters())
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
         <div>
           <h2 className="text-2xl font-bold">Waiter Request Printers</h2>
           <p className="text-gray-600">Configure which printers handle waiter service requests</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
           <Button 
             variant="outline" 
             onClick={detectLocalPrinters}
@@ -287,7 +287,7 @@ console.log("getAvailablePrinters => ",getAvailablePrinters())
                       {localPrinters.map((printer, index) => (
                         <div 
                           key={index}
-                          className="flex items-center justify-between p-2 border rounded cursor-pointer hover:bg-gray-50"
+                          className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-2 border rounded cursor-pointer hover:bg-gray-50"
                           onClick={() => selectLocalPrinter(printer)}
                         >
                           <div>
@@ -440,7 +440,7 @@ console.log("getAvailablePrinters => ",getAvailablePrinters())
             mappings.map((mapping) => (
               <Card key={mapping.requestType} className="hover:shadow-lg transition-shadow">
                 <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <CardTitle className="text-lg flex items-center gap-2">
                       {getRequestTypeIcon(mapping.requestType)}
                       {REQUEST_TYPE_LABELS[mapping.requestType]}
@@ -455,11 +455,11 @@ console.log("getAvailablePrinters => ",getAvailablePrinters())
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2 mb-4">
-                    <div className="flex justify-between">
+                    <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-2">
                       <span className="text-sm text-gray-600">Printer:</span>
-                      <span className="text-sm font-medium">{mapping.printerName}</span>
+                      <span className="text-sm font-medium break-words sm:break-normal max-w-full sm:max-w-none">{mapping.printerName}</span>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-2">
                       <span className="text-sm text-gray-600">Type:</span>
                       <Badge variant="outline">
                         {mapping.connectionType?.toUpperCase() ?? 'N/A'}
@@ -467,7 +467,7 @@ console.log("getAvailablePrinters => ",getAvailablePrinters())
                     </div>
                   </div>
                   
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <Button
                       variant="outline"
                       size="sm"

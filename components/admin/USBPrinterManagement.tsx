@@ -221,13 +221,13 @@ export default function USBPrinterManagement() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
         <div>
           <h2 className="text-2xl font-bold">USB Printers</h2>
           <p className="text-gray-600">Manage local USB printers and their category assignments</p>
         </div>
         
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
           <Button 
             variant="outline" 
             onClick={detectLocalPrinters}
@@ -262,7 +262,7 @@ export default function USBPrinterManagement() {
                       {localPrinters.map((printer, index) => (
                         <div 
                           key={index}
-                          className="flex items-center justify-between p-2 border rounded cursor-pointer hover:bg-gray-50"
+                          className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-2 border rounded cursor-pointer hover:bg-gray-50"
                           onClick={() => selectLocalPrinter(printer)}
                         >
                           <div>
@@ -445,7 +445,7 @@ export default function USBPrinterManagement() {
             usbPrinters.map((printer) => (
               <Card key={printer.id} className="hover:shadow-lg transition-shadow">
                 <CardHeader className="pb-3">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                     <CardTitle className="text-lg flex items-center gap-2">
                       <Usb className="h-5 w-5" />
                       {printer.name}
@@ -458,11 +458,11 @@ export default function USBPrinterManagement() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2 mb-4">
-                    <div className="flex justify-between">
+                    <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-2">
                       <span className="text-sm text-gray-600">Type:</span>
                       <Badge variant="secondary">{printer.type}</Badge>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-2">
                       <span className="text-sm text-gray-600">Categories:</span>
                       <div className="flex flex-wrap gap-1">
                         {printer.categories && printer.categories.length > 0 ? (
@@ -479,11 +479,11 @@ export default function USBPrinterManagement() {
                         )}
                       </div>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-2">
                       <span className="text-sm text-gray-600">Local Name:</span>
-                      <span className="text-sm font-mono">{printer.localPrinterName}</span>
+                      <span className="text-sm font-mono break-words sm:break-normal max-w-full sm:max-w-none">{printer.localPrinterName}</span>
                     </div>
-                    <div className="flex justify-between">
+                    <div className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-2">
                       <span className="text-sm text-gray-600">Status:</span>
                       <div className="flex items-center gap-2">
                         <Badge variant={printer.isActive ? "default" : "secondary"}>
@@ -498,7 +498,7 @@ export default function USBPrinterManagement() {
                     </div>
                   </div>
                   
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <Button
                       variant="outline"
                       size="sm"
