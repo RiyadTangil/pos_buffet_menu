@@ -20,6 +20,14 @@ interface SplitBillItem {
   assignedTo?: number // Customer index
 }
 
+interface SessionUnit {
+  id: string
+  type: 'adult' | 'child' | 'infant' | 'drink'
+  label: string
+  price: number
+  assignedTo?: number
+}
+
 interface SplitBillModalProps {
   isOpen: boolean
   onClose: () => void
@@ -73,6 +81,7 @@ export default function SplitBillModal({
   const [paymentMethods, setPaymentMethods] = useState<('cash' | 'card')[]>([]) // Add payment methods state
   const [splits, setSplits] = useState<SplitResult[]>([])
   const [hasChanges, setHasChanges] = useState(false)
+  const [sessionUnits, setSessionUnits] = useState<SessionUnit[]>([])
 
   // Track initial defaults to compare for changes
   useEffect(() => {
@@ -112,30 +121,31 @@ export default function SplitBillModal({
 
   // Live preview for item-based splits (industry-standard per-person summary)
   const itemPreviewSplits = useMemo(() => {
-    // Industry standard: session charges are equally distributed among all customers
-    // Then add any assigned item totals per customer
-    const sessionPerCustomer = customerNames.length > 0
-      ? Math.round((totalSessionCharges / customerNames.length) * 100) / 100
-      : 0
-
+    // New behavior: session charges are assignable units; preview sums assigned units per customer
     const baseSplits = customerNames.map((name, index) => {
       const customerItems = items.filter(item => item.assignedTo === index)
       const itemsTotal = customerItems.reduce((sum, item) => sum + (item.price * item.quantity), 0)
       const itemsSubtotal = Math.round(itemsTotal * 100) / 100
-      const total = Math.round((itemsSubtotal + sessionPerCustomer) * 100) / 100
+
+      const sessionAssigned = sessionUnits
+        .filter(u => u.assignedTo === index)
+        .reduce((sum, u) => sum + u.price, 0)
+      const sessionSubtotal = Math.round(sessionAssigned * 100) / 100
+
+      const total = Math.round((itemsSubtotal + sessionSubtotal) * 100) / 100
       return {
         customerIndex: index,
         customerName: name,
         paymentMethod: paymentMethods[index],
         items: customerItems,
         itemsSubtotal,
-        sessionShare: sessionPerCustomer,
+        sessionShare: sessionSubtotal,
         total,
       }
     })
 
     return baseSplits
-  }, [customerNames, items, paymentMethods, totalSessionCharges])
+  }, [customerNames, items, paymentMethods, sessionUnits])
 
   // Initialize items from orders
   useEffect(() => {
@@ -163,6 +173,87 @@ export default function SplitBillModal({
       setItems(orderItems)
     }
   }, [orders])
+
+  // Build assignable session units from sessionData
+  useEffect(() => {
+    const units: SessionUnit[] = []
+    // Buffet adults
+    for (let i = 1; i <= (sessionData.adults || 0); i++) {
+      units.push({
+        id: `adult-${i}`,
+        type: 'adult',
+        label: `Buffet (Adult ${i})`,
+        price: sessionData.adultPrice || 0,
+      })
+    }
+    // Buffet children
+    for (let i = 1; i <= (sessionData.children || 0); i++) {
+      units.push({
+        id: `child-${i}`,
+        type: 'child',
+        label: `Buffet (Child ${i})`,
+        price: sessionData.childPrice || 0,
+      })
+    }
+    // Buffet infants
+    for (let i = 1; i <= (sessionData.infants || 0); i++) {
+      units.push({
+        id: `infant-${i}`,
+        type: 'infant',
+        label: `Buffet (Infant ${i})`,
+        price: sessionData.infantPrice || 0,
+      })
+    }
+    // Extra drinks
+    if (sessionData.extraDrinks) {
+      if (sessionData.extraDrinksPricing) {
+        for (let i = 1; i <= (sessionData.adults || 0); i++) {
+          units.push({
+            id: `drink-adult-${i}`,
+            type: 'drink',
+            label: `Drink (Adult ${i})`,
+            price: sessionData.extraDrinksPricing.adultPrice || 0,
+          })
+        }
+        for (let i = 1; i <= (sessionData.children || 0); i++) {
+          units.push({
+            id: `drink-child-${i}`,
+            type: 'drink',
+            label: `Drink (Child ${i})`,
+            price: sessionData.extraDrinksPricing.childPrice || 0,
+          })
+        }
+        for (let i = 1; i <= (sessionData.infants || 0); i++) {
+          units.push({
+            id: `drink-infant-${i}`,
+            type: 'drink',
+            label: `Drink (Infant ${i})`,
+            price: sessionData.extraDrinksPricing.infantPrice || 0,
+          })
+        }
+      } else {
+        const drinkUnitPrice = sessionData.drinkPrice || 5
+        for (let i = 1; i <= (sessionData.adults || 0); i++) {
+          units.push({
+            id: `drink-adult-${i}`,
+            type: 'drink',
+            label: `Drink (Adult ${i})`,
+            price: drinkUnitPrice,
+          })
+        }
+        for (let i = 1; i <= (sessionData.children || 0); i++) {
+          units.push({
+            id: `drink-child-${i}`,
+            type: 'drink',
+            label: `Drink (Child ${i})`,
+            price: drinkUnitPrice,
+          })
+        }
+      }
+    }
+
+    setSessionUnits(units)
+  }, [sessionData])
 
   // Initialize customer names and payment methods
   useEffect(() => {
@@ -196,26 +287,29 @@ export default function SplitBillModal({
 
   // Calculate item-based splits
   const calculateItemSplits = () => {
-    // Equally distribute session charges among all customers first,
-    // then add any assigned item totals
-    const count = customerNames.length || 1
-    const sessionPerCustomer = totalSessionCharges / count
-
+    // New: session charges assigned per adult via sessionUnits
     const newSplits: SplitResult[] = customerNames.map((name, index) => {
       const customerItems = items.filter(item => item.assignedTo === index)
       const itemsTotal = customerItems.reduce((sum, item) => sum + (item.price * item.quantity), 0)
 
+      const sessionAssignedUnits = sessionUnits.filter(u => u.assignedTo === index)
+      const sessionTotal = sessionAssignedUnits.reduce((sum, u) => sum + u.price, 0)
+
+      const adultsCount = sessionAssignedUnits.filter(u => u.type === 'adult').length
+      const childrenCount = sessionAssignedUnits.filter(u => u.type === 'child').length
+      const infantsCount = sessionAssignedUnits.filter(u => u.type === 'infant').length
+
       return {
         customerIndex: index,
         customerName: name,
-        paymentMethod: paymentMethods[index], // Include payment method
+        paymentMethod: paymentMethods[index],
         items: customerItems,
         sessionCharges: {
-          adults: Math.round((sessionData.adults / count) * 100) / 100,
-          children: Math.round((sessionData.children / count) * 100) / 100,
-          infants: Math.round((sessionData.infants / count) * 100) / 100
+          adults: adultsCount,
+          children: childrenCount,
+          infants: infantsCount,
         },
-        total: Math.round((itemsTotal + sessionPerCustomer) * 100) / 100
+        total: Math.round((itemsTotal + sessionTotal) * 100) / 100
       }
     })
 
@@ -229,6 +323,16 @@ export default function SplitBillModal({
       item.id === itemId 
         ? { ...item, assignedTo: item.assignedTo === customerIndex ? undefined : customerIndex }
         : item
+    ))
+    markChanged()
+  }
+
+  // Handle session unit assignment
+  const assignSessionUnitToCustomer = (unitId: string, customerIndex: number) => {
+    setSessionUnits(prev => prev.map(u =>
+      u.id === unitId
+        ? { ...u, assignedTo: u.assignedTo === customerIndex ? undefined : customerIndex }
+        : u
     ))
     markChanged()
   }
@@ -268,6 +372,14 @@ export default function SplitBillModal({
   const unassignedItemsTotal = items
     .filter(item => item.assignedTo === undefined)
     .reduce((sum, item) => sum + (item.price * item.quantity), 0)
+
+  const assignedSessionTotal = sessionUnits
+    .filter(u => u.assignedTo !== undefined)
+    .reduce((sum, u) => sum + u.price, 0)
+
+  const unassignedSessionTotal = sessionUnits
+    .filter(u => u.assignedTo === undefined)
+    .reduce((sum, u) => sum + u.price, 0)
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -403,12 +515,58 @@ export default function SplitBillModal({
                 ))}
               </div>
 
+              {/* Session Charge Assignment */}
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <Label>Assign Session Charges (Buffet / Drinks)</Label>
+                  <div className="text-sm text-gray-600">
+                    Assigned: £{assignedSessionTotal.toFixed(2)} | 
+                    Unassigned: £{unassignedSessionTotal.toFixed(2)}
+                  </div>
+                </div>
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {sessionUnits.map((u) => (
+                    <Card key={u.id} className="p-3">
+                      <div className="flex justify-between items-center">
+                        <div className="flex-1">
+                          <div className="font-medium">{u.label}</div>
+                          <div className="text-sm text-gray-600">£{u.price.toFixed(2)}</div>
+                        </div>
+                        <div className="flex gap-2">
+                          {customerNames.map((name, customerIndex) => (
+                            <Button
+                              key={customerIndex}
+                              size="sm"
+                              variant={u.assignedTo === customerIndex ? 'default' : 'outline'}
+                              onClick={() => assignSessionUnitToCustomer(u.id, customerIndex)}
+                              className="text-xs"
+                            >
+                              {name}
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+                {unassignedSessionTotal > 0 && (
+                  <p className="text-xs text-amber-700">
+                    £{unassignedSessionTotal.toFixed(2)} of session charges are unassigned. Assign them to include in totals.
+                  </p>
+                )}
+              </div>
+
               {/* Industry-standard per-person preview for item-based splits */}
               <div className="space-y-2">
                 <Label>Split Preview</Label>
                 {unassignedItemsTotal > 0 && (
                   <p className="text-xs text-amber-700">
                     £{unassignedItemsTotal.toFixed(2)} of items are unassigned. Assign them to include in totals.
+                  </p>
+                )}
+                {unassignedSessionTotal > 0 && (
+                  <p className="text-xs text-amber-700">
+                    £{unassignedSessionTotal.toFixed(2)} of session charges are unassigned. Assign them to include in totals.
                   </p>
                 )}
                 <div className="grid grid-cols-1 gap-3">
@@ -432,9 +590,7 @@ export default function SplitBillModal({
                       </div>
                       <div className="mt-2 text-xs text-gray-600">
                         Items: £{split.itemsSubtotal.toFixed(2)}
-                        {split.items.length > 0 && (
-                          <span className="ml-2">• Session share: £{split.sessionShare.toFixed(2)}</span>
-                        )}
+                        <span className="ml-2">• Session: £{split.sessionShare.toFixed(2)}</span>
                       </div>
                     </Card>
                   ))}

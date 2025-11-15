@@ -182,12 +182,12 @@ export default function SessionOrdersPage() {
         tableSession = tableSession ? JSON.parse(tableSession) : null;
         let tableOrders = [];
 
-        if (tableSession && tableSession?.id) {
-          // Use the new API endpoint that fetches orders by tableSessionId
-          tableOrders = await getOrdersByTableSession(tableSession.id);
+        // if (tableSession && tableSession?.id) {
+        //   // Use the new API endpoint that fetches orders by tableSessionId
+        //   tableOrders = await getOrdersByTableSession(tableSession.id);
     
 
-        } else {
+        // } else {
           // Fallback to old method if tableSessionId is not available
           const selectedTableId =
             localStorage.getItem("selectedTableId") || `table-${tableNumber}`;
@@ -199,7 +199,7 @@ export default function SessionOrdersPage() {
             date: today,
             groupType: storedGroupType || undefined,
           });
-        }
+        // }
         setOrders(tableOrders);
 
         setLoading(false);

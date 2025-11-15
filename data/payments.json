@@ -122,5 +122,36 @@
     "createdAt": "2025-11-14T15:54:10.138Z",
     "updatedAt": "2025-11-14T15:54:10.138Z",
     "_id": "691750a2a963464fa12ce4c5"
+  },
+  {
+    "id": "69181f46a963464fa12ce4d0",
+    "paymentId": "PAY-1763188549929-ulzvlacbg",
+    "tableId": "68c1555bc85542d7fb04fe21",
+    "tableNumber": 1,
+    "waiterId": "68d2830153bbcc90acc12c04",
+    "waiterName": "waiter ",
+    "totalAmount": 183,
+    "tipAmount": 0,
+    "sessionType": "lunch",
+    "sessionData": {
+      "adults": 3,
+      "children": 1,
+      "infants": 1,
+      "extraDrinks": true,
+      "adultPrice": 30,
+      "childPrice": 18,
+      "infantPrice": 0,
+      "drinkPrice": 5
+    },
+    "groupType": "same",
+    "paymentDate": "2025-11-15",
+    "paymentTime": "12:35:49",
+    "status": "completed",
+    "paymentMethod": "cash",
+    "isSplit": false,
+    "splitPayments": [],
+    "createdAt": "2025-11-15T06:35:49.929Z",
+    "updatedAt": "2025-11-15T06:35:49.929Z",
+    "_id": "69181f46a963464fa12ce4d0"
   }
 ]
