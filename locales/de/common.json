@@ -74,7 +74,7 @@
   "orders.total_amount_final": "Gesamtbetrag:",
   "orders.including_all": "Einschließlich aller Buffet-Zugänge und zusätzlichen Bestellungen",
   "orders.payment_required": "Zahlung erforderlich",
-  "orders.please_pay": "Bitte zahlen Sie £{amount}, um Ihre Sitzung abzuschließen",
+  "orders.please_pay": "Bitte zahlen Sie , um Ihre Sitzung abzuschließen",
   "orders.pay_with_waiter": "Mit Kellner bezahlen",
   "orders.waiter_verification": "Kellner-Verifizierung",
   "orders.payment_successful": "Zahlung erfolgreich!",

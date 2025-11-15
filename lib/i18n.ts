@@ -16,7 +16,8 @@ if (!i18n.isInitialized) {
     .use(initReactI18next)
     .init({
       resources,
-      lng: typeof window !== 'undefined' ? (localStorage.getItem('lang') || 'en') : 'en',
+      // Initialize with a stable default to avoid SSR/client mismatch
+      lng: 'en',
       fallbackLng: 'en',
       ns: ['common'],
       defaultNS: 'common',

@@ -537,7 +537,7 @@ export default function SplitBillModal({
 
               {/* Session Charge Assignment */}
               <div className="space-y-2">
-                <div className="flex justify-between items-center">
+                <div className="flex justify-between items-center sticky top-0 z-10 bg-white py-2 border-b">
                   <Label>Assign Session Charges (Buffet / Drinks)</Label>
                   <div className="text-sm text-gray-600">
                     Assigned: £{assignedSessionTotal.toFixed(2)} | 
@@ -571,7 +571,7 @@ export default function SplitBillModal({
                   ))}
                 </div>
                 {unassignedSessionTotal > 0 && (
-                  <p className="text-xs text-amber-700">
+                  <p className="text-xs text-amber-700 sticky bottom-0 z-10 bg-white py-2">
                     £{unassignedSessionTotal.toFixed(2)} of session charges are unassigned. Assign them to include in totals.
                   </p>
                 )}

@@ -173,5 +173,25 @@
     "status": "pending",
     "groupType": "same",
     "tableSessionId": "69181f5aa963464fa12ce4d1"
+  },
+  {
+    "id": "order-1763190576439-ze5fdnitc",
+    "tableId": "68c1555bc85542d7fb04fe21",
+    "session": "lunch",
+    "date": "2025-11-15",
+    "time": "13:09",
+    "items": [
+      {
+        "id": "68c19d3a3b67d81cc1cc2e82",
+        "name": "Normal Vagitable",
+        "quantity": 1,
+        "category": "68c167dbc85542d7fb04fe23",
+        "price": 0
+      }
+    ],
+    "totalAmount": 0,
+    "status": "pending",
+    "groupType": "same",
+    "tableSessionId": "6918271ca963464fa12ce4d4"
   }
 ]
