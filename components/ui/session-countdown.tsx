@@ -72,9 +72,9 @@ export function SessionCountdown({ currentSession }: SessionCountdownProps) {
   return (
     <div className="flex items-center gap-4 bg-blue-50 rounded-lg px-4 py-2 border border-blue-200">
       <Clock className="h-5 w-5 text-blue-600" />
-      <div className="text-sm">
-        <div className="font-semibold text-blue-900 capitalize">{currentSession.key}</div>
-        <div className="text-blue-700">{currentSession.data.startTime} - {currentSession.data.endTime}</div>
+      <div className="text-sm flex">
+        <div className="font-semibold text-blue-900 capitalize">{currentSession.key} - </div>
+        <div className="text-blue-700"> {currentSession.data.startTime} - {currentSession.data.endTime}</div>
       </div>
     </div>
   )

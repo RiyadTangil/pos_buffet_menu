@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getDatabase, COLLECTIONS } from '@/lib/mongodb'
+import { ObjectId } from 'mongodb'
 
 // Get orders by tableSessionId
 export async function GET(request: NextRequest) {
@@ -10,6 +11,13 @@ export async function GET(request: NextRequest) {
     if (!tableSessionId) {
       return NextResponse.json(
         { success: false, message: 'tableSessionId is required' },
+        { status: 400 }
+      )
+    }
+    // Validate ObjectId format to avoid runtime ReferenceErrors
+    if (!ObjectId.isValid(tableSessionId)) {
+      return NextResponse.json(
+        { success: false, message: 'Invalid tableSessionId format' },
         { status: 400 }
       )
     }

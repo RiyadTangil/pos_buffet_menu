@@ -421,27 +421,43 @@ export default function TablesPage() {
         </div>
 
         {/* Color Legend Disclaimer */}
-        <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-md p-4 border">
-          <h3 className="text-sm font-semibold text-gray-700 mb-2 text-center">Table Status Colors</h3>
-          <div className="flex flex-wrap justify-center gap-4 text-xs">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-green-100 border-2 border-green-300 rounded"></div>
-              <span className="text-green-800 font-medium">Available</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-amber-100 border-2 border-amber-300 rounded"></div>
-              <span className="text-amber-800 font-medium">Partially Full</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-red-100 border-2 border-red-300 rounded"></div>
-              <span className="text-red-800 font-medium">Full</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-yellow-100 border-2 border-yellow-300 rounded"></div>
-              <span className="text-yellow-800 font-medium">Cleaning</span>
+        {(() => {
+          // Compute live counts for legend statuses
+          const counts = (tableStates || []).reduce(
+            (acc, table) => {
+              const status = getVisualStatus(table)
+              if (status === 'available') acc.available += 1
+              else if (status === 'partial') acc.partial += 1
+              else if (status === 'full') acc.full += 1
+              else if (status === 'cleaning') acc.cleaning += 1
+              return acc
+            },
+            { available: 0, partial: 0, full: 0, cleaning: 0 }
+          )
+          return (
+          <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-md p-4 border">
+            <h3 className="text-sm font-semibold text-gray-700 mb-2 text-center">Table Status Colors</h3>
+            <div className="flex flex-wrap justify-center gap-4 text-xs">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-green-100 border-2 border-green-300 rounded"></div>
+              <span className="text-green-800 font-medium">Available ({counts.available})</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-amber-100 border-2 border-amber-300 rounded"></div>
+              <span className="text-amber-800 font-medium">Partially Full ({counts.partial})</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-red-100 border-2 border-red-300 rounded"></div>
+              <span className="text-red-800 font-medium">Full ({counts.full})</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-yellow-100 border-2 border-yellow-300 rounded"></div>
+              <span className="text-yellow-800 font-medium">Cleaning ({counts.cleaning})</span>
+              </div>
             </div>
           </div>
-        </div>
+          )
+        })()}
 
         {/* Bottom Left - Developed By */}
         <div className="absolute bottom-6 left-6">

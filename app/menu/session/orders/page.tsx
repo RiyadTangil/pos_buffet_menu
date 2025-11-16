@@ -139,37 +139,37 @@ export default function SessionOrdersPage() {
         }
 
         // Fetch guest counts from DB table session (no localStorage)
-        if (storedTableId) {
-          try {
-            const groupType = localStorage.getItem("groupType") || undefined;
-            const session: TableSession | null = await getTableSession(
-              storedTableId,
-              groupType
-            );
+        // if (storedTableId) {
+        //   try {
+        //     const groupType = localStorage.getItem("groupType") || undefined;
+        //     const session: TableSession | null = await getTableSession(
+        //       storedTableId,
+        //       groupType
+        //     );
 
-            // Check if session has ended (either sessionEnded flag is true OR session is null)
-            if (session?.sessionEnded || session === null) {
-              setShowSessionEndedModal(true);
-              return; // Don't continue loading if session has ended
-            }
-            // Track whether this table session is connected to a secondary device
-            setIsSecondaryDevice(!!session?.isSecondaryDevice);
+        //     // Check if session has ended (either sessionEnded flag is true OR session is null)
+        //     if (session?.sessionEnded || session === null) {
+        //       setShowSessionEndedModal(true);
+        //       return; // Don't continue loading if session has ended
+        //     }
+        //     // Track whether this table session is connected to a secondary device
+        //     setIsSecondaryDevice(!!session?.isSecondaryDevice);
 
-            if (session?.guestCounts) {
-              setGuestCounts({
-                adults: session.guestCounts.adults || 0,
-                children: session.guestCounts.children || 0,
-                infants: session.guestCounts.infants || 0,
-                includeDrinks: session.guestCounts.includeDrinks || false,
-              });
-            }
-          } catch (err) {
-            console.error(
-              "Failed to load table session for guest counts:",
-              err
-            );
-          }
-        }
+        //     if (session?.guestCounts) {
+        //       setGuestCounts({
+        //         adults: session.guestCounts.adults || 0,
+        //         children: session.guestCounts.children || 0,
+        //         infants: session.guestCounts.infants || 0,
+        //         includeDrinks: session.guestCounts.includeDrinks || false,
+        //       });
+        //     }
+        //   } catch (err) {
+        //     console.error(
+        //       "Failed to load table session for guest counts:",
+        //       err
+        //     );
+        //   }
+        // }
 
         // Fetch buffet settings
         const settings = await getBuffetSettings();
@@ -182,12 +182,13 @@ export default function SessionOrdersPage() {
         tableSession = tableSession ? JSON.parse(tableSession) : null;
         let tableOrders = [];
 
-        // if (tableSession && tableSession?.id) {
-        //   // Use the new API endpoint that fetches orders by tableSessionId
-        //   tableOrders = await getOrdersByTableSession(tableSession.id);
-    
+        if (tableSession && tableSession?.id) {
+          // Use the new API endpoint that fetches orders by tableSessionId
+          const res = await getOrdersByTableSession(tableSession.id);
+          tableOrders = res.orders;
 
-        // } else {
+
+        } else {
           // Fallback to old method if tableSessionId is not available
           const selectedTableId =
             localStorage.getItem("selectedTableId") || `table-${tableNumber}`;
@@ -199,7 +200,7 @@ export default function SessionOrdersPage() {
             date: today,
             groupType: storedGroupType || undefined,
           });
-        // }
+        }
         setOrders(tableOrders);
 
         setLoading(false);
@@ -354,10 +355,10 @@ export default function SessionOrdersPage() {
     setSplitBills(splits);
     setShowSplitBill(false);
     setCurrentSplitIndex(0);
-  
+
   };
 
-  
+
   const handleSinglePayment = async () => {
     setIsProcessing(true);
 
@@ -384,7 +385,7 @@ export default function SessionOrdersPage() {
           originalTotalAmount: grandTotal,
         } : undefined,
         splitPayments: splitBills,
-        
+
         sessionData: {
           adults: sessionData.adults,
           children: sessionData.children,
@@ -789,7 +790,7 @@ export default function SessionOrdersPage() {
                       {t("orders.payment_required")}
                     </h3>
                     <p className="text-amber-700">
-                      Please pay £{grandTotal} {t("orders.please_pay",)}
+                      £{grandTotal} {t("orders.please_pay",)}
                     </p>
                   </div>
                 </div>

@@ -125,24 +125,24 @@ export default function ItemsPage() {
     const fetchData = async () => {
       try {
         setLoading(true)
-        
+
         // Only run on client side
         if (typeof window === 'undefined') return
-        
+
         // Load table session and group type from localStorage
         const storedTableId = localStorage.getItem('selectedTableId')
         const storedGroupType = localStorage.getItem('groupType')
         const storedSession = localStorage.getItem('tableSession')
-        
+
         if (!storedTableId || !storedGroupType) {
           alert('No table session found. Please return to the tables page.')
           router.push('/menu/tables')
           return
         }
-        
+
         // Initialize Socket.IO client and join table room
         const socket = initializeSocketClient()
-        
+
         try {
           await joinTableRoom(storedTableId, storedGroupType)
           console.log('✅ Successfully joined table room')
@@ -150,17 +150,17 @@ export default function ItemsPage() {
           console.error('❌ Failed to join table room:', error)
           // Continue with the rest of the initialization even if socket fails
         }
-        
+
         // Set up real-time table session updates
         onTableSessionUpdate((updatedSessionData) => {
           console.log('Received table session update:', updatedSessionData)
-          
+
           // Check if session has ended (either sessionEnded flag or null session)
           if (updatedSessionData?.sessionEnded || updatedSessionData === null) {
             setShowSessionEndedModal(true)
             return
           }
-          
+
           setTableSession(updatedSessionData)
           // Update localStorage with fresh data
           localStorage.setItem('tableSession', JSON.stringify(updatedSessionData))
@@ -191,7 +191,7 @@ export default function ItemsPage() {
                 }
                 return null
               }).filter(Boolean) as CartItem[]
-              
+
               setCart(convertedCartItems)
             } else {
               setCart([])
@@ -206,11 +206,11 @@ export default function ItemsPage() {
             // Sync order confirmation state with other devices in same group
             setShowConfetti(true)
             setOrderPlaced(true)
-            
+
             // Use timing from the order data or default
             const timingInSeconds = orderData.orderData?.timingInSeconds || 60
             setTimeRemaining(timingInSeconds)
-            
+
             // Clear cart when order is confirmed by another device
             setCart([])
             setIsCartOpen(false)
@@ -251,18 +251,18 @@ export default function ItemsPage() {
         } catch (err) {
           console.warn('Failed to join tables room:', err)
         }
-        
+
         // Try to get fresh session data from API, fallback to stored session
         let sessionData: TableSession | null = null
         try {
           sessionData = await getTableSession(storedTableId, storedGroupType || undefined)
-          
+
           // Check if session has ended (either sessionEnded flag or null session)
           if (sessionData?.sessionEnded || sessionData === null) {
             setShowSessionEndedModal(true)
             return
           }
-          
+
           if (sessionData) {
             setTableSession(sessionData)
             // Update localStorage with fresh data
@@ -295,16 +295,16 @@ export default function ItemsPage() {
             setTableSession(sessionData)
           }
         }
-        
+
         const [settingsResponse] = await Promise.all([
           getBuffetSettings()
         ])
-        
+
         // Set buffet settings first
         if (settingsResponse.success && settingsResponse.data) {
           setBuffetSettings(settingsResponse.data)
         }
-        
+
         // Fetch table data if we have a table ID
         if (storedTableId) {
           try {
@@ -314,10 +314,10 @@ export default function ItemsPage() {
             console.error('Error fetching table data:', error)
           }
         }
-        
+
         // Get current session to filter categories
         const currentSession = getCurrentSessionFromSettings(settingsResponse.data)
-        
+
         // Fetch categories and products with session filtering
         const [categoriesData, productsData] = await Promise.all([
           currentSession ? fetchCategories(`?session=${currentSession.key}`) : fetchCategories(),
@@ -328,7 +328,7 @@ export default function ItemsPage() {
         if (settingsResponse.success && settingsResponse.data) {
           setBuffetSettings(settingsResponse.data)
         }
-        
+
         // Convert database cart items to UI cart items after products are loaded
         if (sessionData && sessionData.cartItems && productsData.length > 0) {
           const convertedCartItems = sessionData.cartItems.map((dbCartItem: any) => {
@@ -341,7 +341,7 @@ export default function ItemsPage() {
             }
             return null
           }).filter(Boolean) as CartItem[]
-          
+
           setCart(convertedCartItems)
         }
         // Set first category as selected by default
@@ -381,7 +381,7 @@ export default function ItemsPage() {
     return () => {
       window.removeEventListener("beforeunload", handleBeforeUnload)
       window.removeEventListener("popstate", handlePopState)
-      
+
       // Clean up Socket.IO connections
       if (typeof window !== 'undefined') {
         const storedTableId = localStorage.getItem('selectedTableId')
@@ -389,10 +389,10 @@ export default function ItemsPage() {
         if (storedTableId) {
           leaveTableRoom(storedTableId, storedGroupType || undefined)
         }
-      
-      // Leave global tables room and remove refresh listener
-      leaveTablesRoom()
-      offTablesUpdate()
+
+        // Leave global tables room and remove refresh listener
+        leaveTablesRoom()
+        offTablesUpdate()
       }
       offTableSessionUpdate()
       offCartUpdate()
@@ -404,7 +404,7 @@ export default function ItemsPage() {
   useEffect(() => {
     const timeInterval = setInterval(() => {
       setCurrentTime(new Date())
-      
+
       // Check if current session has ended
       const currentSession = getCurrentSession()
       if (!currentSession) {
@@ -427,7 +427,7 @@ export default function ItemsPage() {
           if (newValue <= 0) {
             setOrderPlaced(false)
           }
-          
+
           return newValue
         })
       }, 1000)
@@ -462,16 +462,16 @@ export default function ItemsPage() {
     // Get items limit for current session with proper priority
     const sessionKey = currentSession.key as 'breakfast' | 'lunch' | 'dinner'
     const tableId = tableSession?.tableId
-    
+
     // Start with general limits as base
     let itemsLimit = buffetSettings.itemsLimit
-    
+
     // Override with session-specific limits if available (medium priority)
     if (buffetSettings.sessionSpecificItemsLimit && buffetSettings.sessionSpecificItemsLimit[sessionKey]) {
       itemsLimit = buffetSettings.sessionSpecificItemsLimit[sessionKey]
       console.log('Using session-specific item limits for session:', sessionKey)
     }
-    
+
     // Finally, override with special table limits if available (highest priority)
     if (tableId && buffetSettings.specialTableItemsLimit && buffetSettings.specialTableItemsLimit.length > 0) {
       const specialTableLimit = buffetSettings.specialTableItemsLimit.find(item => item.tableId === tableId)
@@ -493,7 +493,7 @@ export default function ItemsPage() {
       )
 
       // Get current total items in cart
-      const currentTotalItems = getTotalOfFreeItems()
+      const currentTotalItems = getTotalOfItems()
 
       // Check if adding this item would exceed the limit
       // Premium items are exempt from the buffet round limit
@@ -520,16 +520,16 @@ export default function ItemsPage() {
 
     // Sync with database and emit real-time update
     try {
-      const cartItem = { 
-        menuItemId: product.id, 
+      const cartItem = {
+        menuItemId: product.id,
         name: product.name,
         price: product.price || 0,
         quantity: 1,
         categoryId: product.categoryId
       }
-      const groupTypeLocal = typeof window !== 'undefined' ? localStorage.getItem('groupType') : null 
+      const groupTypeLocal = typeof window !== 'undefined' ? localStorage.getItem('groupType') : null
       const result = await addToCartApi(tableSession.tableId, cartItem, groupTypeLocal)
-      
+
       if (result.success) {
         // Convert UI cart format to database format for real-time updates
         const dbCartItems = updatedCart.map(item => ({
@@ -583,7 +583,7 @@ export default function ItemsPage() {
     // Sync with database and emit real-time update
     try {
       const result = await removeFromCartApi(tableSession.tableId, menuItemId, tableSession.groupType)
-      
+
       if (result.success) {
         // Convert UI cart format to database format for real-time updates
         const dbCartItems = updatedCart.map(item => ({
@@ -627,11 +627,11 @@ export default function ItemsPage() {
   const getTotalItems = () => {
     return cart.reduce((total, item) => total + item.quantity, 0)
   }
-  const getTotalOfFreeItems = () => {
+  const getTotalOfItems = () => {
     return cart.reduce((total, item) => {
-      const isFree = (item.menuItem.price || 0) === 0
+      // const isFree = (item.menuItem.price || 0) === 0
       const isPremium = !!(item.menuItem as any).isPremium
-      if (isFree && !isPremium) {
+      if (!isPremium) {
         return total + item.quantity
       }
       return total
@@ -660,16 +660,16 @@ export default function ItemsPage() {
 
       const selectedTableId = tableSession.tableId
       const guestCounts = tableSession.guestCounts
-      
+
       if (!guestCounts.adults && !guestCounts.children && !guestCounts.infants) {
         alert('Guest information is missing. Please return to the tables page and enter guest information.')
         router.push('/menu/tables')
         return
       }
-      
-     
-      
-     
+
+
+
+
 
       // Prepare order data for new API
       const orderData = {
@@ -698,19 +698,19 @@ export default function ItemsPage() {
       })
 
       const result = await response.json()
-      
+
       if (result.success) {
         console.log('Order created successfully:', result.orderId)
         setLastOrderId(result.orderId)
-        
+
         // Store printer configurations from order response
         if (result.printerConfigs) {
           setPrinterConfigs(result.printerConfigs)
         }
-        
+
         // Trigger automatic printing with OrderPrinter component
         setShouldPrintOrder(true)
-        
+
         // Remove old printing code - now handled by OrderPrinter component
         /*
         // Print the order - IP-based printer (commented out for now)
@@ -766,7 +766,7 @@ export default function ItemsPage() {
           // Don't block the order flow if printing fails
         }
         */
-        
+
         setShowConfetti(true)
         setOrderPlaced(true)
         // Use current session timing or default to 1 minute
@@ -781,21 +781,21 @@ export default function ItemsPage() {
         } catch (err) {
           console.error('Failed to persist next order availability:', err)
         }
-        
+
         // Cart is already cleared by the orders API, just emit update and reset local state
         try {
           emitCartUpdate(tableSession.tableId, [], tableSession.groupType)
         } catch (error) {
           console.error('Error emitting cart update:', error)
         }
-        
+
         // Emit order confirmation to sync with other devices in same group
         emitOrderConfirmation(tableSession.tableId, {
           orderId: result.orderId,
           timingInSeconds,
           orderData: orderData
         }, tableSession.groupType)
-        
+
         setCart([])
         setIsCartOpen(false)
 
@@ -826,61 +826,61 @@ export default function ItemsPage() {
   // Helper function to get current session from settings data (used during initial fetch)
   const getCurrentSessionFromSettings = (settingsData: any) => {
     if (!settingsData?.sessions) return null
-    
+
     const now = new Date()
     const currentHour = now.getHours()
     const currentMinute = now.getMinutes()
     const currentTimeInMinutes = currentHour * 60 + currentMinute
-    
+
     const sessions = [
       { key: 'breakfast', data: settingsData.sessions.breakfast },
       { key: 'lunch', data: settingsData.sessions.lunch },
       { key: 'dinner', data: settingsData.sessions.dinner }
     ]
-    
+
     for (const session of sessions) {
       if (!session.data.isActive) continue
-      
+
       const [startHour, startMin] = session.data.startTime.split(':').map(Number)
       const [endHour, endMin] = session.data.endTime.split(':').map(Number)
       const startTime = startHour * 60 + startMin
       const endTime = endHour * 60 + endMin
-      
+
       if (currentTimeInMinutes >= startTime && currentTimeInMinutes < endTime) {
         return session
       }
     }
-    
+
     return null
   }
 
   // Get current session based on time
   const getCurrentSession = () => {
     if (!buffetSettings?.sessions) return null
-    
+
     const currentHour = currentTime.getHours()
     const currentMinute = currentTime.getMinutes()
     const currentTimeInMinutes = currentHour * 60 + currentMinute // Convert to minutes since midnight
-    
+
     const sessions = [
       { key: 'breakfast', data: buffetSettings.sessions.breakfast },
       { key: 'lunch', data: buffetSettings.sessions.lunch },
       { key: 'dinner', data: buffetSettings.sessions.dinner }
     ]
-    
+
     for (const session of sessions) {
       if (!session.data.isActive) continue
-      
+
       const [startHour, startMin] = session.data.startTime.split(':').map(Number)
       const [endHour, endMin] = session.data.endTime.split(':').map(Number)
       const startTime = startHour * 60 + startMin
       const endTime = endHour * 60 + endMin
-      
+
       if (currentTimeInMinutes >= startTime && currentTimeInMinutes < endTime) {
         return session
       }
     }
-    
+
     return null
   }
 
@@ -899,8 +899,8 @@ export default function ItemsPage() {
 
         {/* Header */}
         <div className="bg-white border-b border-gray-200 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-6">
+          <div className="flex items-center justify-between ">
+            <div className="flex items-center gap-6 whitespace-nowrap overflow-x-auto">
               <div className="bg-white">
                 <img
                   src="/images/logo.png"
@@ -908,171 +908,170 @@ export default function ItemsPage() {
                   className="h-12 w-auto ms-5"
                 />
               </div>
-              
+
               {/* Table and Session Display */}
               {(tableData) && (
                 <div className="flex items-center gap-2 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg px-4 py-2 border border-blue-200">
-           
+
                   <div className="text-sm">
                     <div className="font-semibold text-blue-900">
-                      { tableData  ? (
+                      {tableData ? (
                         `Table-${tableData.number}`
                       ) : ''}
                     </div>
                   </div>
                 </div>
               )}
-              
+
               {/* Current Session Display / Countdown */}
               {currentSession ? (
-                <SessionCountdown currentSession={currentSession}  />
+                <SessionCountdown currentSession={currentSession} />
               ) : buffetSettings && (
                 <div className="flex items-center gap-4 bg-gray-50 rounded-lg px-4 py-2 border border-gray-200">
-                <Clock className="h-5 w-5 text-gray-600" />
-                <div className="text-sm text-gray-700">
-                  <div className="font-semibold">{t("items.no_active_session")}</div>
-                  <div className="text-xs">{t("items.check_session_timings")}</div>
+                  <Clock className="h-5 w-5 text-gray-600" />
+                  <div className="text-sm text-gray-700">
+                    <div className="font-semibold">{t("items.no_active_session")}</div>
+                    <div className="text-xs">{t("items.check_session_timings")}</div>
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
 
-          <div className="flex items-center gap-4 relative z-50">
-            {currentSession && (
-              <div className="flex items-center gap-2 bg-blue-50 rounded-lg px-3 py-2 border border-blue-200">
-                <Clock className="h-4 w-4 text-blue-600" />
-                <div className="text-sm">
-                  <div className="font-semibold text-blue-900">{t("items.order_interval")}</div>
-                  <div className="text-blue-700">{currentSession.data.nextOrderAvailableInMinutes} min</div>
+            <div className="flex items-center gap-3 relative z-50">
+              {currentSession && (
+                <div className="flex items-center gap-2 bg-blue-50 rounded-lg px-3 py-2 border border-blue-200">
+                  <Clock className="h-4 w-4 text-blue-600" />
+                  <div className="text-sm font-semibold text-blue-900">
+                    {t("items.order_interval")} <span className="text-blue-700 font-normal">{currentSession.data.nextOrderAvailableInMinutes} min</span>
+                  </div>
                 </div>
-              </div>
-            )}
-            
-            <Button variant="outline" onClick={handleEndSession}>
-              {t("items.end_session")}
-            </Button>
+              )}
 
-            {/* Waiter Request Button */}
-            <WaiterRequest 
-              tableNumber={parseInt(tableSession?.tableId || (typeof window !== 'undefined' ? localStorage.getItem('selectedTableId') : null) || '0')}
-              disabled={sessionEnded}
-            />
+              <Button variant="outline" onClick={handleEndSession}>
+                {t("items.end_session")}
+              </Button>
 
-            {orderPlaced ? (
-              <div className="text-center">
-                <div className="text-lg font-semibold text-green-600">{t("items.order_placed")}</div>
-                <div className="text-sm text-gray-600">{t("items.next_order_available")} {formatTime(timeRemaining)}</div>
-              </div>
-            ) : (
-              <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
-                <SheetTrigger asChild>
-                  <Button 
-                    className="relative bg-orange-600 hover:bg-orange-700" 
-                    size="lg"
-                    disabled={sessionEnded}
-                  >
-                    <ShoppingCart className="w-5 h-5 mr-2" />
-                   {t("items.item_in_cart")}
-                    {getTotalItems() > 0 && (
-                      <Badge className="absolute -top-2 -right-2 bg-red-500 text-white">{getTotalItems()}</Badge>
-                    )}
-                  </Button>
-                </SheetTrigger>
-                <SheetContent className="w-full sm:max-w-md bg-gradient-to-b from-white to-orange-50 flex flex-col h-full overflow-hidden">
-                  <SheetHeader className="border-b border-orange-200 pb-4 flex-shrink-0">
-                    <SheetTitle className="text-xl text-orange-900">{t("items.your_selection")}</SheetTitle>
-                    <SheetDescription className="text-orange-700">
-                      Review your items • Unlimited quantities available
-                    </SheetDescription>
-                  </SheetHeader>
-            
+              {/* Waiter Request Button */}
+              <WaiterRequest
+                tableNumber={parseInt(tableSession?.tableId || (typeof window !== 'undefined' ? localStorage.getItem('selectedTableId') : null) || '0')}
+                disabled={sessionEnded}
+              />
+
+              {orderPlaced ? (
+                <div className="text-center">
+                  <div className="text-lg font-semibold text-green-600">{t("items.order_placed")}</div>
+                  <div className="text-sm text-gray-600">{t("items.next_order_available")} {formatTime(timeRemaining)}</div>
+                </div>
+              ) : (
+                <Sheet open={isCartOpen} onOpenChange={setIsCartOpen} >
+                  <SheetTrigger asChild>
+                    <Button
+                      className="relative bg-orange-600 hover:bg-orange-700"
+                      size="lg"
+                      disabled={sessionEnded}
+                    >
+                      <ShoppingCart className="w-5 h-5 mr-2 " />
+                      {t("items.item_in_cart")}
+                      {getTotalItems() > 0 && (
+                        <Badge className="absolute -top-2 -right-2 bg-red-500 text-white">{getTotalItems()}</Badge>
+                      )}
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent className="w-full sm:max-w-md bg-gradient-to-b from-white to-orange-50 flex flex-col h-full overflow-hidden">
+                    <SheetHeader className="border-b border-orange-200 pb-4 flex-shrink-0">
+                      <SheetTitle className="text-xl text-orange-900">{t("items.your_selection")}</SheetTitle>
+                      <SheetDescription className="text-orange-700">
+                        Review your items • Unlimited quantities available
+                      </SheetDescription>
+                    </SheetHeader>
 
 
-                  <div className="flex-1 overflow-y-auto py-4 min-h-0">
-                    {cart.length === 0 ? (
-                      <div className="text-center py-12">
-                        <ShoppingCart className="w-16 h-16 mx-auto text-orange-300 mb-4" />
-                        <p className="text-orange-600 text-lg">{t("items.cart_empty")}</p>
-                  <p className="text-orange-500 text-sm">{t("items.add_items")}</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-4 px-1">
-                        {cart.map((item) => (
-                          <div
-                            key={item.menuItem?.id}
-                            className="bg-white rounded-lg p-4 shadow-sm border border-orange-100"
-                          >
-                            <div className="flex items-start justify-between mb-3">
-                              <div className="flex-1">
-                                <h4 className="font-semibold text-gray-900">{item.menuItem?.name}</h4>
-                                <p className="text-sm text-gray-600 mt-1">{item.menuItem?.description}</p>
-                                {item.menuItem?.price && item.menuItem.price > 0 && (
-                                  <div className="flex items-center gap-1 mt-1">
-                                    <DollarSign className="w-3 h-3 text-green-600" />
-                                    <span className="text-sm font-semibold text-green-600">
-                                      ${item.menuItem?.price.toFixed(2)} each
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => removeFromCart(item.menuItem?.id)}
-                                className="text-gray-400 hover:text-red-500 flex-shrink-0"
-                                disabled={sessionEnded || isUpdating}
-                              >
-                                {updatingItemId === item.menuItem?.id && updatingAction === 'remove' ? (
-                                  <Loader2 className="w-4 h-4 animate-spin" />
-                                ) : (
-                                  <X className="w-4 h-4" />
-                                )}
-                              </Button>
-                            </div>
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-3">
+
+                    <div className="flex-1 overflow-y-auto py-4 min-h-0">
+                      {cart.length === 0 ? (
+                        <div className="text-center py-12">
+                          <ShoppingCart className="w-16 h-16 mx-auto text-orange-300 mb-4" />
+                          <p className="text-orange-600 text-lg">{t("items.cart_empty")}</p>
+                          <p className="text-orange-500 text-sm">{t("items.add_items")}</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-4 px-1">
+                          {cart.map((item) => (
+                            <div
+                              key={item.menuItem?.id}
+                              className="bg-white rounded-lg p-4 shadow-sm border border-orange-100"
+                            >
+                              <div className="flex items-start justify-between mb-3">
+                                <div className="flex-1">
+                                  <h4 className="font-semibold text-gray-900">{item.menuItem?.name}</h4>
+                                  <p className="text-sm text-gray-600 mt-1">{item.menuItem?.description}</p>
+                                  {item.menuItem?.price && item.menuItem.price > 0 && (
+                                    <div className="flex items-center gap-1 mt-1">
+                                      <DollarSign className="w-3 h-3 text-green-600" />
+                                      <span className="text-sm font-semibold text-green-600">
+                                        ${item.menuItem?.price.toFixed(2)} each
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
                                 <Button
-                                  variant="outline"
+                                  variant="ghost"
                                   size="sm"
                                   onClick={() => removeFromCart(item.menuItem?.id)}
-                                  className="w-8 h-8 p-0 border-orange-200 hover:bg-orange-50"
+                                  className="text-gray-400 hover:text-red-500 flex-shrink-0"
                                   disabled={sessionEnded || isUpdating}
                                 >
                                   {updatingItemId === item.menuItem?.id && updatingAction === 'remove' ? (
                                     <Loader2 className="w-4 h-4 animate-spin" />
                                   ) : (
-                                    <Minus className="w-4 h-4" />
-                                  )}
-                                </Button>
-                                <span className="w-12 text-center font-semibold text-lg">{item.quantity}</span>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => addToCart(item.menuItem)}
-                                  className="w-8 h-8 p-0 border-orange-200 hover:bg-orange-50"
-                                  disabled={sessionEnded || isUpdating}
-                                >
-                                  {updatingItemId === item.menuItem?.id && updatingAction === 'add' ? (
-                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                  ) : (
-                                    <Plus className="w-4 h-4" />
+                                    <X className="w-4 h-4" />
                                   )}
                                 </Button>
                               </div>
-                              <Badge variant="secondary" className="bg-orange-100 text-orange-800">
-                          {item.quantity} {item.quantity === 1 ? t("items.serving") : t("items.servings")}
-                        </Badge>
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => removeFromCart(item.menuItem?.id)}
+                                    className="w-8 h-8 p-0 border-orange-200 hover:bg-orange-50"
+                                    disabled={sessionEnded || isUpdating}
+                                  >
+                                    {updatingItemId === item.menuItem?.id && updatingAction === 'remove' ? (
+                                      <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                      <Minus className="w-4 h-4" />
+                                    )}
+                                  </Button>
+                                  <span className="w-12 text-center font-semibold text-lg">{item.quantity}</span>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => addToCart(item.menuItem)}
+                                    className="w-8 h-8 p-0 border-orange-200 hover:bg-orange-50"
+                                    disabled={sessionEnded || isUpdating}
+                                  >
+                                    {updatingItemId === item.menuItem?.id && updatingAction === 'add' ? (
+                                      <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                      <Plus className="w-4 h-4" />
+                                    )}
+                                  </Button>
+                                </div>
+                                <Badge variant="secondary" className="bg-orange-100 text-orange-800">
+                                  {item.quantity} {item.quantity === 1 ? t("items.serving") : t("items.servings")}
+                                </Badge>
+                              </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
 
-                  {cart.length > 0 && (
-                    <div className="border-t border-orange-200 pt-4 space-y-4 bg-white/95 backdrop-blur-sm flex-shrink-0 px-1">
-                      {/* Print Job Status */}
-                      {/* {lastOrderId && (
+                    {cart.length > 0 && (
+                      <div className="border-t border-orange-200 pt-4 space-y-4 bg-white/95 backdrop-blur-sm flex-shrink-0 px-1">
+                        {/* Print Job Status */}
+                        {/* {lastOrderId && (
                         <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
                           <h4 className="text-sm font-semibold text-blue-900 mb-2">{t("items.print_status")}</h4>
                           <PrintJobStatus 
@@ -1083,180 +1082,176 @@ export default function ItemsPage() {
                           />
                         </div>
                       )} */}
-                      
-                      <div className="bg-orange-50 rounded-lg p-3 border border-orange-200">
-                        <div className="flex justify-between items-center text-lg font-semibold text-gray-900">
-                    <span>{t("items.total_items")}</span>
-                    <span className="text-orange-600">{getTotalItems()}</span>
-                  </div>
-                  <p className="text-sm text-gray-600 mt-1">{t("items.buffet_style")}</p>
+
+                        <div className="bg-orange-50 rounded-lg p-3 border border-orange-200">
+                          <div className="flex justify-between items-center text-lg font-semibold text-gray-900">
+                            <span>{t("items.total_items")}</span>
+                            <span className="text-orange-600">{getTotalItems()}</span>
+                          </div>
+                          <p className="text-sm text-gray-600 mt-1">{t("items.buffet_style")}</p>
+                        </div>
+                        <Button
+                          className="w-full bg-orange-600 hover:bg-orange-700 text-white shadow-lg"
+                          size="lg"
+                          onClick={handleConfirmOrder}
+                          disabled={isPrinting}
+                        >
+                          {isPrinting ? t("items.processing") : t("items.confirm_order")}
+                        </Button>
                       </div>
-                      <Button
-                        className="w-full bg-orange-600 hover:bg-orange-700 text-white shadow-lg"
-                        size="lg"
-                        onClick={handleConfirmOrder}
-                        disabled={isPrinting}
-                      >
-                        {isPrinting ? t("items.processing") : t("items.confirm_order")}
-                      </Button>
-                    </div>
-                  )}
-                </SheetContent>
-              </Sheet>
-            )}
-            <div className="ml-auto">
-              <LanguageSwitcher />
+                    )}
+                  </SheetContent>
+                </Sheet>
+              )}
+              <div className="ml-auto">
+                <LanguageSwitcher />
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Items Limit Progress */}
-      {currentSession && buffetSettings && tableSession && (
-        <div className="bg-white border-b border-gray-200 px-6 py-3">
-          <ItemsLimitProgress 
-            key={progressKey}
-            currentItems={getTotalOfFreeItems()}
-            buffetSettings={buffetSettings}
-            currentSession={currentSession.key as 'breakfast' | 'lunch' | 'dinner'}
-            tableId={tableSession.tableId}
-            guestCounts={{
-              adults: tableSession.guestCounts.adults,
-              children: tableSession.guestCounts.children,
-              infants: tableSession.guestCounts.infants
-            }}
-          />
-        </div>
-      )}
+        {/* Items Limit Progress */}
+        {currentSession && buffetSettings && tableSession && (
+          <div className="bg-white border-b border-gray-200 px-6 py-3">
+            <ItemsLimitProgress
+              key={progressKey}
+              currentItems={getTotalOfItems()}
+              buffetSettings={buffetSettings}
+              currentSession={currentSession.key as 'breakfast' | 'lunch' | 'dinner'}
+              tableId={tableSession.tableId}
+              guestCounts={{
+                adults: tableSession.guestCounts.adults,
+                children: tableSession.guestCounts.children,
+                infants: tableSession.guestCounts.infants
+              }}
+            />
+          </div>
+        )}
 
-      {/* Main Content */}
-      <div className="flex h-[calc(100vh-80px)]">
-        {/* Left Sidebar - Categories */}
-         <div className="w-64 bg-white border-r border-gray-200 overflow-y-auto">
-           <div className="p-4">
-             <h2 className="text-lg font-semibold text-gray-900 mb-4">{t("items.categories")}</h2>
-             <div className="space-y-2">
-               {categories.map((category) => {
-                 const isSelected = selectedCategory === category.id
-                 const IconComponent = getCategoryIcon(category.id)
-                 return (
-                   <button
-                     key={category.id}
-                     onClick={() => setSelectedCategory(category.id)}
-                     className={`w-full text-left p-3 rounded-lg transition-all duration-200 flex items-center gap-3 ${
-                       isSelected
-                         ? 'bg-gradient-to-r from-orange-100 to-orange-50 text-orange-900 border border-orange-200 shadow-sm'
-                         : 'hover:bg-gray-50 text-gray-700 hover:shadow-sm'
-                     }`}
-                   >
-                     <IconComponent className={`w-5 h-5 ${
-                       isSelected ? 'text-orange-600' : 'text-gray-500'
-                     }`} />
-                     <div className="font-medium">{category.name}</div>
-                   </button>
-                 )
-               })}
-             </div>
-           </div>
-         </div>
-
-        {/* Right Content - Items */}
-        <div className="flex-1 overflow-y-auto p-6">
-          {loading ? (
-            <div className="flex items-center justify-center h-64">
-              <div className="text-lg text-gray-600">{t("items.loading_menu")}</div>
+        {/* Main Content */}
+        <div className="flex h-[calc(100vh-80px)]">
+          {/* Left Sidebar - Categories */}
+          <div className="w-64 bg-white border-r border-gray-200 overflow-y-auto">
+            <div className="p-4">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">{t("items.categories")}</h2>
+              <div className="space-y-2">
+                {categories.map((category) => {
+                  const isSelected = selectedCategory === category.id
+                  const IconComponent = getCategoryIcon(category.id)
+                  return (
+                    <button
+                      key={category.id}
+                      onClick={() => setSelectedCategory(category.id)}
+                      className={`w-full text-left p-3 rounded-lg transition-all duration-200 flex items-center gap-3 ${isSelected
+                        ? 'bg-gradient-to-r from-orange-100 to-orange-50 text-orange-900 border border-orange-200 shadow-sm'
+                        : 'hover:bg-gray-50 text-gray-700 hover:shadow-sm'
+                        }`}
+                    >
+                      <IconComponent className={`w-5 h-5 ${isSelected ? 'text-orange-600' : 'text-gray-500'
+                        }`} />
+                      <div className="font-medium">{category.name}</div>
+                    </button>
+                  )
+                })}
+              </div>
             </div>
-          ) : (() => {
-            const selectedCategoryData = categories.find(cat => cat.id === selectedCategory)
-            const categoryItems = getProductsByCategory(selectedCategory)
+          </div>
 
-            return (
-              <div>
-                {/* <div className="mb-6">
+          {/* Right Content - Items */}
+          <div className="flex-1 overflow-y-auto p-6">
+            {loading ? (
+              <div className="flex items-center justify-center h-64">
+                <div className="text-lg text-gray-600">{t("items.loading_menu")}</div>
+              </div>
+            ) : (() => {
+              const selectedCategoryData = categories.find(cat => cat.id === selectedCategory)
+              const categoryItems = getProductsByCategory(selectedCategory)
+
+              return (
+                <div>
+                  {/* <div className="mb-6">
                   <h2 className="text-2xl font-bold text-gray-900">{selectedCategoryData?.name}</h2>
                   {selectedCategoryData?.description && (
                     <p className="text-gray-600 mt-1">{selectedCategoryData.description}</p>
                   )}
                 </div> */}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                  {categoryItems.map((item) => {
-                    const quantity = getItemQuantity(item.id)
-                    const isInCart = quantity > 0
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                    {categoryItems.map((item) => {
+                      const quantity = getItemQuantity(item.id)
+                      const isInCart = quantity > 0
 
-                    return (
-                      <Card
-                         key={item.id}
-                         className={`transition-all pt-0 duration-300 overflow-hidden group cursor-pointer transform hover:-translate-y-1 ${
-                           isInCart
-                             ? 'ring-2 ring-orange-500 shadow-xl bg-gradient-to-br from-orange-50 to-white scale-[1.02]'
-                             : 'hover:shadow-xl border-gray-200 hover:border-orange-200'
-                         }`}
-                       >
-                        <div className="h-52 bg-gradient-to-br from-gray-100 to-gray-200 relative overflow-hidden rounded-t-lg">
-                           <img
-                             src={item.image}
-                             alt={item.name}
-                             className="w-full h-full object-cover group-hover:scale-110 transition-all duration-500 ease-out"
-                             onError={(e) => {
-                               const target = e.target as HTMLImageElement
-                               target.src = `/placeholder.svg?height=300&width=400&text=${encodeURIComponent(item.name)}`
-                             }}
-                           />
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent group-hover:from-black/20 transition-all duration-500" />
-                          <div className="absolute top-3 right-3 flex flex-col gap-1">
-                            {item.isVegetarian && (
-                               <Badge className="bg-green-500/90 text-white shadow-lg backdrop-blur-sm">
-                                 <Leaf className="w-3 h-3 mr-1" />
-                                 Veg
-                               </Badge>
-                             )}
-                             {item.isSpicy && (
-                              <Badge className="bg-red-500/90 text-white shadow-lg backdrop-blur-sm">
-                                <Flame className="w-3 h-3 mr-1" />
-                                Spicy
-                              </Badge>
-                            )}
-                            {item.isPremium && (
-                              <Badge className="bg-purple-600/90 text-white shadow-lg backdrop-blur-sm">
-                                <Star className="w-3 h-3 mr-1" />
-                                Premium
-                              </Badge>
+                      return (
+                        <Card
+                          key={item.id}
+                          className={`transition-all pt-0 duration-300 overflow-hidden group cursor-pointer transform hover:-translate-y-1 ${isInCart
+                            ? 'ring-2 ring-orange-500 shadow-xl bg-gradient-to-br from-orange-50 to-white scale-[1.02]'
+                            : 'hover:shadow-xl border-gray-200 hover:border-orange-200'
+                            }`}
+                        >
+                          <div className="h-52 bg-gradient-to-br from-gray-100 to-gray-200 relative overflow-hidden rounded-t-lg">
+                            <img
+                              src={item.image}
+                              alt={item.name}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-all duration-500 ease-out"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement
+                                target.src = `/placeholder.svg?height=300&width=400&text=${encodeURIComponent(item.name)}`
+                              }}
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent group-hover:from-black/20 transition-all duration-500" />
+                            <div className="absolute top-3 right-3 flex flex-col gap-1">
+                              {item.isVegetarian && (
+                                <Badge className="bg-green-500/90 text-white shadow-lg backdrop-blur-sm">
+                                  <Leaf className="w-3 h-3 mr-1" />
+                                  Veg
+                                </Badge>
+                              )}
+                              {item.isSpicy && (
+                                <Badge className="bg-red-500/90 text-white shadow-lg backdrop-blur-sm">
+                                  <Flame className="w-3 h-3 mr-1" />
+                                  Spicy
+                                </Badge>
+                              )}
+                              {item.isPremium && (
+                                <Badge className="bg-purple-600/90 text-white shadow-lg backdrop-blur-sm">
+                                  <Star className="w-3 h-3 mr-1" />
+                                  Premium
+                                </Badge>
+                              )}
+                            </div>
+                            {isInCart && (
+                              <div className="absolute top-3 left-3">
+                                <Badge className="bg-orange-500 text-white shadow-lg">
+                                  {quantity} in cart
+                                </Badge>
+                              </div>
                             )}
                           </div>
-                          {isInCart && (
-                            <div className="absolute top-3 left-3">
-                              <Badge className="bg-orange-500 text-white shadow-lg">
-                                {quantity} in cart
-                              </Badge>
-                            </div>
-                          )}
-                        </div>
 
-                        <CardHeader className=" relative">
-                           <CardTitle className={`text-lg font-bold leading-tight ${
-                             isInCart ? 'text-orange-900' : 'text-gray-900 group-hover:text-orange-700'
-                           } transition-colors`}>
-                             {item.name}
-                           </CardTitle>
-                           {item.description && (
-                             <CardDescription className="text-gray-600 text-[12px]  line-clamp-2">
-                               {item.description}
-                             </CardDescription>
-                           )}
-                           {item.price && item.price > 0 && (
-                             <div className="flex items-center gap-1 mt-2">
-                               <DollarSign className="w-4 h-4 text-green-600" />
-                               <span className="text-lg font-bold text-green-600">
-                                 ${item.price.toFixed(2)}
-                               </span>
-                             </div>
-                           )}
-                         </CardHeader>
+                          <CardHeader className=" relative">
+                            <CardTitle className={`text-lg font-bold leading-tight ${isInCart ? 'text-orange-900' : 'text-gray-900 group-hover:text-orange-700'
+                              } transition-colors`}>
+                              {item.name}
+                            </CardTitle>
+                            {item.description && (
+                              <CardDescription className="text-gray-600 text-[12px]  line-clamp-2">
+                                {item.description}
+                              </CardDescription>
+                            )}
+                            {item.price && item.price > 0 && (
+                              <div className="flex items-center gap-1 mt-2">
+                                <DollarSign className="w-4 h-4 text-green-600" />
+                                <span className="text-lg font-bold text-green-600">
+                                  ${item.price.toFixed(2)}
+                                </span>
+                              </div>
+                            )}
+                          </CardHeader>
 
-                        <CardContent className="pt-0">
-                           <div className="flex items-center justify-between">
-                             {/* 
+                          <CardContent className="pt-0">
+                            <div className="flex items-center justify-between">
+                              {/* 
                              
                              <div className="flex items-center gap-2">
                                {item.isVegetarian && (
@@ -1273,104 +1268,104 @@ export default function ItemsPage() {
                                )}
                              </div> */}
 
-                            {orderPlaced ? (
-                              <div className="text-sm text-gray-500 bg-gray-100 px-3 rounded-md">
-                                Orders disabled
-                              </div>
-                            ) : sessionEnded ? (
-                              <div className="text-sm text-gray-500 bg-gray-100 px-3 rounded-md">
-                                Session ended
-                              </div>
-                            ) : quantity > 0 ? (
-                               <div className="flex items-center gap-2 bg-orange-100 rounded-full p-1">
-                                 <Button
-                                   variant="ghost"
-                                   size="sm"
-                                   onClick={() => removeFromCart(item.id)}
-                                   className="w-8 h-8 p-0 rounded-full hover:bg-orange-200 text-orange-700"
-                                   disabled={sessionEnded || isUpdating}
-                                 >
-                                   {updatingItemId === item.id && updatingAction === 'remove' ? (
-                                     <Loader2 className="w-4 h-4 animate-spin" />
-                                   ) : (
-                                     <Minus className="w-4 h-4" />
-                                   )}
-                                 </Button>
-                                 <span className="w-8 text-center font-bold text-orange-900 text-lg">{quantity}</span>
-                                 <Button
-                                   variant="ghost"
-                                   size="sm"
-                                   onClick={() => addToCart(item)}
-                                   className="w-8 h-8 p-0 rounded-full hover:bg-orange-200 text-orange-700"
-                                   disabled={sessionEnded || isUpdating}
-                                 >
-                                   {updatingItemId === item.id && updatingAction === 'add' ? (
-                                     <Loader2 className="w-4 h-4 animate-spin" />
-                                   ) : (
-                                     <Plus className="w-4 h-4" />
-                                   )}
-                                 </Button>
-                               </div>
-                             ) : (
-                               <Button
-                                 onClick={() => addToCart(item)}
-                                 size="sm"
-                                 className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
-                                 disabled={sessionEnded || isUpdating}
-                               >
-                                 {updatingItemId === item.id && updatingAction === 'add' ? (
-                                   <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-                                 ) : (
-                                   <Plus className="w-4 h-4 mr-1" />
-                                 )}
-                                 Add to Cart
-                               </Button>
-                             )}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    )
-                  })}
+                              {orderPlaced ? (
+                                <div className="text-sm text-gray-500 bg-gray-100 px-3 rounded-md">
+                                  Orders disabled
+                                </div>
+                              ) : sessionEnded ? (
+                                <div className="text-sm text-gray-500 bg-gray-100 px-3 rounded-md">
+                                  Session ended
+                                </div>
+                              ) : quantity > 0 ? (
+                                <div className="flex items-center gap-2 bg-orange-100 rounded-full p-1">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => removeFromCart(item.id)}
+                                    className="w-8 h-8 p-0 rounded-full hover:bg-orange-200 text-orange-700"
+                                    disabled={sessionEnded || isUpdating}
+                                  >
+                                    {updatingItemId === item.id && updatingAction === 'remove' ? (
+                                      <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                      <Minus className="w-4 h-4" />
+                                    )}
+                                  </Button>
+                                  <span className="w-8 text-center font-bold text-orange-900 text-lg">{quantity}</span>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => addToCart(item)}
+                                    className="w-8 h-8 p-0 rounded-full hover:bg-orange-200 text-orange-700"
+                                    disabled={sessionEnded || isUpdating}
+                                  >
+                                    {updatingItemId === item.id && updatingAction === 'add' ? (
+                                      <Loader2 className="w-4 h-4 animate-spin" />
+                                    ) : (
+                                      <Plus className="w-4 h-4" />
+                                    )}
+                                  </Button>
+                                </div>
+                              ) : (
+                                <Button
+                                  onClick={() => addToCart(item)}
+                                  size="sm"
+                                  className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
+                                  disabled={sessionEnded || isUpdating}
+                                >
+                                  {updatingItemId === item.id && updatingAction === 'add' ? (
+                                    <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                                  ) : (
+                                    <Plus className="w-4 h-4 mr-1" />
+                                  )}
+                                  Add to Cart
+                                </Button>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )
+                    })}
+                  </div>
                 </div>
-              </div>
-            )
-          })()}
+              )
+            })()}
+          </div>
         </div>
-      </div>
-      
-      {/* Session Ended Modal */}
-      <SessionEndedModal 
-        isOpen={showSessionEndedModal}
-        tableNumber={tableSession?.tableId || (typeof window !== 'undefined' ? localStorage.getItem('selectedTableId') : null) || 'Unknown'}
-      />
 
-      {/* Order Printer Component - Handles automatic printing */}
-      {shouldPrintOrder && lastOrderId && (
-        <OrderPrinter
-          orderId={lastOrderId}
-          orderItems={cart.map(item => ({
-            id: item.menuItem?.id,
-            name: item.menuItem.name,
-            quantity: item.quantity,
-            price: item.menuItem.price || 0,
-            categoryId: item.menuItem.categoryId,
-            category: {
-              id: item.menuItem.categoryId,
-              name: categories.find(cat => cat.id === item.menuItem.categoryId)?.name || 'Unknown'
-            }
-          }))}
-          tableNumber={tableData?.number ?? tableSession?.tableId}
-          guestCount={(tableSession?.guestCounts.adults || 0) + (tableSession?.guestCounts.children || 0) + (tableSession?.guestCounts.infants || 0)}
-          orderTime={new Date().toISOString()}
-          onPrintComplete={(success, errors) => {
-            console.log('Print completed:', success, errors)
-            setShouldPrintOrder(false) // Reset print trigger
-          }}
-          autoPrint={true}
-          printerConfigs={printerConfigs}
+        {/* Session Ended Modal */}
+        <SessionEndedModal
+          isOpen={showSessionEndedModal}
+          tableNumber={tableSession?.tableId || (typeof window !== 'undefined' ? localStorage.getItem('selectedTableId') : null) || 'Unknown'}
         />
-      )}
-    </div>
+
+        {/* Order Printer Component - Handles automatic printing */}
+        {shouldPrintOrder && lastOrderId && (
+          <OrderPrinter
+            orderId={lastOrderId}
+            orderItems={cart.map(item => ({
+              id: item.menuItem?.id,
+              name: item.menuItem.name,
+              quantity: item.quantity,
+              price: item.menuItem.price || 0,
+              categoryId: item.menuItem.categoryId,
+              category: {
+                id: item.menuItem.categoryId,
+                name: categories.find(cat => cat.id === item.menuItem.categoryId)?.name || 'Unknown'
+              }
+            }))}
+            tableNumber={tableData?.number ?? tableSession?.tableId}
+            guestCount={(tableSession?.guestCounts.adults || 0) + (tableSession?.guestCounts.children || 0) + (tableSession?.guestCounts.infants || 0)}
+            orderTime={new Date().toISOString()}
+            onPrintComplete={(success, errors) => {
+              console.log('Print completed:', success, errors)
+              setShouldPrintOrder(false) // Reset print trigger
+            }}
+            autoPrint={true}
+            printerConfigs={printerConfigs}
+          />
+        )}
+      </div>
     </I18nProvider>
   )
 }
