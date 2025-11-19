@@ -65,6 +65,7 @@ interface TableStats {
 
 export default function TablesPage() {
   const { data: session } = useSession()
+  const isWaiter = session?.user?.role === 'waiter'
   const [tables, setTables] = useState<Table[]>([])
   const [stats, setStats] = useState<TableStats>({
     total: 0,
@@ -544,13 +545,16 @@ export default function TablesPage() {
             Manage restaurant tables, capacity, and status
           </p>
         </div>
-        <Button onClick={() => setIsAddModalOpen(true)} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Add Table
-        </Button>
+        {!isWaiter && (
+          <Button onClick={() => setIsAddModalOpen(true)} className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Add Table
+          </Button>
+        )}
       </div>
 
       {/* Statistics Cards */}
+      {!isWaiter && (
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -602,6 +606,7 @@ export default function TablesPage() {
           </CardContent>
         </Card>
       </div>
+      )}
 
       {/* Tables List */}
       <Card>
@@ -616,7 +621,7 @@ export default function TablesPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Table #</TableHead>
-                <TableHead>Status</TableHead>
+                {!isWaiter && <TableHead>Status</TableHead>}
                 <TableHead>Capacity</TableHead>
                 <TableHead>Current Guests</TableHead>
                 <TableHead>Orders</TableHead>
@@ -628,22 +633,24 @@ export default function TablesPage() {
               {tables.map((table) => (
                 <TableRow key={table.id}>
                   <TableCell className="font-medium">Table {table.number}</TableCell>
-                  <TableCell>
-                    <Select
-                      value={table.status}
-                      onValueChange={(value: Table['status']) => handleStatusChange(table.id, value)}
-                    >
-                      <SelectTrigger className="w-32">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="available">Available</SelectItem>
-                        <SelectItem value="occupied">Occupied</SelectItem>
-                        <SelectItem value="cleaning">Cleaning</SelectItem>
-                        <SelectItem value="selected">Selected</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
+                  {!isWaiter && (
+                    <TableCell>
+                      <Select
+                        value={table.status}
+                        onValueChange={(value: Table['status']) => handleStatusChange(table.id, value)}
+                      >
+                        <SelectTrigger className="w-32">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="available">Available</SelectItem>
+                          <SelectItem value="occupied">Occupied</SelectItem>
+                          <SelectItem value="cleaning">Cleaning</SelectItem>
+                          <SelectItem value="selected">Selected</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                  )}
                   <TableCell>{table.capacity} people</TableCell>
                   <TableCell>{table.currentGuests} guests</TableCell>
                   <TableCell>{table.currentOrders || 0}</TableCell>
@@ -655,13 +662,15 @@ export default function TablesPage() {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => openEditModal(table)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
+                      {!isWaiter && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openEditModal(table)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      )}
                       <Button
                         variant="outline"
                         size="sm"
@@ -670,14 +679,16 @@ export default function TablesPage() {
                       >
                         <RefreshCw className="h-4 w-4" />
                       </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => openDeleteModal(table)}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      {!isWaiter && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openDeleteModal(table)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>
