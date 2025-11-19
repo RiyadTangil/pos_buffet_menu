@@ -204,6 +204,21 @@ function ProductsPageContent() {
       setIsAddDialogOpen(false)
       setFormData(initialFormData)
       toast.success('Product added successfully')
+      // Broadcast a global refresh so menu pages update immediately
+      try {
+        await fetch('/api/socket', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'broadcast',
+            room: 'tables',
+            event: 'tablesUpdate',
+            data: { type: 'refresh', source: 'products' }
+          })
+        })
+      } catch (err) {
+        console.warn('Failed to emit products refresh:', err)
+      }
     } catch (error: any) {
       console.error('Error adding product:', error)
       toast.error(error.message || 'Failed to add product')
@@ -243,6 +258,21 @@ function ProductsPageContent() {
       setEditingProduct(null)
       setFormData(initialFormData)
       toast.success('Product updated successfully')
+      // Broadcast a global refresh so menu pages update immediately
+      try {
+        await fetch('/api/socket', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'broadcast',
+            room: 'tables',
+            event: 'tablesUpdate',
+            data: { type: 'refresh', source: 'products' }
+          })
+        })
+      } catch (err) {
+        console.warn('Failed to emit products refresh:', err)
+      }
     } catch (error: any) {
       console.error('Error updating product:', error)
       toast.error(error.message || 'Failed to update product')
@@ -262,6 +292,21 @@ function ProductsPageContent() {
       setIsDeleteDialogOpen(false)
       setDeletingProduct(null)
       toast.success('Product deleted successfully')
+      // Broadcast a global refresh so menu pages update immediately
+      try {
+        await fetch('/api/socket', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'broadcast',
+            room: 'tables',
+            event: 'tablesUpdate',
+            data: { type: 'refresh', source: 'products' }
+          })
+        })
+      } catch (err) {
+        console.warn('Failed to emit products refresh:', err)
+      }
     } catch (error: any) {
       console.error('Error deleting product:', error)
       toast.error(error.message || 'Failed to delete product')

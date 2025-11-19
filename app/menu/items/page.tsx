@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { ItemsLimitProgress } from '@/components/ui/items-limit-progress'
 import { SessionCountdown } from '@/components/ui/session-countdown'
-import { ShoppingCart, Plus, Minus, Leaf, Flame, X, Clock, Users, Utensils, ChefHat, Coffee, Cake, DollarSign, Loader2, Star } from "lucide-react"
+import { ShoppingCart, Plus, Minus, Leaf, Flame, X, Clock, Users, Utensils, ChefHat, Coffee, Cake, DollarSign, Loader2, Star, AlertTriangle } from "lucide-react"
 import { type MenuCategory } from "@/lib/mockData"
 import { fetchCategories } from "@/lib/api/categories"
 import { fetchProducts, type Product } from "@/lib/api/products"
@@ -22,6 +22,7 @@ import { PrintButton } from '@/components/printing/PrintButton'
 import { PrintJobStatus } from '@/components/printing/PrintJobStatus'
 import { initializeSocketClient, joinTableRoom, leaveTableRoom, joinTablesRoom, leaveTablesRoom, onTablesUpdate, offTablesUpdate, onTableSessionUpdate, offTableSessionUpdate, onCartUpdate, offCartUpdate, emitCartUpdate, onOrderConfirmation, offOrderConfirmation, emitOrderConfirmation } from '@/lib/socket-client'
 import { addToCartApi, updateCartApi, removeFromCartApi, updateCartItemQuantityApi } from '@/lib/api/cart'
+import { toast } from "sonner"
 
 import Confetti from "react-confetti"
 import SessionEndedModal from "@/components/SessionEndedModal"
@@ -508,7 +509,7 @@ export default function ItemsPage() {
       const existingItemInCart = cart.find((item) => item.menuItem?.id === product.id)
       const currentQty = existingItemInCart?.quantity ?? 0
       if (currentQty >= perItemLimit) {
-        alert(`You can order up to ${perItemLimit} of "${product.name}" per order.`)
+        toast.error(`Order limit reached: Max ${perItemLimit} for "${product.name}"`)
         return
       }
     }
@@ -1287,7 +1288,8 @@ export default function ItemsPage() {
                                   Session ended
                                 </div>
                               ) : quantity > 0 ? (
-                                <div className="flex items-center gap-2 bg-orange-100 rounded-full p-1">
+                                <>
+                                  <div className="flex items-center gap-2 bg-orange-100 rounded-full p-1">
                                   <Button
                                     variant="ghost"
                                     size="sm"
@@ -1315,7 +1317,14 @@ export default function ItemsPage() {
                                       <Plus className="w-4 h-4" />
                                     )}
                                   </Button>
-                                </div>
+                                  </div>
+                                  {typeof item.limitPerOrder === 'number' && item.limitPerOrder > 0 && quantity >= item.limitPerOrder && (
+                                    <div className="mt-2 text-xs text-orange-700 flex items-center gap-2">
+                                      <AlertTriangle className="w-4 h-4" />
+                                      <span>Item order limit reached for this item</span>
+                                    </div>
+                                  )}
+                                </>
                               ) : (
                                 <Button
                                   onClick={() => addToCart(item)}
