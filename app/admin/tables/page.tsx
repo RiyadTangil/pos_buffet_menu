@@ -52,7 +52,7 @@ import { toast } from "@/components/ui/use-toast"
 import { Plus, Edit, Trash2, Users, Clock, CheckCircle, XCircle, RefreshCw, Loader2 } from "lucide-react"
 import SplitBillModal from "@/components/SplitBillModal"
 import { getBuffetSettings } from "@/lib/api/settings"
-import { getTableSession } from "@/lib/api/table-sessions"
+import { getTableSession, switchTableSession } from "@/lib/api/table-sessions"
 import { getOrdersByTableSession } from "@/lib/api/orders-client"
 
 interface TableStats {
@@ -80,6 +80,10 @@ export default function TablesPage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [isResetModalOpen, setIsResetModalOpen] = useState(false)
   const [resetLoading, setResetLoading] = useState(false)
+  // Switch Table states
+  const [isSwitchModalOpen, setIsSwitchModalOpen] = useState(false)
+  const [switchLoading, setSwitchLoading] = useState(false)
+  const [switchTargetTableId, setSwitchTargetTableId] = useState<string>("")
   const [selectedTable, setSelectedTable] = useState<Table | null>(null)
   const [newTable, setNewTable] = useState<CreateTableData>({
     number: 1,
@@ -191,6 +195,36 @@ export default function TablesPage() {
         description: error.message || "Failed to delete table.",
         variant: "destructive",
       })
+    }
+  }
+
+  // Open switch modal
+  const openSwitchModal = (table: Table) => {
+    setSelectedTable(table)
+    setSwitchTargetTableId("")
+    setIsSwitchModalOpen(true)
+  }
+
+  // Handle switch table
+  const handleSwitchTable = async () => {
+    if (!selectedTable || !switchTargetTableId) return
+    try {
+      setSwitchLoading(true)
+      const result = await switchTableSession(selectedTable.id, switchTargetTableId)
+      if (!result.success) {
+        toast({ title: 'Switch failed', description: result.error || 'Unable to switch table', variant: 'destructive' })
+        setSwitchLoading(false)
+        return
+      }
+      toast({ title: 'Table switched', description: `Moved session(s) from Table ${selectedTable.number} to target table successfully.` })
+      setIsSwitchModalOpen(false)
+      setSelectedTable(null)
+      setSwitchTargetTableId("")
+      await loadTables()
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message || 'Failed to switch table', variant: 'destructive' })
+    } finally {
+      setSwitchLoading(false)
     }
   }
 
@@ -668,6 +702,16 @@ export default function TablesPage() {
                           <Edit className="h-4 w-4" />
                         </Button>
                       )}
+                      {(table.status === 'selected' || table.status === 'occupied') && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openSwitchModal(table)}
+                          className="text-blue-600 hover:text-blue-700"
+                        >
+                          Switch
+                        </Button>
+                      )}
                       <Button
                         variant="outline"
                         size="sm"
@@ -927,6 +971,52 @@ export default function TablesPage() {
                 <span className="flex items-center"><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Resetting...</span>
               ) : (
                 'Reset Table'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Switch Table Modal */}
+      <Dialog open={isSwitchModalOpen} onOpenChange={setIsSwitchModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Switch Table {selectedTable?.number}</DialogTitle>
+            <DialogDescription>
+              Move all active sessions to another available table. Allowed only before placing any order.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="switchTarget">Target Table</Label>
+              <Select
+                value={switchTargetTableId}
+                onValueChange={(value: string) => setSwitchTargetTableId(value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select available table" />
+                </SelectTrigger>
+                <SelectContent>
+                  {tables
+                    .filter(t => t.status === 'available' && (!selectedTable || t.id !== selectedTable.id))
+                    .map(t => (
+                      <SelectItem key={t.id} value={t.id}>
+                        Table {t.number} (capacity {t.capacity})
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsSwitchModalOpen(false)} disabled={switchLoading}>
+              Cancel
+            </Button>
+            <Button onClick={handleSwitchTable} disabled={switchLoading || !switchTargetTableId}>
+              {switchLoading ? (
+                <span className="flex items-center"><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Switching...</span>
+              ) : (
+                'Switch Table'
               )}
             </Button>
           </DialogFooter>

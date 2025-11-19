@@ -151,6 +151,26 @@ export async function endTableSession(tableId: string): Promise<void> {
   }
 }
 
+// Switch active sessions from one table to another (admin)
+export async function switchTableSession(fromTableId: string, toTableId: string): Promise<{ success: boolean; message?: string; error?: string }> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/table-sessions/switch`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fromTableId, toTableId })
+    })
+
+    const result: ApiResponse<any> = await response.json()
+    if (!result.success) {
+      return { success: false, error: result.error || 'Failed to switch table' }
+    }
+    return { success: true, message: result.message || 'Switched successfully' }
+  } catch (error) {
+    console.error('Error switching table session:', error)
+    return { success: false, error: 'Failed to switch table session' }
+  }
+}
+
 // Verify waiter PIN
 export async function verifyWaiterPin(pin: string): Promise<{ name: string; role: string; verified: boolean }> {
   try {
