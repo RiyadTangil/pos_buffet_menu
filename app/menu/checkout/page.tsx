@@ -82,6 +82,8 @@ export default function CheckoutPage() {
   }
 
   const currentSession = getCurrentSession()
+  console.log("currentSession => ",currentSession)
+  console.log("buffetSettings?.sessionSpecificExtraDrinksPricing?.[currentSession?.type] => ",buffetSettings?.sessionSpecificExtraDrinksPricing?.[currentSession?.type])
   
   const sessionData = {
     adults: guestCounts.adults,

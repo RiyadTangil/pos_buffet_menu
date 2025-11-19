@@ -339,7 +339,7 @@ export default function ProfilePage() {
         {/* Personal Information Tab */}
         <TabsContent value="personal" className="space-y-6">
           {/* Profile Header */}
-          <Card>
+          {/* <Card>
             <CardContent className="pt-6">
               <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                 <Avatar className="w-20 h-20">
@@ -362,7 +362,7 @@ export default function ProfilePage() {
                 </div>
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
 
           {/* Profile Information Form */}
           <ProfileInfoForm

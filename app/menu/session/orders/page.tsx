@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getOrders, getOrdersByTableSession } from "@/lib/api/orders-client";
 import { fetchUsers } from "@/lib/api/users";
@@ -105,6 +105,8 @@ export default function SessionOrdersPage() {
 
   // Get current session and session data
   const currentSession = getCurrentSession();
+
+
   const sessionData = {
     adults: guestCounts.adults,
     children: guestCounts.children,
@@ -115,7 +117,7 @@ export default function SessionOrdersPage() {
     infantPrice: currentSession?.data?.infantPrice || 0,
     drinkPrice: buffetSettings?.extraDrinksPrice || 5, // Keep for backward compatibility
     extraDrinksPricing: buffetSettings?.sessionSpecificExtraDrinksPricing?.[
-      currentSession?.type
+      currentSession?.key
     ] ||
       buffetSettings?.extraDrinksPricing || {
       adultPrice: 5,
@@ -138,38 +140,7 @@ export default function SessionOrdersPage() {
           setTableNumber(storedTableId);
         }
 
-        // Fetch guest counts from DB table session (no localStorage)
-        // if (storedTableId) {
-        //   try {
-        //     const groupType = localStorage.getItem("groupType") || undefined;
-        //     const session: TableSession | null = await getTableSession(
-        //       storedTableId,
-        //       groupType
-        //     );
-
-        //     // Check if session has ended (either sessionEnded flag is true OR session is null)
-        //     if (session?.sessionEnded || session === null) {
-        //       setShowSessionEndedModal(true);
-        //       return; // Don't continue loading if session has ended
-        //     }
-        //     // Track whether this table session is connected to a secondary device
-        //     setIsSecondaryDevice(!!session?.isSecondaryDevice);
-
-        //     if (session?.guestCounts) {
-        //       setGuestCounts({
-        //         adults: session.guestCounts.adults || 0,
-        //         children: session.guestCounts.children || 0,
-        //         infants: session.guestCounts.infants || 0,
-        //         includeDrinks: session.guestCounts.includeDrinks || false,
-        //       });
-        //     }
-        //   } catch (err) {
-        //     console.error(
-        //       "Failed to load table session for guest counts:",
-        //       err
-        //     );
-        //   }
-        // }
+        // Note: We avoid a separate table-sessions API call; session will be loaded alongside orders below
 
         // Fetch buffet settings
         const settings = await getBuffetSettings();
@@ -177,17 +148,32 @@ export default function SessionOrdersPage() {
 
         // No need to fetch waiters since we'll validate PIN directly
 
-        // Fetch orders for this table using tableSessionId
+        // Fetch orders for this table using tableSessionId (and session details)
         let tableSession = localStorage.getItem("tableSession");
         tableSession = tableSession ? JSON.parse(tableSession) : null;
-        let tableOrders = [];
+        let tableOrders: any[] = [];
 
         if (tableSession && tableSession?.id) {
-          // Use the new API endpoint that fetches orders by tableSessionId
-          const res = await getOrdersByTableSession(tableSession.id);
-          tableOrders = res.orders;
+          // Single API request returns both orders and session
+          const { orders: fetchedOrders, session } = await getOrdersByTableSession(tableSession.id);
 
+          // Use session from the response to set guest counts and secondary device flag
+          if (session?.sessionEnded || session === null) {
+            setShowSessionEndedModal(true);
+            setLoading(false);
+            return;
+          }
+          setIsSecondaryDevice(!!session?.isSecondaryDevice);
+          if (session?.guestCounts) {
+            setGuestCounts({
+              adults: session.guestCounts.adults || 0,
+              children: session.guestCounts.children || 0,
+              infants: session.guestCounts.infants || 0,
+              includeDrinks: session.guestCounts.includeDrinks || false,
+            });
+          }
 
+          tableOrders = fetchedOrders;
         } else {
           // Fallback to old method if tableSessionId is not available
           const selectedTableId =
@@ -277,7 +263,8 @@ export default function SessionOrdersPage() {
     return total;
   };
 
-  const grandTotal = calculateSessionTotal();
+  // Memoize total calculation to avoid re-computation on every render
+  const grandTotal = React.useMemo(() => calculateSessionTotal(), [orders, guestCounts, buffetSettings]);
 
   // Format time for display
   const formatTime = (dateString: string) => {
@@ -790,7 +777,7 @@ export default function SessionOrdersPage() {
                       {t("orders.payment_required")}
                     </h3>
                     <p className="text-amber-700">
-                      £{grandTotal} {t("orders.please_pay",)}
+                      Please pay £{grandTotal} {t("orders.please_pay",)}
                     </p>
                   </div>
                 </div>

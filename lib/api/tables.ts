@@ -46,6 +46,13 @@ export interface ResetResult {
   payments?: any[]
 }
 
+export interface TableTotal {
+  tableId: string
+  tableNumber?: number
+  totalAmount: number
+  sessionType?: 'breakfast'|'lunch'|'dinner'
+}
+
 // Fetch all tables
 export async function fetchTables(): Promise<Table[]> {
   try {
@@ -69,6 +76,30 @@ export async function fetchTables(): Promise<Table[]> {
     return result.data || []
   } catch (error) {
     console.error('Error fetching tables:', error)
+    throw error
+  }
+}
+
+// Fetch current bill totals for all tables from backend
+export async function fetchTableTotals(): Promise<TableTotal[]> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/tables/totals`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    const result: ApiResponse<TableTotal[]> = await response.json()
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to fetch table totals')
+    }
+
+    return result.data || []
+  } catch (error) {
+    console.error('Error fetching table totals:', error)
     throw error
   }
 }

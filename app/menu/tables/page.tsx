@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { fetchTables, updateTableStatus, updateTableGuests, type Table } from "@/lib/api/tables";
+import { fetchTables, updateTableStatus, updateTableGuests, type Table, fetchTableTotals, type TableTotal } from "@/lib/api/tables";
 import { initializeSocketClient, joinTablesRoom, leaveTablesRoom, onTablesUpdate, offTablesUpdate } from "@/lib/socket-client";
 import { getBuffetSettings, type BuffetSettings } from "@/lib/api/settings";
 import {
@@ -41,6 +41,7 @@ interface GuestCounts {
 interface TableWithSession extends Table {
   session?: TableSession;
   availableAdultCapacity?: number;
+  currentBillTotal?: number;
 }
 
 export default function TablesPage() {
@@ -100,12 +101,17 @@ export default function TablesPage() {
   const loadData = async () => {
     try {
       setIsLoading(true);
-      const [tablesData, settingsData] = await Promise.all([
+      const [tablesData, settingsData, totalsData] = await Promise.all([
         fetchTables(),
-        getBuffetSettings()
+        getBuffetSettings(),
+        fetchTableTotals()
       ]);
 
       // Enhance tables with session information
+      const totalsMap = new Map<string, number>(
+        (totalsData || []).map((t: TableTotal) => [t.tableId, t.totalAmount])
+      );
+
       const tablesWithSessions = await Promise.all(
         tablesData.map(async (table) => {
           try {
@@ -113,18 +119,21 @@ export default function TablesPage() {
             // Capacity considers only adult guests
             const adultGuests = session ? session.guestCounts.adults : 0;
             const availableAdultCapacity = Math.max(0, table.capacity - adultGuests);
+            const currentBillTotal = totalsMap.get(table.id);
 
             return {
               ...table,
               session,
-              availableAdultCapacity
+              availableAdultCapacity,
+              currentBillTotal
             };
           } catch (error) {
             console.error(`Error fetching session for table ${table.id}:`, error);
             return {
               ...table,
               session: undefined,
-              availableAdultCapacity: table.capacity
+              availableAdultCapacity: table.capacity,
+              currentBillTotal: undefined
             };
           }
         })
@@ -396,6 +405,14 @@ export default function TablesPage() {
                             </div>
                           )}
                         </div>
+                        {/* Centered bill total from backend */}
+                        {typeof table.currentBillTotal === 'number' && (
+                          <div className="flex-1 flex items-center justify-center">
+                            <div className="text-xs sm:text-base font-extrabold text-black/80">
+                              £{table.currentBillTotal.toFixed()}
+                            </div>
+                          </div>
+                        )}
                         <div className="flex items-center justify-between">
                           <div className="text-xs sm:text-sm opacity-75">
                             {getTableStatus(table)}

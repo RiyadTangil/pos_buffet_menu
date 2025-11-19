@@ -50,6 +50,10 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { toast } from "@/components/ui/use-toast"
 import { Plus, Edit, Trash2, Users, Clock, CheckCircle, XCircle, RefreshCw, Loader2 } from "lucide-react"
+import SplitBillModal from "@/components/SplitBillModal"
+import { getBuffetSettings } from "@/lib/api/settings"
+import { getTableSession } from "@/lib/api/table-sessions"
+import { getOrdersByTableSession } from "@/lib/api/orders-client"
 
 interface TableStats {
   total: number
@@ -88,6 +92,13 @@ export default function TablesPage() {
   const [pinError, setPinError] = useState<string>('')
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card'>('cash')
   const [isSplit, setIsSplit] = useState<boolean>(false)
+  // Split bill states
+  const [isSplitModalOpen, setIsSplitModalOpen] = useState(false)
+  const [splitOrders, setSplitOrders] = useState<any[]>([])
+  const [splitSessionData, setSplitSessionData] = useState<any | null>(null)
+  const [splitTotalAmount, setSplitTotalAmount] = useState<number>(0)
+  const [splitBills, setSplitBills] = useState<any[] | null>(null)
+  const [buffetSettings, setBuffetSettings] = useState<any | null>(null)
 
   // Load tables and statistics
   const loadTables = async () => {
@@ -243,13 +254,19 @@ export default function TablesPage() {
     setPinError('')
     setPaymentMethod('cash')
     setIsSplit(false)
+    setSplitBills(null)
+    setSplitOrders([])
+    setSplitSessionData(null)
+    setSplitTotalAmount(0)
+    setIsSplitModalOpen(false)
     setIsResetModalOpen(true)
   }
 
   // Handle reset table
   const handleResetTable = async () => {
     if (!selectedTable) return
-    let waiterInfo: { id: string; name: string } | null = null
+    // Ensure we carry forward any already validated waiter
+    let waiterInfo: { id: string; name: string } | null = validatedWaiter || null
     try {
       setResetLoading(true)
       // Validate waiter PIN if not already validated
@@ -265,7 +282,7 @@ export default function TablesPage() {
           body: JSON.stringify({ pin: waiterPin })
         })
         const pinResult = await pinResponse.json()
-    
+
         if (!pinResponse.ok || !pinResult.success) {
           setPinError(pinResult.error || 'Invalid PIN')
           setResetLoading(false)
@@ -273,6 +290,72 @@ export default function TablesPage() {
         }
         setValidatedWaiter({ id: pinResult.data.id, name: pinResult.data.name })
         waiterInfo = ({ id: pinResult.data.id, name: pinResult.data.name })
+      }
+
+      // Ensure waiter info is present before proceeding
+      if (!waiterInfo) {
+        setPinError('Please validate waiter PIN before resetting')
+        setResetLoading(false)
+        return
+      }
+
+      // If split bills are prepared, create payment via payments API
+      if (isSplit && splitBills && splitSessionData && selectedTable) {
+        try {
+          const paymentPayload = {
+            tableId: selectedTable.id,
+            tableNumber: selectedTable.number,
+            waiterId: waiterInfo?.id as string,
+            waiterName: waiterInfo?.name as string,
+            totalAmount: splitTotalAmount,
+            tipAmount: 0,
+            paymentMethod,
+            sessionType: (splitSessionData?.sessionType || 'lunch'),
+            groupType: splitSessionData?.groupType || 'same',
+            isSplit: true,
+            splitInfo: {
+              totalSplits: splitBills.length,
+              splitIndex: 0,
+              originalTotalAmount: splitTotalAmount
+            },
+            splitPayments: splitBills,
+            sessionData: {
+              adults: splitSessionData?.adults || 0,
+              children: splitSessionData?.children || 0,
+              infants: splitSessionData?.infants || 0,
+              extraDrinks: splitSessionData?.extraDrinks || false,
+              adultPrice: splitSessionData?.adultPrice || 0,
+              childPrice: splitSessionData?.childPrice || 0,
+              infantPrice: splitSessionData?.infantPrice || 0,
+              extraDrinksPricing: splitSessionData?.extraDrinksPricing,
+              sessionSpecificExtraDrinksPricing: splitSessionData?.sessionSpecificExtraDrinksPricing
+            }
+          }
+
+          const resp = await fetch('/api/payments', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(paymentPayload)
+          })
+          const data = await resp.json()
+          if (!resp.ok || !data.success) {
+            throw new Error(data.error || 'Failed to create split payment')
+          }
+
+          toast({
+            title: 'Split payment recorded',
+            description: `Payment created and table ${selectedTable.number} reset.`
+          })
+          setIsResetModalOpen(false)
+          setSelectedTable(null)
+          loadTables()
+          return
+        } catch (err: any) {
+          toast({ title: 'Error', description: err.message || 'Failed to process split payment', variant: 'destructive' })
+        } finally {
+          setResetLoading(false)
+        }
+        return
       }
    
 
@@ -298,6 +381,149 @@ export default function TablesPage() {
     } finally {
       setResetLoading(false)
     }
+  }
+
+  // Helper to compute totals and sessionData for SplitBillModal
+  const computeTotalsForSplit = (session: any, orders: any[], settings: any) => {
+    // Determine current session dynamically from settings.sessions by time
+    const getCurrentSession = () => {
+      const sessions = settings?.sessions || {}
+      const now = new Date()
+      const currentMinutes = now.getHours() * 60 + now.getMinutes()
+      for (const key of Object.keys(sessions)) {
+        const cfg = sessions[key]
+        if (!cfg?.startTime || !cfg?.endTime) continue
+        const [sH, sM] = cfg.startTime.split(':').map((n: string) => parseInt(n, 10))
+        const [eH, eM] = cfg.endTime.split(':').map((n: string) => parseInt(n, 10))
+        const start = (sH || 0) * 60 + (sM || 0)
+        const end = (eH || 0) * 60 + (eM || 0)
+        if (currentMinutes >= start && currentMinutes < end) {
+          return { key, config: cfg }
+        }
+      }
+      // Fallback
+      return { key: 'lunch', config: sessions['lunch'] || {} }
+    }
+
+    const currentSession = getCurrentSession()
+    console.log("currentSession => ",currentSession)
+    const currentSessionKey = currentSession.key
+    const sessionPricing = currentSession.config
+    const adultPrice = sessionPricing?.adultPrice || 0
+    const childPrice = sessionPricing?.childPrice || 0
+    const infantPrice = sessionPricing?.infantPrice || 0
+    const includeDrinks = !!session?.guestCounts?.includeDrinks
+
+    // Extra drinks pricing
+    const extraPricing = settings?.sessionSpecificExtraDrinksPricing?.[currentSessionKey] || settings?.extraDrinksPricing
+    console.log("settings?.sessionSpecificExtraDrinksPricing?.[currentSessionKey] => ",settings?.sessionSpecificExtraDrinksPricing?.[currentSessionKey])
+    console.log("settings?.extraDrinksPricing => ",settings?.extraDrinksPricing)
+    console.log("extraPricing => ",extraPricing)
+    const extraAdult = extraPricing?.adultPrice || 0
+    const extraChild = extraPricing?.childPrice || 0
+    const extraInfant = extraPricing?.infantPrice || 0
+
+    const adults = session?.guestCounts?.adults || 0
+    const children = session?.guestCounts?.children || 0
+    const infants = session?.guestCounts?.infants || 0
+
+    const buffetSubtotal = (adults * adultPrice) + (children * childPrice) + (infants * infantPrice)
+    const drinksSubtotal = includeDrinks ? (adults * extraAdult + children * extraChild + infants * extraInfant) : 0
+
+    // Sum item totals per order (align with /menu/session/orders logic)
+    const ordersTotal = orders.reduce((sum, order: any) => {
+      if (order?.items && Array.isArray(order.items)) {
+        const orderSum = order.items.reduce((s: number, item: any) => {
+          const itemPrice = item?.price || 0
+          const itemQuantity = item?.quantity || 1
+          return s + itemPrice * itemQuantity
+        }, 0)
+        return sum + orderSum
+      }
+      return sum
+    }, 0)
+
+    const grand = buffetSubtotal + drinksSubtotal + ordersTotal
+
+    const modalSessionData = {
+      adults,
+      children,
+      infants,
+      extraDrinks: includeDrinks,
+      adultPrice,
+      childPrice,
+      infantPrice,
+      extraDrinksPricing: {
+        adultPrice: extraAdult,
+        childPrice: extraChild,
+        infantPrice: extraInfant,
+      },
+      sessionSpecificExtraDrinksPricing: settings?.sessionSpecificExtraDrinksPricing,
+      groupType: session?.groupType || 'same',
+      sessionType: currentSessionKey,
+    }
+
+    return { grandTotal: grand, modalSessionData }
+  }
+
+  // Load session & orders and open split modal
+  const handleOpenSplitModal = async () => {
+    try {
+      if (!selectedTable) return
+      // Validate PIN first for security
+      if (!validatedWaiter) {
+        if (!waiterPin || waiterPin.trim().length !== 4) {
+          setPinError('Please enter a valid 4-digit PIN')
+          return
+        }
+        const pinResponse = await fetch('/api/users/validate-pin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pin: waiterPin })
+        })
+        const pinResult = await pinResponse.json()
+        if (!pinResponse.ok || !pinResult.success) {
+          setPinError(pinResult.error || 'Invalid PIN')
+          return
+        }
+        setValidatedWaiter({ id: pinResult.data.id, name: pinResult.data.name })
+      }
+
+      const settingsRes = await getBuffetSettings()
+      if (!settingsRes.success || !settingsRes.data) {
+        toast({ title: 'Error', description: 'Failed to load buffet settings', variant: 'destructive' })
+        return
+      }
+      setBuffetSettings(settingsRes.data)
+
+      const session = await getTableSession(selectedTable.id)
+      if (!session) {
+        toast({ title: 'No active session', description: 'No active session found for this table', variant: 'destructive' })
+        return
+      }
+
+      const ordersRes = await getOrdersByTableSession(session.id)
+      const orders = Array.isArray(ordersRes?.orders) ? ordersRes.orders : []
+
+      const { grandTotal, modalSessionData } = computeTotalsForSplit(session, orders, settingsRes.data)
+      console.log("grandTotal => ",grandTotal)
+
+      setSplitOrders(orders)
+      setSplitSessionData(modalSessionData)
+      setSplitTotalAmount(grandTotal)
+      setIsSplitModalOpen(true)
+    } catch (err) {
+      console.error('Open split modal error', err)
+      toast({ title: 'Error', description: 'Failed to open split modal', variant: 'destructive' })
+    }
+  }
+
+  const handleSplitConfirm = (result: any) => {
+    // SplitBillModal returns an array of split results
+    setSplitBills(Array.isArray(result) ? result : (result?.splits || []))
+    setIsSplit(true)
+    setIsSplitModalOpen(false)
+    toast({ title: 'Split prepared', description: 'Proceed to Reset to record payment.' })
   }
 
   if (loading) {
@@ -521,6 +747,27 @@ export default function TablesPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Split Bill Modal */}
+      {isSplitModalOpen && (
+        <SplitBillModal
+          isOpen={isSplitModalOpen}
+          onClose={() => setIsSplitModalOpen(false)}
+          onConfirm={handleSplitConfirm}
+          orders={splitOrders}
+          sessionData={{
+            adults: splitSessionData?.adults || 0,
+            children: splitSessionData?.children || 0,
+            infants: splitSessionData?.infants || 0,
+            extraDrinks: !!splitSessionData?.extraDrinks,
+            adultPrice: splitSessionData?.adultPrice || 0,
+            childPrice: splitSessionData?.childPrice || 0,
+            infantPrice: splitSessionData?.infantPrice || 0,
+            extraDrinksPricing: splitSessionData?.extraDrinksPricing,
+          }}
+          totalAmount={splitTotalAmount}
+        />
+      )}
+
       {/* Edit Table Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
         <DialogContent>
@@ -653,15 +900,15 @@ export default function TablesPage() {
                 </Button>
               </div>
             </div>
-            {/* <div className="flex items-center gap-2">
-              <input
-                id="splitOption"
-                type="checkbox"
-                checked={isSplit}
-                onChange={(e) => setIsSplit(e.target.checked)}
-              />
-              <Label htmlFor="splitOption">Split payment</Label>
-            </div> */}
+            {/* Split Bill trigger */}
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={handleOpenSplitModal}>
+                Split Bill
+              </Button>
+              {isSplit && splitBills ? (
+                <Badge variant="outline" className="text-orange-700 border-orange-300">{splitBills.length} splits prepared</Badge>
+              ) : null}
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsResetModalOpen(false)} disabled={resetLoading}>

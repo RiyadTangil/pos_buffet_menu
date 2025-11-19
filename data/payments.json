@@ -267,5 +267,106 @@
     "createdAt": "2025-11-15T09:58:46.601Z",
     "updatedAt": "2025-11-15T09:58:46.601Z",
     "_id": "69184ed8a963464fa12ce4d8"
+  },
+  {
+    "id": "691de05535a7795cd3604512",
+    "paymentId": "PAY-1763565652789-7dlwdv2d5",
+    "tableId": "68c190da3b67d81cc1cc2e7f",
+    "tableNumber": 4,
+    "waiterId": "68d2830153bbcc90acc12c04",
+    "waiterName": "waiter ",
+    "totalAmount": 76,
+    "tipAmount": 15.2,
+    "sessionType": "lunch",
+    "sessionData": {
+      "adults": 1,
+      "children": 1,
+      "infants": 1,
+      "extraDrinks": true,
+      "adultPrice": 30,
+      "childPrice": 18,
+      "infantPrice": 0,
+      "drinkPrice": 5
+    },
+    "groupType": "same",
+    "paymentDate": "2025-11-19",
+    "paymentTime": "21:20:52",
+    "status": "completed",
+    "paymentMethod": "cash",
+    "isSplit": false,
+    "splitPayments": [],
+    "createdAt": "2025-11-19T15:20:52.789Z",
+    "updatedAt": "2025-11-19T15:20:52.789Z",
+    "_id": "691de05535a7795cd3604512"
+  },
+  {
+    "id": "691de24c35a7795cd3604513",
+    "paymentId": "PAY-1763566156660-gb04aqs2d",
+    "tableId": "68c15318c85542d7fb04fe20",
+    "tableNumber": 8,
+    "waiterId": "68d2830153bbcc90acc12c04",
+    "waiterName": "waiter ",
+    "totalAmount": 35,
+    "tipAmount": 0,
+    "sessionType": "lunch",
+    "sessionData": {
+      "adults": 1,
+      "children": 0,
+      "infants": 0,
+      "extraDrinks": true,
+      "adultPrice": 30,
+      "childPrice": 18,
+      "infantPrice": 0,
+      "extraDrinksPricing": {
+        "adultPrice": 5,
+        "childPrice": 8,
+        "infantPrice": 15
+      },
+      "sessionSpecificExtraDrinksPricing": {
+        "breakfast": {
+          "adultPrice": 4,
+          "childPrice": 7,
+          "infantPrice": 2
+        },
+        "lunch": {
+          "adultPrice": 5,
+          "childPrice": 8,
+          "infantPrice": 15
+        },
+        "dinner": {
+          "adultPrice": 6,
+          "childPrice": 9,
+          "infantPrice": 12
+        }
+      }
+    },
+    "groupType": "same",
+    "paymentDate": "2025-11-19",
+    "paymentTime": "21:29:16",
+    "status": "completed",
+    "paymentMethod": "cash",
+    "isSplit": true,
+    "splitInfo": {
+      "totalSplits": 1,
+      "splitIndex": 0,
+      "originalTotalAmount": 35
+    },
+    "splitPayments": [
+      {
+        "customerIndex": 0,
+        "customerName": "Adult 1",
+        "paymentMethod": "cash",
+        "items": [],
+        "sessionCharges": {
+          "adults": 1,
+          "children": 0,
+          "infants": 0
+        },
+        "total": 35
+      }
+    ],
+    "createdAt": "2025-11-19T15:29:16.660Z",
+    "updatedAt": "2025-11-19T15:29:16.660Z",
+    "_id": "691de24c35a7795cd3604513"
   }
 ]
