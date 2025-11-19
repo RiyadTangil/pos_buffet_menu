@@ -171,6 +171,8 @@ export interface CreatePaymentRequest {
   paymentMethod?: 'cash' | 'card'
   sessionType: 'breakfast' | 'lunch' | 'dinner'
   groupType?: string
+  // Optional linkage to the created order for file naming
+  orderId?: string
   // Split payment information
   isSplit?: boolean
   splitInfo?: {

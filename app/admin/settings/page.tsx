@@ -329,7 +329,7 @@ export default function SettingsPage() {
               data: { type: 'refresh', source: 'settings' }
             })
           })
-          console.log('📡 Emitted settings refresh via tablesUpdate')
+          //console.log('📡 Emitted settings refresh via tablesUpdate')
         } catch (err) {
           console.warn('Failed to emit settings refresh:', err)
         }

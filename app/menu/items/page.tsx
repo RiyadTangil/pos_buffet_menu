@@ -145,7 +145,7 @@ export default function ItemsPage() {
 
         try {
           await joinTableRoom(storedTableId, storedGroupType)
-          console.log('✅ Successfully joined table room')
+      
         } catch (error) {
           console.error('❌ Failed to join table room:', error)
           // Continue with the rest of the initialization even if socket fails
@@ -153,8 +153,7 @@ export default function ItemsPage() {
 
         // Set up real-time table session updates
         onTableSessionUpdate((updatedSessionData) => {
-          console.log('Received table session update:', updatedSessionData)
-
+         
           // Check if session has ended (either sessionEnded flag or null session)
           if (updatedSessionData?.sessionEnded || updatedSessionData === null) {
             setShowSessionEndedModal(true)
@@ -177,7 +176,7 @@ export default function ItemsPage() {
 
         // Set up real-time cart synchronization
         onCartUpdate((cartData) => {
-          console.log('Received cart update:', cartData)
+       
           if (cartData.tableId === storedTableId) {
             // Convert database cart items to UI cart items
             if (cartData.cartItems && productsData.length > 0) {
@@ -201,7 +200,7 @@ export default function ItemsPage() {
 
         // Set up real-time order confirmation synchronization
         onOrderConfirmation((orderData) => {
-          console.log('Received order confirmation:', orderData)
+      
           if (orderData.tableId === storedTableId) {
             // Sync order confirmation state with other devices in same group
             setShowConfetti(true)
@@ -227,7 +226,7 @@ export default function ItemsPage() {
           await joinTablesRoom()
           onTablesUpdate(async (update) => {
             if (update?.type === 'refresh') {
-              console.log('🔄 Received global refresh, reloading settings and menu')
+
               try {
                 const settingsResponse = await getBuffetSettings()
                 if (settingsResponse.success && settingsResponse.data) {
@@ -469,7 +468,7 @@ export default function ItemsPage() {
     // Override with session-specific limits if available (medium priority)
     if (buffetSettings.sessionSpecificItemsLimit && buffetSettings.sessionSpecificItemsLimit[sessionKey]) {
       itemsLimit = buffetSettings.sessionSpecificItemsLimit[sessionKey]
-      console.log('Using session-specific item limits for session:', sessionKey)
+      //console.log('Using session-specific item limits for session:', sessionKey)
     }
 
     // Finally, override with special table limits if available (highest priority)
@@ -477,7 +476,7 @@ export default function ItemsPage() {
       const specialTableLimit = buffetSettings.specialTableItemsLimit.find(item => item.tableId === tableId)
       if (specialTableLimit) {
         itemsLimit = specialTableLimit.itemsLimit
-        console.log('Using special table item limits for table:', tableId)
+        //console.log('Using special table item limits for table:', tableId)
       }
     }
 
@@ -499,6 +498,17 @@ export default function ItemsPage() {
       // Premium items are exempt from the buffet round limit
       if (!product.isPremium && currentTotalItems >= maxAllowedItems) {
         alert(`You have reached the maximum limit of ${maxAllowedItems} items per round. Please complete your current order before adding more items.`)
+        return
+      }
+    }
+
+    // Enforce per-product limitPerOrder before adding to cart
+    const perItemLimit = typeof product.limitPerOrder === 'number' ? product.limitPerOrder : 0
+    if (perItemLimit > 0) {
+      const existingItemInCart = cart.find((item) => item.menuItem?.id === product.id)
+      const currentQty = existingItemInCart?.quantity ?? 0
+      if (currentQty >= perItemLimit) {
+        alert(`You can order up to ${perItemLimit} of "${product.name}" per order.`)
         return
       }
     }
@@ -700,7 +710,7 @@ export default function ItemsPage() {
       const result = await response.json()
 
       if (result.success) {
-        console.log('Order created successfully:', result.orderId)
+        //console.log('Order created successfully:', result.orderId)
         setLastOrderId(result.orderId)
 
         // Store printer configurations from order response
@@ -1297,7 +1307,7 @@ export default function ItemsPage() {
                                     size="sm"
                                     onClick={() => addToCart(item)}
                                     className="w-8 h-8 p-0 rounded-full hover:bg-orange-200 text-orange-700"
-                                    disabled={sessionEnded || isUpdating}
+                                    disabled={sessionEnded || isUpdating || (typeof item.limitPerOrder === 'number' && item.limitPerOrder > 0 && quantity >= item.limitPerOrder)}
                                   >
                                     {updatingItemId === item.id && updatingAction === 'add' ? (
                                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -1358,7 +1368,7 @@ export default function ItemsPage() {
             guestCount={(tableSession?.guestCounts.adults || 0) + (tableSession?.guestCounts.children || 0) + (tableSession?.guestCounts.infants || 0)}
             orderTime={new Date().toISOString()}
             onPrintComplete={(success, errors) => {
-              console.log('Print completed:', success, errors)
+              //console.log('Print completed:', success, errors)
               setShouldPrintOrder(false) // Reset print trigger
             }}
             autoPrint={true}

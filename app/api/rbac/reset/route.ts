@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     }))
     
     await rbacCollection.insertMany(rolesWithTimestamps)
-    console.log('RBAC roles reset to defaults')
+    //console.log('RBAC roles reset to defaults')
     
     return NextResponse.json({
       success: true,

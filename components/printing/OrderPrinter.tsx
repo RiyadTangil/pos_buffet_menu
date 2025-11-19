@@ -113,15 +113,9 @@ export default function OrderPrinter({
   }
 
   const handleAutoPrint = async () => {
-    console.log('🖨️ [OrderPrinter] Starting auto-print process...')
-    console.log('🖨️ [OrderPrinter] Order ID:', orderId)
-    console.log('🖨️ [OrderPrinter] Order Items:', orderItems)
-    console.log('🖨️ [OrderPrinter] Available IP Printers:', state.availablePrinters)
-    console.log('🖨️ [OrderPrinter] Available USB Printers:', state.availableUSBPrinters)
-    console.log('🖨️ [OrderPrinter] Default USB Printer:', state.defaultUSBPrinter)
-    
+
     if (state.isProcessing) {
-      console.log('🖨️ [OrderPrinter] Already processing, skipping...')
+      //console.log('🖨️ [OrderPrinter] Already processing, skipping...')
       return
     }
 
@@ -132,19 +126,19 @@ export default function OrderPrinter({
       let errors: string[] = []
 
       // First try category-based printing with IP printers
-      console.log('🖨️ [OrderPrinter] Checking IP printers for category-based printing...')
+      //console.log('🖨️ [OrderPrinter] Checking IP printers for category-based printing...')
       const ipPrintersWithIP = state.availablePrinters.filter(p => p.ipAddress)
-      console.log('🖨️ [OrderPrinter] IP printers with IP address:', ipPrintersWithIP)
+      //console.log('🖨️ [OrderPrinter] IP printers with IP address:', ipPrintersWithIP)
       
       if (ipPrintersWithIP.length > 0) {
         try {
-          console.log('🖨️ [OrderPrinter] Attempting IP printer category-based printing...')
+          //console.log('🖨️ [OrderPrinter] Attempting IP printer category-based printing...')
           const printJobs = await printOrderByCategories(orderId, orderItems)
-          console.log('🖨️ [OrderPrinter] IP printer print jobs result:', printJobs)
+          //console.log('🖨️ [OrderPrinter] IP printer print jobs result:', printJobs)
           
           if (printJobs && printJobs.length > 0) {
             printSuccess = true
-            console.log('🖨️ [OrderPrinter] ✅ IP printer category-based printing successful!')
+            //console.log('🖨️ [OrderPrinter] ✅ IP printer category-based printing successful!')
             toast.success(`Order sent to ${printJobs.length} IP printer(s)`)
           } else {
             console.log('🖨️ [OrderPrinter] ❌ IP printer category-based printing returned no jobs')
@@ -154,17 +148,17 @@ export default function OrderPrinter({
           errors.push('IP printer failed')
         }
       } else {
-        console.log('🖨️ [OrderPrinter] No IP printers with IP addresses found')
+        //console.log('🖨️ [OrderPrinter] No IP printers with IP addresses found')
       }
 
       // Try category-based printing with USB printers if IP printing failed or no IP printers
-      console.log('🖨️ [OrderPrinter] Checking USB printers for category-based printing...')
-      console.log('🖨️ [OrderPrinter] Print success so far:', printSuccess)
-      console.log('🖨️ [OrderPrinter] Available USB printers count:', state.availableUSBPrinters.length)
+      //console.log('🖨️ [OrderPrinter] Checking USB printers for category-based printing...')
+      //console.log('🖨️ [OrderPrinter] Print success so far:', printSuccess)
+      //console.log('🖨️ [OrderPrinter] Available USB printers count:', state.availableUSBPrinters.length)
       
       if (!printSuccess && state.availableUSBPrinters.length > 0) {
         try {
-          console.log('🖨️ [OrderPrinter] Attempting USB printer category-based printing...')
+          //console.log('🖨️ [OrderPrinter] Attempting USB printer category-based printing...')
           const usbPrintJobs = await printOrderByUSBCategories(
             orderId, 
             orderItems, 
@@ -174,11 +168,11 @@ export default function OrderPrinter({
             guestCount,
             orderTime
           )
-          console.log('🖨️ [OrderPrinter] USB printer print jobs result:', usbPrintJobs)
+          //console.log('🖨️ [OrderPrinter] USB printer print jobs result:', usbPrintJobs)
           
           if (usbPrintJobs && usbPrintJobs.length > 0) {
             printSuccess = true
-            console.log('🖨️ [OrderPrinter] ✅ USB printer category-based printing successful!')
+            //console.log('🖨️ [OrderPrinter] ✅ USB printer category-based printing successful!')
             toast.success(`Order sent to ${usbPrintJobs.length} USB printer(s)`)
           } else {
             console.log('🖨️ [OrderPrinter] ❌ USB printer category-based printing returned no jobs')
@@ -188,7 +182,7 @@ export default function OrderPrinter({
           errors.push('USB category printing failed')
         }
       } else if (!printSuccess) {
-        console.log('🖨️ [OrderPrinter] No USB printers available for category-based printing')
+        //console.log('🖨️ [OrderPrinter] No USB printers available for category-based printing')
       }
 
       // Fallback to default USB printer if category printing failed
@@ -591,16 +585,16 @@ export default function OrderPrinter({
     guestCount?: number,
     orderTime?: string
   ) => {
-    console.log('🖨️ [USB Categories] Starting USB category-based printing...')
-    console.log('🖨️ [USB Categories] Order ID:', orderId)
-    console.log('🖨️ [USB Categories] Order Items:', orderItems)
+    //console.log('🖨️ [USB Categories] Starting USB category-based printing...')
+    //console.log('🖨️ [USB Categories] Order ID:', orderId)
+    //console.log('🖨️ [USB Categories] Order Items:', orderItems)
     
     try {
       // Group items by category
-      console.log('🖨️ [USB Categories] Grouping items by category...')
+      //console.log('🖨️ [USB Categories] Grouping items by category...')
       const itemsByCategory = orderItems.reduce((acc, item) => {
         const category = item.category?.id || item.menuItem?.category?.id || 'uncategorized'
-        console.log('🖨️ [USB Categories] Item:', item.name, 'Category:', category)
+        //console.log('🖨️ [USB Categories] Item:', item.name, 'Category:', category)
         if (!acc[category]) {
           acc[category] = []
         }
@@ -608,25 +602,25 @@ export default function OrderPrinter({
         return acc
       }, {} as Record<string, any[]>)
 
-      console.log('🖨️ [USB Categories] Items grouped by category:', itemsByCategory)
-      console.log('🖨️ [USB Categories] Items grouped by category keys:', Object.keys(itemsByCategory))
+      //console.log('🖨️ [USB Categories] Items grouped by category:', itemsByCategory)
+      //console.log('🖨️ [USB Categories] Items grouped by category keys:', Object.keys(itemsByCategory))
       const printJobs = []
 
       // Print each category to its assigned USB printer
-      console.log('🖨️ [USB Categories] Processing each category...')
+      //console.log('🖨️ [USB Categories] Processing each category...')
       for (const [category, items] of Object.entries(itemsByCategory)) {
-        console.log(`🖨️ [USB Categories] Processing category: ${category} with ${items.length} items`)
+        //console.log(`🖨️ [USB Categories] Processing category: ${category} with ${items.length} items`)
         
         // Find USB printer assigned to this category
         const assignedPrinter = availableUSBPrinters.find(printer => 
           printer.categories && printer.categories.includes(category)
         )
 
-        console.log(`🖨️ [USB Categories] Assigned printer for ${category}:`, assignedPrinter)
+        //console.log(`🖨️ [USB Categories] Assigned printer for ${category}:`, assignedPrinter)
 
         if (assignedPrinter) {
           try {
-            console.log(`🖨️ [USB Categories] Printing ${category} items to ${assignedPrinter.displayName}...`)
+            //console.log(`🖨️ [USB Categories] Printing ${category} items to ${assignedPrinter.displayName}...`)
             await printOrderViaUsb({
               orderId,
               orderItems: items,
@@ -635,7 +629,7 @@ export default function OrderPrinter({
               orderTime,
               printerName: assignedPrinter.localPrinterName
             })
-            console.log(`🖨️ [USB Categories] ✅ Successfully printed ${category} items to ${assignedPrinter.displayName}`)
+            //console.log(`🖨️ [USB Categories] ✅ Successfully printed ${category} items to ${assignedPrinter.displayName}`)
             printJobs.push({
               category,
               printer: assignedPrinter.displayName,
@@ -645,12 +639,12 @@ export default function OrderPrinter({
             console.error(`🖨️ [USB Categories] ❌ Failed to print ${category} items to ${assignedPrinter.displayName}:`, error)
           }
         } else {
-          console.log(`🖨️ [USB Categories] No assigned printer found for category: ${category}. Skipping this category.`)
+          //console.log(`🖨️ [USB Categories] No assigned printer found for category: ${category}. Skipping this category.`)
           // Skip categories without assigned printers - don't print to default printer
         }
       }
 
-      console.log('🖨️ [USB Categories] Final print jobs:', printJobs)
+      //console.log('🖨️ [USB Categories] Final print jobs:', printJobs)
       return printJobs
     } catch (error) {
       console.error('🖨️ [USB Categories] ❌ USB category printing error:', error)

@@ -243,8 +243,7 @@ export default function WaiterRequestPrinterManagement() {
       <Usb className="h-4 w-4 text-green-500" />
     )
   }
-console.log("formData => ",formData)
-console.log("getAvailablePrinters => ",getAvailablePrinters())
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">

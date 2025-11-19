@@ -234,22 +234,22 @@ function RoleManagementPage() {
 
   // Load role configurations from the database on component mount
   useEffect(() => {
-    console.log('🔄 Role Management: useEffect triggered - loading configurations...')
+    //console.log('🔄 Role Management: useEffect triggered - loading configurations...')
 
     const loadRoleConfigurations = async () => {
       try {
         setLoading(true)
-        console.log('📡 Role Management: Making API call to /api/rbac/public')
+        //console.log('📡 Role Management: Making API call to /api/rbac/public')
 
         const response = await fetch('/api/rbac/public')
-        console.log('📡 Role Management: API response status:', response.status)
+        //console.log('📡 Role Management: API response status:', response.status)
 
         if (response.ok) {
           const result = await response.json()
-          console.log('📡 Role Management: API response data:', result)
+          //console.log('📡 Role Management: API response data:', result)
 
           if (result.success && result.data) {
-            console.log('✅ Role Management: Setting role configs:', result.data)
+            //console.log('✅ Role Management: Setting role configs:', result.data)
             setRoleConfigs(result.data)
           } else {
             console.warn('⚠️ Role Management: API response missing success/data:', result)
@@ -257,13 +257,13 @@ function RoleManagementPage() {
         } else {
           console.error('❌ Role Management: Failed to load role configurations:', response.statusText)
           // Fallback to authenticated endpoint
-          console.log('🔄 Role Management: Trying authenticated endpoint...')
+          //console.log('🔄 Role Management: Trying authenticated endpoint...')
           const authResponse = await fetch('/api/rbac')
           if (authResponse.ok) {
             const authResult = await authResponse.json()
-            console.log('📡 Role Management: Auth API response data:', authResult)
+            //console.log('📡 Role Management: Auth API response data:', authResult)
             if (authResult.success && authResult.data) {
-              console.log('✅ Role Management: Setting role configs from auth endpoint:', authResult.data)
+              //console.log('✅ Role Management: Setting role configs from auth endpoint:', authResult.data)
               setRoleConfigs(authResult.data)
             }
           }
@@ -272,7 +272,7 @@ function RoleManagementPage() {
         console.error('❌ Role Management: Error loading role configurations:', error)
       } finally {
         setLoading(false)
-        console.log('🏁 Role Management: Loading completed')
+        //console.log('🏁 Role Management: Loading completed')
       }
     }
 
@@ -309,7 +309,7 @@ function RoleManagementPage() {
       }
 
       toast.success(`${role} configuration updated successfully`)
-      console.log('Updated role configuration:', { role, config })
+      //console.log('Updated role configuration:', { role, config })
 
     } catch (error) {
       toast.error('Failed to update role configuration')

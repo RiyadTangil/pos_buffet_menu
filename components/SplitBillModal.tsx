@@ -374,7 +374,7 @@ export default function SplitBillModal({
       paymentMethod: split.paymentMethod || 'cash',
       items: Array.isArray(split.items) ? split.items : []
     }))
-    console.log("normalizedSplits => ",normalizedSplits)
+    //console.log("normalizedSplits => ",normalizedSplits)
     
     onConfirm(normalizedSplits)
   }

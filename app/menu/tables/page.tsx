@@ -80,7 +80,7 @@ export default function TablesPage() {
           // Verify that the session data is valid and not ended
           if (parsedSession && !parsedSession.sessionEnded &&
             (parsedGuestCounts.adults > 0 || parsedGuestCounts.children > 0 || parsedGuestCounts.infants > 0)) {
-            console.log('User already has table selection, redirecting to menu/items');
+            //console.log('User already has table selection, redirecting to menu/items');
             router.push('/menu/items');
             return;
           }

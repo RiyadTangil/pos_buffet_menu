@@ -407,10 +407,7 @@ export default function SessionOrdersPage() {
       setIsProcessing(false);
       setPaymentComplete(true);
 
-      console.log(
-        `Payment of £${grandTotal} successfully recorded:`,
-        result.data
-      );
+
 
       // Clear all localStorage data after successful payment
       localStorage.removeItem("tableId");

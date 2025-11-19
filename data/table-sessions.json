@@ -80,5 +80,104 @@
         "sessionEnded": true
       }
     ]
+  },
+  {
+    "backupDate": "2025-11-19T16:12:36.931Z",
+    "paymentId": "PAY-1763568756931-r38fm23y0",
+    "tableId": "68c1555bc85542d7fb04fe21",
+    "tableNumber": 1,
+    "groupType": "same",
+    "sessions": [
+      {
+        "_id": "691b3f66d54dc7376845ccbd",
+        "tableId": "68c1555bc85542d7fb04fe21",
+        "deviceId": "device_w1u2apwnp_1763137734511",
+        "guestCounts": {
+          "adults": 3,
+          "children": 1,
+          "infants": 1,
+          "includeDrinks": true
+        },
+        "cartItems": [
+          {
+            "menuItemId": "68c17c673b67d81cc1cc2e7d",
+            "name": "Pizzs",
+            "price": 0,
+            "quantity": 3,
+            "categoryId": "68c167dbc85542d7fb04fe23"
+          },
+          {
+            "menuItemId": "68c19c383b67d81cc1cc2e80",
+            "name": "Toast bread",
+            "price": 0,
+            "quantity": 1,
+            "categoryId": "68c167dbc85542d7fb04fe23"
+          },
+          {
+            "menuItemId": "68c19d3a3b67d81cc1cc2e82",
+            "name": "Normal Vagitable",
+            "price": 0,
+            "quantity": 1,
+            "categoryId": "68c167dbc85542d7fb04fe23"
+          },
+          {
+            "menuItemId": "68c19d173b67d81cc1cc2e81",
+            "name": "Vagitable",
+            "price": 0,
+            "quantity": 1,
+            "categoryId": "68c167f8c85542d7fb04fe24"
+          },
+          {
+            "menuItemId": "68cad4b09af39ae52f9b96d4",
+            "name": "Riyad Hasan",
+            "price": 70,
+            "quantity": 2,
+            "categoryId": "68c167f8c85542d7fb04fe24"
+          }
+        ],
+        "status": "active",
+        "createdAt": "2025-11-17T15:29:42.319Z",
+        "updatedAt": "2025-11-19T16:12:36.931Z",
+        "isSecondaryDevice": true,
+        "groupType": "same",
+        "secondaryDeviceId": "device_uvwa2mwlo_1763565657311",
+        "sessionEnded": true
+      }
+    ]
+  },
+  {
+    "backupDate": "2025-11-19T16:14:28.224Z",
+    "paymentId": "PAY-1763568868224-9twuzswi6",
+    "tableId": "68c1555bc85542d7fb04fe21",
+    "tableNumber": 1,
+    "groupType": "same",
+    "sessions": [
+      {
+        "_id": "691dec9335a7795cd3604515",
+        "tableId": "68c1555bc85542d7fb04fe21",
+        "deviceId": "device_5hrcjjm5s_1763568765516",
+        "guestCounts": {
+          "adults": 1,
+          "children": 0,
+          "infants": 0,
+          "includeDrinks": false
+        },
+        "cartItems": [
+          {
+            "menuItemId": "68c19d3a3b67d81cc1cc2e82",
+            "name": "Normal Vagitable",
+            "price": 0,
+            "quantity": 1,
+            "categoryId": "68c167dbc85542d7fb04fe23"
+          }
+        ],
+        "status": "active",
+        "createdAt": "2025-11-19T16:13:07.288Z",
+        "updatedAt": "2025-11-19T16:14:28.224Z",
+        "isSecondaryDevice": false,
+        "groupType": "same",
+        "sessionEnded": true
+      }
+    ]
   }
 ]

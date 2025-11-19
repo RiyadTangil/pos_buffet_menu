@@ -76,14 +76,14 @@ function generateId(): string {
 
 // Group order items by category
 function groupItemsByCategory(orderItems: any[]): Map<string, any[]> {
-  console.log('🖨️ [API] Grouping items by category...')
-  console.log('🖨️ [API] Input order items:', orderItems)
+  //console.log('🖨️ [API] Grouping items by category...')
+  //console.log('🖨️ [API] Input order items:', orderItems)
   
   const categoryGroups = new Map<string, any[]>()
   
   for (const item of orderItems) {
     const categoryId = item.categoryId || item.category?.id || 'uncategorized'
-    console.log(`🖨️ [API] Item: ${item.name}, Category ID: ${categoryId}`)
+    //console.log(`🖨️ [API] Item: ${item.name}, Category ID: ${categoryId}`)
     
     if (!categoryGroups.has(categoryId)) {
       categoryGroups.set(categoryId, [])
@@ -92,34 +92,34 @@ function groupItemsByCategory(orderItems: any[]): Map<string, any[]> {
     categoryGroups.get(categoryId)!.push(item)
   }
   
-  console.log('🖨️ [API] Final category groups:', Array.from(categoryGroups.entries()))
+  //console.log('🖨️ [API] Final category groups:', Array.from(categoryGroups.entries()))
   return categoryGroups
 }
 
 // Find printers for a category
 function findPrintersForCategory(categoryId: string, mappings: CategoryPrinterMapping[], printers: PrinterConfig[]): PrinterConfig[] {
-  console.log(`🖨️ [API] Finding printers for category: ${categoryId}`)
-  console.log(`🖨️ [API] Available mappings:`, mappings)
-  console.log(`🖨️ [API] Available printers:`, printers)
+  //console.log(`🖨️ [API] Finding printers for category: ${categoryId}`)
+  //console.log(`🖨️ [API] Available mappings:`, mappings)
+  //console.log(`🖨️ [API] Available printers:`, printers)
   
   // Find all active mappings for this category
   const categoryMappings = mappings
     .filter(m => m.categoryId === categoryId && m.isActive)
     .sort((a, b) => (a.priority || 1) - (b.priority || 1)) // Sort by priority (lower number = higher priority)
   
-  console.log(`🖨️ [API] Active mappings for category ${categoryId}:`, categoryMappings)
+  //console.log(`🖨️ [API] Active mappings for category ${categoryId}:`, categoryMappings)
   
   // Get corresponding printers
   const categoryPrinters: PrinterConfig[] = []
   for (const mapping of categoryMappings) {
     const printer = printers.find(p => p.id === mapping.printerId && p.isActive)
-    console.log(`🖨️ [API] Looking for printer ID ${mapping.printerId}, found:`, printer)
+    //console.log(`🖨️ [API] Looking for printer ID ${mapping.printerId}, found:`, printer)
     if (printer) {
       categoryPrinters.push(printer)
     }
   }
   
-  console.log(`🖨️ [API] Final printers for category ${categoryId}:`, categoryPrinters)
+  //console.log(`🖨️ [API] Final printers for category ${categoryId}:`, categoryPrinters)
   return categoryPrinters
 }
 
@@ -166,13 +166,13 @@ function simulatePrintJobProcessing(jobId: string) {
 
 // POST - Print order by distributing items to category-specific printers
 export async function POST(request: NextRequest) {
-  console.log('🖨️ [API] Starting print-order API request...')
+  //console.log('🖨️ [API] Starting print-order API request...')
   
   try {
     const body = await request.json()
     const { orderId, orderItems, tableNumber, guestCount, orderTime } = body
 
-    console.log('🖨️ [API] Request body:', { orderId, orderItems, tableNumber, guestCount, orderTime })
+    //console.log('🖨️ [API] Request body:', { orderId, orderItems, tableNumber, guestCount, orderTime })
 
     // Validation
     if (!orderId || !orderItems || !Array.isArray(orderItems)) {
@@ -192,14 +192,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Load configuration data
-    console.log('🖨️ [API] Loading configuration data...')
+    //console.log('🖨️ [API] Loading configuration data...')
     const printers = loadPrinters()
     const mappings = loadMappings()
     const printJobs = loadPrintJobs()
 
-    console.log('🖨️ [API] Loaded printers:', printers)
-    console.log('🖨️ [API] Loaded mappings:', mappings)
-    console.log('🖨️ [API] Existing print jobs count:', printJobs.length)
+    //console.log('🖨️ [API] Loaded printers:', printers)
+    //console.log('🖨️ [API] Loaded mappings:', mappings)
+    //console.log('🖨️ [API] Existing print jobs count:', printJobs.length)
 
     if (printers.length === 0) {
       console.log('🖨️ [API] ❌ No printers configured')
@@ -210,20 +210,20 @@ export async function POST(request: NextRequest) {
     }
 
     // Group items by category
-    console.log('🖨️ [API] Grouping items by category...')
+    //console.log('🖨️ [API] Grouping items by category...')
     const categoryGroups = groupItemsByCategory(orderItems)
-    console.log('🖨️ [API] Category groups:', Array.from(categoryGroups.entries()))
+    //console.log('🖨️ [API] Category groups:', Array.from(categoryGroups.entries()))
     
     const createdPrintJobs: PrintJob[] = []
     const errors: string[] = []
 
     // Process each category group
-    console.log('🖨️ [API] Processing each category group...')
+    //console.log('🖨️ [API] Processing each category group...')
     for (const [categoryId, items] of categoryGroups) {
-      console.log(`🖨️ [API] Processing category: ${categoryId} with ${items.length} items`)
+      //console.log(`🖨️ [API] Processing category: ${categoryId} with ${items.length} items`)
       
       const categoryPrinters = findPrintersForCategory(categoryId, mappings, printers)
-      console.log(`🖨️ [API] Found printers for category ${categoryId}:`, categoryPrinters)
+      //console.log(`🖨️ [API] Found printers for category ${categoryId}:`, categoryPrinters)
       
       if (categoryPrinters.length === 0) {
         const errorMsg = `No active printer found for category: ${categoryId}`
@@ -234,7 +234,7 @@ export async function POST(request: NextRequest) {
 
       // Use the first (highest priority) printer for this category
       const selectedPrinter = categoryPrinters[0]
-      console.log(`🖨️ [API] Selected printer for category ${categoryId}:`, selectedPrinter)
+      //console.log(`🖨️ [API] Selected printer for category ${categoryId}:`, selectedPrinter)
       
       // Create print job
       const printJob: PrintJob = {
@@ -256,17 +256,17 @@ export async function POST(request: NextRequest) {
         createdAt: new Date().toISOString()
       }
 
-      console.log(`🖨️ [API] Created print job for category ${categoryId}:`, printJob)
+      //console.log(`🖨️ [API] Created print job for category ${categoryId}:`, printJob)
       printJobs.push(printJob)
       createdPrintJobs.push(printJob)
 
       // Start processing the print job
-      console.log(`🖨️ [API] Starting print job processing for job ID: ${printJob.id}`)
+      //console.log(`🖨️ [API] Starting print job processing for job ID: ${printJob.id}`)
       simulatePrintJobProcessing(printJob.id)
     }
 
     // Save updated print jobs
-    console.log('🖨️ [API] Saving updated print jobs...')
+    //console.log('🖨️ [API] Saving updated print jobs...')
     savePrintJobs(printJobs)
 
     // Prepare response

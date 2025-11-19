@@ -494,7 +494,7 @@ export async function POST(request: NextRequest) {
 
     // Get printer mapping for this request type
     const mappings = await readWaiterRequestMappings()
-    console.log("mappings => ",mappings)
+    //console.log("mappings => ",mappings)
     const mapping = mappings.find(m => m.requestType === requestType && m.isActive)
 
     if (!mapping) {

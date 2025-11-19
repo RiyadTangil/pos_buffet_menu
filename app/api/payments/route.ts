@@ -127,7 +127,8 @@ export async function POST(request: NextRequest) {
       groupType,
       isSplit,
       splitInfo,
-      splitPayments
+      splitPayments,
+      orderId
     } = body
 
     // Validation
@@ -335,31 +336,23 @@ export async function POST(request: NextRequest) {
       ...payment
     }
 
-    // Also persist to local file as a simple audit trail (similar to orders.json)
+    // Persist each payment as an individual JSON file under data/payments/<id>.json
     try {
       const dataDir = path.join(process.cwd(), 'data')
-      if (!fs.existsSync(dataDir)) {
-        fs.mkdirSync(dataDir, { recursive: true })
+      const paymentsDir = path.join(dataDir, 'payments')
+      if (!fs.existsSync(paymentsDir)) {
+        fs.mkdirSync(paymentsDir, { recursive: true })
       }
 
-      const paymentsFilePath = path.join(dataDir, 'payments.json')
-      let payments: any[] = []
-      if (fs.existsSync(paymentsFilePath)) {
-        const raw = fs.readFileSync(paymentsFilePath, 'utf8')
-        try {
-          payments = JSON.parse(raw)
-          if (!Array.isArray(payments)) {
-            payments = []
-          }
-        } catch {
-          payments = []
-        }
-      }
+      // Prefer orderId for naming when provided; otherwise use the created payment's Mongo id
+      const fileId = (orderId && typeof orderId === 'string' && orderId.length > 0)
+        ? orderId
+        : createdPayment.id
 
-      payments.push(createdPayment)
-      fs.writeFileSync(paymentsFilePath, JSON.stringify(payments, null, 2))
+      const paymentFilePath = path.join(paymentsDir, `${fileId}.json`)
+      fs.writeFileSync(paymentFilePath, JSON.stringify(createdPayment, null, 2))
     } catch (fileErr) {
-      console.warn('Failed to write payments backup file:', fileErr)
+      console.warn('Failed to write per-payment file:', fileErr)
       // Non-blocking: continue even if local backup fails
     }
 

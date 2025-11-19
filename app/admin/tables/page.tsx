@@ -407,7 +407,7 @@ export default function TablesPage() {
     }
 
     const currentSession = getCurrentSession()
-    console.log("currentSession => ",currentSession)
+ 
     const currentSessionKey = currentSession.key
     const sessionPricing = currentSession.config
     const adultPrice = sessionPricing?.adultPrice || 0
@@ -417,9 +417,6 @@ export default function TablesPage() {
 
     // Extra drinks pricing
     const extraPricing = settings?.sessionSpecificExtraDrinksPricing?.[currentSessionKey] || settings?.extraDrinksPricing
-    console.log("settings?.sessionSpecificExtraDrinksPricing?.[currentSessionKey] => ",settings?.sessionSpecificExtraDrinksPricing?.[currentSessionKey])
-    console.log("settings?.extraDrinksPricing => ",settings?.extraDrinksPricing)
-    console.log("extraPricing => ",extraPricing)
     const extraAdult = extraPricing?.adultPrice || 0
     const extraChild = extraPricing?.childPrice || 0
     const extraInfant = extraPricing?.infantPrice || 0
@@ -507,7 +504,7 @@ export default function TablesPage() {
       const orders = Array.isArray(ordersRes?.orders) ? ordersRes.orders : []
 
       const { grandTotal, modalSessionData } = computeTotalsForSplit(session, orders, settingsRes.data)
-      console.log("grandTotal => ",grandTotal)
+ 
 
       setSplitOrders(orders)
       setSplitSessionData(modalSessionData)

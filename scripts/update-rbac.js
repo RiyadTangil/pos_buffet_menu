@@ -36,11 +36,10 @@ async function updateRBACConfiguration() {
       { upsert: true }
     );
     
-    console.log('Waiter role updated:', waiterUpdate);
+
     
     // Verify the update
     const waiterRole = await rbacCollection.findOne({ role: 'waiter' });
-    console.log('Updated waiter role configuration:', JSON.stringify(waiterRole, null, 2));
     
   } catch (error) {
     console.error('Error updating RBAC configuration:', error);
