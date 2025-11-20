@@ -179,5 +179,60 @@
         "sessionEnded": true
       }
     ]
+  },
+  {
+    "backupDate": "2025-11-20T22:07:40.365Z",
+    "paymentId": "PAY-1763676460365-07e56qqs1",
+    "tableId": "68c9a045991d23a92d66f079",
+    "tableNumber": 7,
+    "groupType": "same",
+    "sessions": [
+      {
+        "_id": "691b7d050b248f7f5faaa508",
+        "tableId": "68c9a045991d23a92d66f079",
+        "deviceId": "device_qcgodprha_1763409139252",
+        "guestCounts": {
+          "adults": 3,
+          "children": 3,
+          "infants": 2,
+          "includeDrinks": true
+        },
+        "cartItems": [],
+        "status": "active",
+        "createdAt": "2025-11-17T19:52:37.826Z",
+        "updatedAt": "2025-11-20T22:07:40.365Z",
+        "isSecondaryDevice": true,
+        "groupType": "same",
+        "secondaryDeviceId": "device_srtrw6ck5_1763571394229",
+        "sessionEnded": true
+      }
+    ]
+  },
+  {
+    "backupDate": "2025-11-20T22:14:32.692Z",
+    "paymentId": "PAY-1763676872692-o4ux2q3ky",
+    "tableId": "68c9a045991d23a92d66f079",
+    "tableNumber": 7,
+    "groupType": "same",
+    "sessions": [
+      {
+        "_id": "691f9150da63ed536c3da9e9",
+        "tableId": "68c9a045991d23a92d66f079",
+        "deviceId": "device_ioslsy048_1763676465695",
+        "guestCounts": {
+          "adults": 2,
+          "children": 1,
+          "infants": 1,
+          "includeDrinks": true
+        },
+        "cartItems": [],
+        "status": "active",
+        "createdAt": "2025-11-20T22:08:16.258Z",
+        "updatedAt": "2025-11-20T22:14:32.692Z",
+        "isSecondaryDevice": false,
+        "groupType": "same",
+        "sessionEnded": true
+      }
+    ]
   }
 ]

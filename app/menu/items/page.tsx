@@ -408,7 +408,13 @@ export default function ItemsPage() {
       // Check if current session has ended
       const currentSession = getCurrentSession()
       if (!currentSession) {
-        setSessionEnded(true)
+        const extISO = getExtendedUntilISO()
+        if (extISO) {
+          const extDate = new Date(extISO)
+          setSessionEnded(!(new Date() < extDate))
+        } else {
+          setSessionEnded(true)
+        }
       } else {
         setSessionEnded(false)
       }
@@ -896,6 +902,19 @@ export default function ItemsPage() {
   }
 
   const currentSession = getCurrentSession()
+  const getSpecialTableTimeLimitMinutes = () => {
+    if (!buffetSettings || !tableSession) return 0
+    const special = buffetSettings.specialTableItemsLimit?.find((s: any) => s.tableId === tableSession.tableId)
+    return special?.timeLimit || 0
+  }
+
+  const getExtendedUntilISO = () => {
+    const minutes = getSpecialTableTimeLimitMinutes()
+    if (!minutes || minutes <= 0 || !tableSession?.createdAt) return undefined
+    const start = new Date(tableSession.createdAt).getTime()
+    const until = new Date(start + minutes * 60 * 1000)
+    return until.toISOString()
+  }
 
   const handleEndSession = () => {
     router.push("/menu/session/orders")
@@ -936,7 +955,7 @@ export default function ItemsPage() {
 
               {/* Current Session Display / Countdown */}
               {currentSession ? (
-                <SessionCountdown currentSession={currentSession} />
+                <SessionCountdown currentSession={currentSession} extendedUntil={getExtendedUntilISO()} />
               ) : buffetSettings && (
                 <div className="flex items-center gap-4 bg-gray-50 rounded-lg px-4 py-2 border border-gray-200">
                   <Clock className="h-5 w-5 text-gray-600" />

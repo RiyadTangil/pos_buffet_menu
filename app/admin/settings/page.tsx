@@ -256,6 +256,7 @@ export default function SettingsPage() {
         {
           tableId: selectedTableId,
           tableName: `Table ${selectedTable.number}`,
+          timeLimit: 0,
           itemsLimit: {
             adultLimit: prev.itemsLimit?.adultLimit || 5,
             childLimit: prev.itemsLimit?.childLimit || 4,
@@ -265,8 +266,18 @@ export default function SettingsPage() {
       ]
     }))
     
-    // Reset selected table
-    setSelectedTableId('')
+    
+  }
+
+  const handleSpecialTableTimeLimitChange = (tableId: string, value: string | number) => {
+    setSettings(prev => ({
+      ...prev,
+      specialTableItemsLimit: prev.specialTableItemsLimit?.map(item =>
+        item.tableId === tableId
+          ? { ...item, timeLimit: typeof value === 'string' ? parseInt(value) || 0 : value }
+          : item
+      ) || []
+    }))
   }
   
   const handleRemoveSpecialTableItemLimit = (tableId: string) => {
@@ -633,7 +644,7 @@ export default function SettingsPage() {
                       </Button>
                     </div>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                       <div>
                         <Label htmlFor={`adult-limit-${selectedTableLimit.tableId}`}>Adult Item Limit</Label>
                         <Input
@@ -661,6 +672,16 @@ export default function SettingsPage() {
                           type="number"
                           value={selectedTableLimit.itemsLimit.infantLimit}
                           onChange={(e) => handleSpecialTableItemLimitChange(selectedTableLimit.tableId, 'infantLimit', e.target.value)}
+                          min={0}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor={`time-limit-${selectedTableLimit.tableId}`}>Time Limit (minutes)</Label>
+                        <Input
+                          id={`time-limit-${selectedTableLimit.tableId}`}
+                          type="number"
+                          value={selectedTableLimit.timeLimit || 0}
+                          onChange={(e) => handleSpecialTableTimeLimitChange(selectedTableLimit.tableId, e.target.value)}
                           min={0}
                         />
                       </div>

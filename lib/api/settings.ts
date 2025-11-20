@@ -40,6 +40,7 @@ export interface SessionSpecificItemsLimit {
 export interface SpecialTableItemsLimit {
   tableId: string
   tableName: string
+  timeLimit?: number
   itemsLimit: ItemsLimit
 }
 
@@ -73,7 +74,10 @@ export interface CreateBuffetSettingsData {
   sessionSpecificItemsLimit?: SessionSpecificItemsLimit
 }
 
-export interface UpdateBuffetSettingsData extends Partial<CreateBuffetSettingsData> {}
+// Allow updating special table limits via update endpoint
+export interface UpdateBuffetSettingsData extends Partial<CreateBuffetSettingsData> {
+  specialTableItemsLimit?: SpecialTableItemsLimit[]
+}
 
 export interface ApiResponse<T> {
   success: boolean

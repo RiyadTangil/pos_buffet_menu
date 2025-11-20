@@ -12,26 +12,29 @@ interface SessionCountdownProps {
       endTime: string
     }
   }
+  extendedUntil?: string
 }
 
-export function SessionCountdown({ currentSession }: SessionCountdownProps) {
+export function SessionCountdown({ currentSession, extendedUntil }: SessionCountdownProps) {
   const [timeRemaining, setTimeRemaining] = useState<number>(0)
   const [showCountdown, setShowCountdown] = useState<boolean>(false)
 
   useEffect(() => {
     const calculateTimeRemaining = () => {
       const now = new Date()
-      const [endHour, endMin] = currentSession.data.endTime.split(':').map(Number)
-      
-      const endTime = new Date()
-      endTime.setHours(endHour, endMin, 0, 0)
-      
-      // If end time is before current time, it's for the next day
-      if (endTime < now) {
-        endTime.setDate(endTime.getDate() + 1)
+      let targetEnd = null as Date | null
+      if (extendedUntil) {
+        targetEnd = new Date(extendedUntil)
+      } else {
+        const [endHour, endMin] = currentSession.data.endTime.split(':').map(Number)
+        const endTime = new Date()
+        endTime.setHours(endHour, endMin, 0, 0)
+        if (endTime < now) {
+          endTime.setDate(endTime.getDate() + 1)
+        }
+        targetEnd = endTime
       }
-      
-      const diffMs = endTime.getTime() - now.getTime()
+      const diffMs = (targetEnd?.getTime() || now.getTime()) - now.getTime()
       const diffSeconds = Math.floor(diffMs / 1000)
       const diffMinutes = Math.floor(diffSeconds / 60)
       

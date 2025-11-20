@@ -46,6 +46,7 @@ interface SessionSpecificItemsLimit {
 interface SpecialTableItemsLimit {
   tableId: string
   tableName: string
+  timeLimit?: number
   itemsLimit: ItemsLimit
 }
 
@@ -438,6 +439,14 @@ export async function POST(request: NextRequest) {
             { success: false, error: `specialTableItemsLimit[${i}].itemsLimit.infantLimit must be a non-negative number` },
             { status: 400 }
           )
+        }
+        if (tableLimit.timeLimit !== undefined) {
+          if (typeof tableLimit.timeLimit !== 'number' || tableLimit.timeLimit < 0) {
+            return NextResponse.json(
+              { success: false, error: `specialTableItemsLimit[${i}].timeLimit must be a non-negative number` },
+              { status: 400 }
+            )
+          }
         }
       }
     }
