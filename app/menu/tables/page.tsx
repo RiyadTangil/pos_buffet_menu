@@ -1,12 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { fetchTables, updateTableStatus, updateTableGuests, type Table, fetchTableTotals, type TableTotal } from "@/lib/api/tables";
+import { updateTableStatus, updateTableGuests, type Table } from "@/lib/api/tables";
 import { initializeSocketClient, joinTablesRoom, leaveTablesRoom, onTablesUpdate, offTablesUpdate } from "@/lib/socket-client";
-import { getBuffetSettings, type BuffetSettings } from "@/lib/api/settings";
+import { type BuffetSettings } from "@/lib/api/settings";
 import {
-  getTableSession,
   createOrJoinTableSession,
   generateDeviceId,
   type TableSession
@@ -101,56 +100,26 @@ export default function TablesPage() {
   const loadData = async () => {
     try {
       setIsLoading(true);
-      const [tablesData, settingsData, totalsData] = await Promise.all([
-        fetchTables(),
-        getBuffetSettings(),
-        fetchTableTotals()
-      ]);
-
-      // Enhance tables with session information
-      const totalsMap = new Map<string, number>(
-        (totalsData || []).map((t: TableTotal) => [t.tableId, t.totalAmount])
-      );
-
-      const tablesWithSessions = await Promise.all(
-        tablesData.map(async (table) => {
-          try {
-            const session = await getTableSession(table.id);
-            // Capacity considers only adult guests
-            const adultGuests = session ? session.guestCounts.adults : 0;
-            const availableAdultCapacity = Math.max(0, table.capacity - adultGuests);
-            const currentBillTotal = totalsMap.get(table.id);
-
-            return {
-              ...table,
-              session,
-              availableAdultCapacity,
-              currentBillTotal
-            };
-          } catch (error) {
-            console.error(`Error fetching session for table ${table.id}:`, error);
-            return {
-              ...table,
-              session: undefined,
-              availableAdultCapacity: table.capacity,
-              currentBillTotal: undefined
-            };
-          }
-        })
-      );
-
-      setTableStates(tablesWithSessions);
-      setBuffetSettings(settingsData);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/menu/tables-data`)
+      if (!response.ok) throw new Error(`HTTP ${response.status}`)
+      const result = await response.json()
+      const { success, data, error } = result || {}
+      if (!success || !data) throw new Error(error || 'Failed to load')
+      setTableStates(data.tables || [])
+      setBuffetSettings(data.settings || null)
     } catch (error) {
-      console.error('Failed to fetch data:', error);
-      toast.error('Failed to load data. Please try again.');
+      console.error('Failed to fetch data:', error)
+      toast.error('Failed to load data. Please try again.')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
   };
 
   // Fetch tables and settings data on component mount
+  const hasLoaded = useRef(false);
   useEffect(() => {
+    if (hasLoaded.current) return
+    hasLoaded.current = true
     loadData();
   }, []);
 
