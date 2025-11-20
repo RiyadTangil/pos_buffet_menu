@@ -481,7 +481,7 @@ export default function TablesPage() {
             </DialogHeader>
 
             {/* Session Pricing */}
-            {buffetSettings && buffetSettings.sessions && (
+            {/* {buffetSettings && buffetSettings.sessions && (
               <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
                 {currentSession ? (
                   <>
@@ -546,7 +546,7 @@ export default function TablesPage() {
                   </>
                 )}
               </div>
-            )}
+            )} */}
 
             <div className="space-y-4 py-4">
               <div className="space-y-2">

@@ -6690,5 +6690,57 @@
       "orderTime": "2025-11-15T07:52:06.922Z",
       "totalAmount": 70
     }
+  },
+  {
+    "id": "order-1763678396774-b1l6u5",
+    "type": "order",
+    "printerName": "Microsoft Print to PDF",
+    "status": "completed",
+    "items": [
+      {
+        "id": "68c19d3a3b67d81cc1cc2e82",
+        "name": "Normal Vagitable",
+        "quantity": 2,
+        "price": 0
+      },
+      {
+        "id": "68c19c383b67d81cc1cc2e80",
+        "name": "Toast bread",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-11-20T22:39:56.775Z",
+    "updatedAt": "2025-11-20T22:40:03.748Z",
+    "meta": {
+      "orderId": "order-1763678393942-1a7e45dvb",
+      "tableNumber": 4,
+      "guestCount": 7,
+      "orderTime": "2025-11-20T22:39:54.285Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "order-1763678404372-cakrc8",
+    "type": "order",
+    "printerName": "Microsoft Print to PDF",
+    "status": "completed",
+    "items": [
+      {
+        "id": "68cad4b09af39ae52f9b96d4",
+        "name": "Riyad Hasan",
+        "quantity": 1,
+        "price": 70
+      }
+    ],
+    "createdAt": "2025-11-20T22:40:04.374Z",
+    "updatedAt": "2025-11-20T22:40:09.973Z",
+    "meta": {
+      "orderId": "order-1763678393942-1a7e45dvb",
+      "tableNumber": 4,
+      "guestCount": 7,
+      "orderTime": "2025-11-20T22:39:54.285Z",
+      "totalAmount": 70
+    }
   }
 ]

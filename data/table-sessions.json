@@ -234,5 +234,33 @@
         "sessionEnded": true
       }
     ]
+  },
+  {
+    "backupDate": "2025-11-20T22:40:48.522Z",
+    "paymentId": "PAY-1763678448522-4ms636hqc",
+    "tableId": "68c190da3b67d81cc1cc2e7f",
+    "tableNumber": 4,
+    "groupType": "same",
+    "sessions": [
+      {
+        "_id": "691f9179da63ed536c3da9ea",
+        "tableId": "68c190da3b67d81cc1cc2e7f",
+        "deviceId": "device_ppbxtaha1_1763568775769",
+        "guestCounts": {
+          "adults": 3,
+          "children": 2,
+          "infants": 2,
+          "includeDrinks": false
+        },
+        "cartItems": [],
+        "status": "active",
+        "createdAt": "2025-11-20T22:08:57.182Z",
+        "updatedAt": "2025-11-20T22:40:48.522Z",
+        "isSecondaryDevice": false,
+        "groupType": "same",
+        "nextOrderAvailableUntil": "2025-11-20T22:40:54.280Z",
+        "sessionEnded": true
+      }
+    ]
   }
 ]

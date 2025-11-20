@@ -1,0 +1,31 @@
+{
+  "id": "691f98f0da63ed536c3da9ee",
+  "paymentId": "PAY-1763678448522-4ms636hqc",
+  "tableId": "68c190da3b67d81cc1cc2e7f",
+  "tableNumber": 4,
+  "waiterId": "68d2830153bbcc90acc12c04",
+  "waiterName": "waiter ",
+  "totalAmount": 230,
+  "tipAmount": 46,
+  "sessionType": "breakfast",
+  "sessionData": {
+    "adults": 3,
+    "children": 2,
+    "infants": 2,
+    "extraDrinks": false,
+    "adultPrice": 30,
+    "childPrice": 15,
+    "infantPrice": 20,
+    "drinkPrice": 5
+  },
+  "groupType": "same",
+  "paymentDate": "2025-11-20",
+  "paymentTime": "04:40:48",
+  "status": "completed",
+  "paymentMethod": "cash",
+  "isSplit": false,
+  "splitPayments": [],
+  "createdAt": "2025-11-20T22:40:48.522Z",
+  "updatedAt": "2025-11-20T22:40:48.522Z",
+  "_id": "691f98f0da63ed536c3da9ee"
+}
