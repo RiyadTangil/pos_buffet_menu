@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -10,12 +10,11 @@ import { ItemsLimitProgress } from '@/components/ui/items-limit-progress'
 import { SessionCountdown } from '@/components/ui/session-countdown'
 import { ShoppingCart, Plus, Minus, Leaf, Flame, X, Clock, Users, Utensils, ChefHat, Coffee, Cake, DollarSign, Loader2, Star, AlertTriangle } from "lucide-react"
 import { type MenuCategory } from "@/lib/mockData"
-import { fetchCategories } from "@/lib/api/categories"
-import { fetchProducts, type Product } from "@/lib/api/products"
-import { getBuffetSettings, type BuffetSettings } from "@/lib/api/settings"
-import { getTableSession, setNextOrderAvailable, type TableSession } from "@/lib/api/table-sessions"
+import { type Product } from "@/lib/api/products"
+import { type BuffetSettings } from "@/lib/api/settings"
+import { setNextOrderAvailable, type TableSession } from "@/lib/api/table-sessions"
 
-import { fetchTableById, type Table } from "@/lib/api/tables"
+import { type Table } from "@/lib/api/tables"
 import { saveOrder, type SessionOrder } from "@/lib/api/orders-client"
 import { usePrinting } from '@/hooks/usePrinting'
 import { PrintButton } from '@/components/printing/PrintButton'
@@ -122,6 +121,7 @@ export default function ItemsPage() {
   const [currentTime, setCurrentTime] = useState(new Date())
 
   // Fetch categories, products, and buffet settings on component mount
+  const hasLoaded = useRef(false)
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -227,20 +227,21 @@ export default function ItemsPage() {
           await joinTablesRoom()
           onTablesUpdate(async (update) => {
             if (update?.type === 'refresh') {
-
               try {
-                const settingsResponse = await getBuffetSettings()
-                if (settingsResponse.success && settingsResponse.data) {
-                  setBuffetSettings(settingsResponse.data)
-                  const currentSession = getCurrentSessionFromSettings(settingsResponse.data)
-                  const [categoriesData, productsData] = await Promise.all([
-                    currentSession ? fetchCategories(`?session=${currentSession.key}`) : fetchCategories(),
-                    fetchProducts({ onlyAvailable: true })
-                  ])
-                  setCategories(categoriesData)
-                  setProducts(productsData)
+                const url = new URL('/api/menu/items-data', window.location.origin)
+                url.searchParams.set('tableId', storedTableId)
+                if (storedGroupType) url.searchParams.set('groupType', storedGroupType)
+                url.searchParams.set('onlyAvailable', 'true')
+                const resp = await fetch(url.toString())
+                const json = await resp.json()
+                if (resp.ok && json.success && json.data) {
+                  const { settings, table, categories, products } = json.data
+                  setBuffetSettings(settings)
+                  setTableData(table)
+                  setCategories(categories)
+                  setProducts(products)
                   setSelectedCategory((prev) =>
-                    categoriesData.some(c => c.id === prev) ? prev : (categoriesData[0]?.id || prev)
+                    categories.some((c: any) => c.id === prev) ? prev : (categories[0]?.id || prev)
                   )
                 }
               } catch (err) {
@@ -252,81 +253,52 @@ export default function ItemsPage() {
           console.warn('Failed to join tables room:', err)
         }
 
-        // Try to get fresh session data from API, fallback to stored session
+        // Single aggregated fetch for initial data
         let sessionData: TableSession | null = null
+        let productsData: any[] = []
+        let categoriesData: any[] = []
         try {
-          sessionData = await getTableSession(storedTableId, storedGroupType || undefined)
-
-          // Check if session has ended (either sessionEnded flag or null session)
-          if (sessionData?.sessionEnded || sessionData === null) {
-            setShowSessionEndedModal(true)
-            return
-          }
-
-          if (sessionData) {
-            setTableSession(sessionData)
-            // Update localStorage with fresh data
-            localStorage.setItem('tableSession', JSON.stringify(sessionData))
-            // Initialize countdown from session field
-            if (sessionData.nextOrderAvailableUntil) {
-              const untilMs = new Date(sessionData.nextOrderAvailableUntil).getTime()
-              const remaining = Math.max(0, Math.floor((untilMs - Date.now()) / 1000))
-              setOrderPlaced(remaining > 0)
-              setTimeRemaining(remaining)
-            } else {
-              setOrderPlaced(false)
-              setTimeRemaining(0)
-            }
-          } else if (storedSession) {
-            // Fallback to stored session if API call fails
-            sessionData = JSON.parse(storedSession)
-            setTableSession(sessionData)
-            if (sessionData?.nextOrderAvailableUntil) {
-              const untilMs = new Date(sessionData.nextOrderAvailableUntil).getTime()
-              const remaining = Math.max(0, Math.floor((untilMs - Date.now()) / 1000))
-              setOrderPlaced(remaining > 0)
-              setTimeRemaining(remaining)
-            }
-          }
-        } catch (error) {
-          console.error('Error fetching table session:', error)
-          if (storedSession) {
-            sessionData = JSON.parse(storedSession)
-            setTableSession(sessionData)
-          }
+          const url = new URL('/api/menu/items-data', window.location.origin)
+          url.searchParams.set('tableId', storedTableId)
+          if (storedGroupType) url.searchParams.set('groupType', storedGroupType)
+          url.searchParams.set('onlyAvailable', 'true')
+          const resp = await fetch(url.toString())
+          const json = await resp.json()
+          if (!resp.ok || !json.success || !json.data) throw new Error(json.error || 'Failed to load')
+          const { settings, table, session, categories, products } = json.data
+          setBuffetSettings(settings)
+          setTableData(table)
+          setCategories(categories)
+          setProducts(products)
+          categoriesData = categories
+          productsData = products
+          sessionData = session
+        } catch (e) {
+          console.error('Error fetching aggregated items data:', e)
         }
 
-        const [settingsResponse] = await Promise.all([
-          getBuffetSettings()
-        ])
-
-        // Set buffet settings first
-        if (settingsResponse.success && settingsResponse.data) {
-          setBuffetSettings(settingsResponse.data)
+        // Session setup from aggregated data or fallback
+        if (sessionData?.sessionEnded || sessionData === null) {
+          setShowSessionEndedModal(true)
+          return
         }
-
-        // Fetch table data if we have a table ID
-        if (storedTableId) {
+        if (sessionData) {
+          setTableSession(sessionData)
+          localStorage.setItem('tableSession', JSON.stringify(sessionData))
+          if (sessionData.nextOrderAvailableUntil) {
+            const untilMs = new Date(sessionData.nextOrderAvailableUntil).getTime()
+            const remaining = Math.max(0, Math.floor((untilMs - Date.now()) / 1000))
+            setOrderPlaced(remaining > 0)
+            setTimeRemaining(remaining)
+          } else {
+            setOrderPlaced(false)
+            setTimeRemaining(0)
+          }
+        } else if (storedSession) {
           try {
-            const tableInfo = await fetchTableById(storedTableId)
-            setTableData(tableInfo)
-          } catch (error) {
-            console.error('Error fetching table data:', error)
-          }
-        }
-
-        // Get current session to filter categories
-        const currentSession = getCurrentSessionFromSettings(settingsResponse.data)
-
-        // Fetch categories and products with session filtering
-        const [categoriesData, productsData] = await Promise.all([
-          currentSession ? fetchCategories(`?session=${currentSession.key}`) : fetchCategories(),
-          fetchProducts({ onlyAvailable: true })
-        ])
-        setCategories(categoriesData)
-        setProducts(productsData)
-        if (settingsResponse.success && settingsResponse.data) {
-          setBuffetSettings(settingsResponse.data)
+            const parsed = JSON.parse(storedSession)
+            setTableSession(parsed)
+          } catch {}
         }
 
         // Convert database cart items to UI cart items after products are loaded
@@ -344,7 +316,6 @@ export default function ItemsPage() {
 
           setCart(convertedCartItems)
         }
-        // Set first category as selected by default
         if (categoriesData.length > 0) {
           setSelectedCategory(categoriesData[0].id)
         }
@@ -356,6 +327,8 @@ export default function ItemsPage() {
       }
     }
 
+    if (hasLoaded.current) return
+    hasLoaded.current = true
     fetchData()
   }, [])
 

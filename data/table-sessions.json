@@ -262,5 +262,83 @@
         "sessionEnded": true
       }
     ]
+  },
+  {
+    "backupDate": "2025-11-20T22:57:00.805Z",
+    "paymentId": "PAY-1763679420805-l191vbjp2",
+    "tableId": "68c15318c85542d7fb04fe20",
+    "tableNumber": 8,
+    "groupType": "same",
+    "sessions": [
+      {
+        "_id": "691f99b5da63ed536c3da9ef",
+        "tableId": "68c15318c85542d7fb04fe20",
+        "deviceId": "device_wyjz7b16l_1763676878108",
+        "guestCounts": {
+          "adults": 2,
+          "children": 1,
+          "infants": 1,
+          "includeDrinks": true
+        },
+        "cartItems": [],
+        "status": "active",
+        "createdAt": "2025-11-20T22:44:05.797Z",
+        "updatedAt": "2025-11-20T22:57:00.805Z",
+        "isSecondaryDevice": false,
+        "groupType": "same",
+        "nextOrderAvailableUntil": "2025-11-20T22:52:35.763Z",
+        "sessionEnded": true
+      }
+    ]
+  },
+  {
+    "backupDate": "2025-11-20T23:02:46.705Z",
+    "paymentId": "PAY-1763679766705-y0k3yj60l",
+    "tableId": "68c190da3b67d81cc1cc2e7f",
+    "tableNumber": 4,
+    "groupType": "same",
+    "sessions": [
+      {
+        "_id": "691f9bccda63ed536c3da9f1",
+        "tableId": "68c190da3b67d81cc1cc2e7f",
+        "deviceId": "device_lbyz031eq_1763678453163",
+        "guestCounts": {
+          "adults": 3,
+          "children": 3,
+          "infants": 3,
+          "includeDrinks": true
+        },
+        "cartItems": [
+          {
+            "menuItemId": "68c19c383b67d81cc1cc2e80",
+            "name": "Toast bread",
+            "price": 0,
+            "quantity": 1,
+            "categoryId": "68c167dbc85542d7fb04fe23"
+          },
+          {
+            "menuItemId": "68c19d3a3b67d81cc1cc2e82",
+            "name": "Normal Vagitable",
+            "price": 0,
+            "quantity": 2,
+            "categoryId": "68c167dbc85542d7fb04fe23"
+          },
+          {
+            "menuItemId": "68c17c673b67d81cc1cc2e7d",
+            "name": "Pizzs",
+            "price": 0,
+            "quantity": 1,
+            "categoryId": "68c167dbc85542d7fb04fe23"
+          }
+        ],
+        "status": "active",
+        "createdAt": "2025-11-20T22:53:00.856Z",
+        "updatedAt": "2025-11-20T23:02:46.705Z",
+        "isSecondaryDevice": true,
+        "groupType": "same",
+        "secondaryDeviceId": "device_otb43ssoj_1763679425433",
+        "sessionEnded": true
+      }
+    ]
   }
 ]
