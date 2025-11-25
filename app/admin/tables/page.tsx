@@ -49,6 +49,7 @@ import {
 } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "@/components/ui/use-toast"
+import { toast as sonnerToast } from "sonner"
 import { Plus, Edit, Trash2, Users, Clock, CheckCircle, XCircle, RefreshCw, Loader2 } from "lucide-react"
 import SplitBillModal from "@/components/SplitBillModal"
 import { getBuffetSettings } from "@/lib/api/settings"
@@ -212,17 +213,20 @@ export default function TablesPage() {
       setSwitchLoading(true)
       const result = await switchTableSession(selectedTable.id, switchTargetTableId)
       if (!result.success) {
-        toast({ title: 'Switch failed', description: result.error || 'Unable to switch table', variant: 'destructive' })
+        console.log("error", result)
+        sonnerToast.error(result.error || 'Unable to switch table')
         setSwitchLoading(false)
         return
       }
+
       toast({ title: 'Table switched', description: `Moved session(s) from Table ${selectedTable.number} to target table successfully.` })
       setIsSwitchModalOpen(false)
       setSelectedTable(null)
       setSwitchTargetTableId("")
       await loadTables()
     } catch (error: any) {
-      toast({ title: 'Error', description: error.message || 'Failed to switch table', variant: 'destructive' })
+      console.log("error", error)
+      toast({ title: 'Error', description: error?.message || error || 'Failed to switch table', variant: 'destructive' })
     } finally {
       setSwitchLoading(false)
     }
@@ -392,7 +396,7 @@ export default function TablesPage() {
         }
         return
       }
-   
+
 
       const result = await resetTable(selectedTable.id, {
         paymentMethod,
@@ -441,7 +445,7 @@ export default function TablesPage() {
     }
 
     const currentSession = getCurrentSession()
- 
+
     const currentSessionKey = currentSession.key
     const sessionPricing = currentSession.config
     const adultPrice = sessionPricing?.adultPrice || 0
@@ -538,7 +542,7 @@ export default function TablesPage() {
       const orders = Array.isArray(ordersRes?.orders) ? ordersRes.orders : []
 
       const { grandTotal, modalSessionData } = computeTotalsForSplit(session, orders, settingsRes.data)
- 
+
 
       setSplitOrders(orders)
       setSplitSessionData(modalSessionData)
@@ -559,6 +563,7 @@ export default function TablesPage() {
   }
 
   if (loading) {
+    toast({ title: 'No active session', description: 'No active session found for this table', variant: 'destructive' })
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-lg">Loading tables...</div>
@@ -586,57 +591,57 @@ export default function TablesPage() {
 
       {/* Statistics Cards */}
       {!isWaiter && (
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Tables</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
-          </CardContent>
-        </Card>
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Tables</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.total}</div>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Available</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">{stats.available}</div>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Available</CardTitle>
+              <CheckCircle className="h-4 w-4 text-green-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">{stats.available}</div>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Occupied</CardTitle>
-            <XCircle className="h-4 w-4 text-red-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">{stats.occupied}</div>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Occupied</CardTitle>
+              <XCircle className="h-4 w-4 text-red-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600">{stats.occupied}</div>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Cleaning</CardTitle>
-            <Clock className="h-4 w-4 text-yellow-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-yellow-600">{stats.cleaning}</div>
-          </CardContent>
-        </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Cleaning</CardTitle>
+              <Clock className="h-4 w-4 text-yellow-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-yellow-600">{stats.cleaning}</div>
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Selected</CardTitle>
-            <Users className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{stats.selected}</div>
-          </CardContent>
-        </Card>
-      </div>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Selected</CardTitle>
+              <Users className="h-4 w-4 text-blue-600" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-600">{stats.selected}</div>
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       {/* Tables List */}
@@ -656,7 +661,7 @@ export default function TablesPage() {
                 <TableHead>Capacity</TableHead>
                 <TableHead>Current Guests</TableHead>
                 <TableHead>Orders</TableHead>
-                <TableHead>Items Served</TableHead>
+                {/* <TableHead>Items Served</TableHead> */}
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -685,12 +690,12 @@ export default function TablesPage() {
                   <TableCell>{table.capacity} people</TableCell>
                   <TableCell>{table.currentGuests} guests</TableCell>
                   <TableCell>{table.currentOrders || 0}</TableCell>
-                  <TableCell>
+                  {/* <TableCell>
                     {table.status === 'occupied' || table.status === 'selected'
                       ? `Served / ${table.totalItems || 0} Items`
                       : '-'
                     }
-                  </TableCell>
+                  </TableCell> */}
                   <TableCell>
                     <div className="flex items-center gap-2">
                       {!isWaiter && (
@@ -702,16 +707,7 @@ export default function TablesPage() {
                           <Edit className="h-4 w-4" />
                         </Button>
                       )}
-                      {(table.status === 'selected' || table.status === 'occupied') && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => openSwitchModal(table)}
-                          className="text-blue-600 hover:text-blue-700"
-                        >
-                          Switch
-                        </Button>
-                      )}
+
                       <Button
                         variant="outline"
                         size="sm"
@@ -728,6 +724,16 @@ export default function TablesPage() {
                           className="text-red-600 hover:text-red-700"
                         >
                           <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {(table.status === 'selected' || table.status === 'occupied') && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openSwitchModal(table)}
+                          className="text-blue-600 hover:text-blue-700"
+                        >
+                          Switch
                         </Button>
                       )}
                     </div>

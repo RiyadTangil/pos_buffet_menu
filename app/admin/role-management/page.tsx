@@ -309,6 +309,12 @@ function RoleManagementPage() {
       }
 
       toast.success(`${role} configuration updated successfully`)
+      try {
+        localStorage.setItem('rbac_updated', Date.now().toString())
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('rbac:update'))
+        }
+      } catch {}
       //console.log('Updated role configuration:', { role, config })
 
     } catch (error) {

@@ -159,15 +159,21 @@ export async function switchTableSession(fromTableId: string, toTableId: string)
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ fromTableId, toTableId })
     })
-
-    const result: ApiResponse<any> = await response.json()
+    let result: ApiResponse<any> = { success: false }
+    try {
+      result = await response.json()
+    } catch {}
+    if (!response.ok) {
+      return { success: false, error: result.error || result.message || `HTTP ${response.status}` }
+    }
     if (!result.success) {
       return { success: false, error: result.error || 'Failed to switch table' }
     }
     return { success: true, message: result.message || 'Switched successfully' }
   } catch (error) {
     console.error('Error switching table session:', error)
-    return { success: false, error: 'Failed to switch table session' }
+    const msg = (error as any)?.message || 'Failed to switch table session'
+    return { success: false, error: msg }
   }
 }
 

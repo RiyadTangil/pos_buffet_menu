@@ -28,8 +28,8 @@ export default function RootLayout({
           <Suspense fallback={null}>
             {children}
             <SessionTimer />
-            <Toaster />
-            <Sonner />
+            <Toaster/>
+            <Sonner position="top-center" />
           </Suspense>
         </AuthProvider>
         <Analytics />

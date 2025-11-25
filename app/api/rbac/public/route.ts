@@ -53,10 +53,19 @@ export async function GET(request: NextRequest) {
     // Get role configurations from MongoDB
     const roleConfigurations = await getAllRoleConfigurations()
     
-    return NextResponse.json({
-      success: true,
-      data: roleConfigurations
-    })
+    return NextResponse.json(
+      {
+        success: true,
+        data: roleConfigurations
+      },
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      }
+    )
   } catch (error) {
     console.error('Error fetching public role configurations:', error)
     return NextResponse.json(

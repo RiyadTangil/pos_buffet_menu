@@ -50,7 +50,7 @@ export function useSimpleRBAC() {
 
       try {
         // Get all role configurations from database
-        const response = await fetch('/api/rbac/public')
+        const response = await fetch(`/api/rbac/public?ts=${Date.now()}`, { cache: 'no-store' })
         const data = await response.json()
 
         if (data.success && data.data) {
@@ -77,6 +77,28 @@ export function useSimpleRBAC() {
     }
 
     fetchRoleData()
+
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === 'rbac_updated') {
+        fetchRoleData()
+      }
+    }
+    const onRbacEvent = () => {
+      fetchRoleData()
+    }
+    if (typeof window !== 'undefined') {
+      window.addEventListener('storage', onStorage)
+      window.addEventListener('rbac:update', onRbacEvent as EventListener)
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) fetchRoleData()
+      })
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('storage', onStorage)
+        window.removeEventListener('rbac:update', onRbacEvent as EventListener)
+      }
+    }
   }, [session])
 
   // Helper function to check if user has a specific permission

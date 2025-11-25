@@ -14,14 +14,14 @@ export async function POST(request: NextRequest) {
     if (!fromTableId || !toTableId) {
       return NextResponse.json(
         { success: false, error: 'fromTableId and toTableId are required' },
-        { status: 400 }
+        { status: 200 }
       )
     }
 
     if (!ObjectId.isValid(fromTableId) || !ObjectId.isValid(toTableId)) {
       return NextResponse.json(
         { success: false, error: 'Invalid table ID format' },
-        { status: 400 }
+        { status: 200 }
       )
     }
 
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     if (!fromTable || !toTable) {
       return NextResponse.json(
         { success: false, error: 'Source or target table not found' },
-        { status: 404 }
+        { status: 200 }
       )
     }
 
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     if (activeSessions.length === 0) {
       return NextResponse.json(
         { success: false, error: 'No active sessions on source table' },
-        { status: 400 }
+        { status: 200 }
       )
     }
 
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
     if (ordersCount > 0) {
       return NextResponse.json(
         { success: false, error: 'Cannot switch tables after placing orders' },
-        { status: 400 }
+        { status: 200 }
       )
     }
 
@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
     if (typeof toTable.capacity === 'number' && totalAdults > toTable.capacity) {
       return NextResponse.json(
         { success: false, error: `Target table cannot accommodate ${totalAdults} adults (capacity ${toTable.capacity}).` },
-        { status: 400 }
+        { status: 200 }
       )
     }
 
@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
     console.error('Error switching table sessions:', error)
     return NextResponse.json(
       { success: false, error: 'Failed to switch table sessions' },
-      { status: 500 }
+      { status: 200 }
     )
   }
 }

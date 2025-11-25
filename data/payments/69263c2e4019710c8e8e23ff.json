@@ -1,0 +1,70 @@
+{
+  "id": "69263c2e4019710c8e8e23ff",
+  "paymentId": "PAY-1764113454463-ikt9frf7g",
+  "tableId": "68c1555bc85542d7fb04fe21",
+  "tableNumber": 1,
+  "waiterId": "68d2830153bbcc90acc12c04",
+  "waiterName": "waiter ",
+  "totalAmount": 30,
+  "tipAmount": 0,
+  "sessionType": "breakfast",
+  "sessionData": {
+    "adults": 1,
+    "children": 0,
+    "infants": 0,
+    "extraDrinks": false,
+    "adultPrice": 30,
+    "childPrice": 15,
+    "infantPrice": 20,
+    "extraDrinksPricing": {
+      "adultPrice": 4,
+      "childPrice": 7,
+      "infantPrice": 2
+    },
+    "sessionSpecificExtraDrinksPricing": {
+      "breakfast": {
+        "adultPrice": 4,
+        "childPrice": 7,
+        "infantPrice": 2
+      },
+      "lunch": {
+        "adultPrice": 5,
+        "childPrice": 8,
+        "infantPrice": 15
+      },
+      "dinner": {
+        "adultPrice": 6,
+        "childPrice": 9,
+        "infantPrice": 12
+      }
+    }
+  },
+  "groupType": "same",
+  "paymentDate": "2025-11-25",
+  "paymentTime": "05:30:54",
+  "status": "completed",
+  "paymentMethod": "cash",
+  "isSplit": true,
+  "splitInfo": {
+    "totalSplits": 1,
+    "splitIndex": 0,
+    "originalTotalAmount": 30
+  },
+  "splitPayments": [
+    {
+      "customerIndex": 0,
+      "customerName": "Adult 1",
+      "paymentMethod": "cash",
+      "items": [],
+      "sessionCharges": {
+        "adults": 1,
+        "children": 0,
+        "infants": 0
+      },
+      "total": 30
+    }
+  ],
+  "createdAt": "2025-11-25T23:30:54.463Z",
+  "updatedAt": "2025-11-25T23:30:54.463Z",
+  "_id": "69263c2e4019710c8e8e23ff"
+}
