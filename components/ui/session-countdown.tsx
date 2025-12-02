@@ -46,7 +46,7 @@ export function SessionCountdown({ currentSession, extendedUntil }: SessionCount
     const interval = setInterval(calculateTimeRemaining, 1000)
 
     return () => clearInterval(interval)
-  }, [currentSession])
+  }, [currentSession, extendedUntil])
 
   const formatTime = (totalSeconds: number) => {
     const hours = Math.floor(totalSeconds / 3600)

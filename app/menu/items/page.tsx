@@ -9,16 +9,11 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTr
 import { ItemsLimitProgress } from '@/components/ui/items-limit-progress'
 import { SessionCountdown } from '@/components/ui/session-countdown'
 import { ShoppingCart, Plus, Minus, Leaf, Flame, X, Clock, Users, Utensils, ChefHat, Coffee, Cake, DollarSign, Loader2, Star, AlertTriangle } from "lucide-react"
-import { type MenuCategory } from "@/lib/mockData"
 import { type Product } from "@/lib/api/products"
-import { type BuffetSettings } from "@/lib/api/settings"
 import { setNextOrderAvailable, type TableSession } from "@/lib/api/table-sessions"
 
 import { type Table } from "@/lib/api/tables"
-import { saveOrder, type SessionOrder } from "@/lib/api/orders-client"
 import { usePrinting } from '@/hooks/usePrinting'
-import { PrintButton } from '@/components/printing/PrintButton'
-import { PrintJobStatus } from '@/components/printing/PrintJobStatus'
 import { initializeSocketClient, joinTableRoom, leaveTableRoom, joinTablesRoom, leaveTablesRoom, onTablesUpdate, offTablesUpdate, onTableSessionUpdate, offTableSessionUpdate, onCartUpdate, offCartUpdate, emitCartUpdate, onOrderConfirmation, offOrderConfirmation, emitOrderConfirmation } from '@/lib/socket-client'
 import { addToCartApi, updateCartApi, removeFromCartApi, updateCartItemQuantityApi } from '@/lib/api/cart'
 import { toast } from "sonner"
@@ -35,7 +30,6 @@ interface CartItem {
   menuItem: Product
   quantity: number
 }
-
 const getCategoryIcon = (categoryId: string) => {
   const icons = {
     "category-starters": Utensils,
@@ -45,9 +39,6 @@ const getCategoryIcon = (categoryId: string) => {
   }
   return icons[categoryId as keyof typeof icons] || Utensils
 }
-
-
-
 export default function ItemsPage() {
   const router = useRouter()
   const { t } = useTranslation()
@@ -69,52 +60,13 @@ export default function ItemsPage() {
     usbPrinters: any[]
   } | null>(null)
 
-  // Helper functions for localStorage persistence
-  const saveOrderIntervalToStorage = (orderPlacedState: boolean, timeRemainingValue: number) => {
-    const orderIntervalData = {
-      orderPlaced: orderPlacedState,
-      timeRemaining: timeRemainingValue,
-      timestamp: Date.now()
-    }
-    localStorage.setItem('orderInterval', JSON.stringify(orderIntervalData))
-  }
 
-  const loadOrderIntervalFromStorage = () => {
-    try {
-      if (typeof window === 'undefined') return null
-      const stored = localStorage.getItem('orderInterval')
-      if (!stored) return null
 
-      const data = JSON.parse(stored)
-      const now = Date.now()
-      const elapsed = Math.floor((now - data.timestamp) / 1000) // seconds elapsed
-
-      // If time has passed, calculate remaining time
-      if (data.orderPlaced && data.timeRemaining > 0) {
-        const remainingTime = Math.max(0, data.timeRemaining - elapsed)
-        return {
-          orderPlaced: remainingTime > 0,
-          timeRemaining: remainingTime
-        }
-      }
-
-      return null
-    } catch (error) {
-      console.error('Error loading order interval from storage:', error)
-      return null
-    }
-  }
-
-  const clearOrderIntervalFromStorage = () => {
-    localStorage.removeItem('orderInterval')
-  }
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [categories, setCategories] = useState<any[]>([])
   const [products, setProducts] = useState<any[]>([])
   const [tableSession, setTableSession] = useState<TableSession | null>(null)
   const [tableData, setTableData] = useState<Table | null>(null)
-  const [deviceId, setDeviceId] = useState<string>('')
-
   const [loading, setLoading] = useState(true)
   const [buffetSettings, setBuffetSettings] = useState<any>(null)
   const [progressKey, setProgressKey] = useState(0)
@@ -161,7 +113,12 @@ export default function ItemsPage() {
             return
           }
 
-          setTableSession(updatedSessionData)
+          setTableSession((prev) => {
+            const merged = { ...(prev || {}), ...(updatedSessionData || {}) }
+            // Preserve createdAt if missing from update payload
+            if (!merged.createdAt && prev?.createdAt) merged.createdAt = prev.createdAt
+            return merged as TableSession
+          })
           // Update localStorage with fresh data
           localStorage.setItem('tableSession', JSON.stringify(updatedSessionData))
           // Update order countdown from session field for multi-device sync
@@ -378,20 +335,23 @@ export default function ItemsPage() {
     const timeInterval = setInterval(() => {
       setCurrentTime(new Date())
 
-      // Check if current session has ended
-      const currentSession = getCurrentSession()
-      if (!currentSession) {
-        const extISO = getExtendedUntilISO()
-        if (extISO) {
-          const extDate = new Date(extISO)
-          setSessionEnded(!(new Date() < extDate))
-        } else {
-          setSessionEnded(true)
-        }
+      const extISO = getExtendedUntilISO()
+      const now = new Date()
+      if (extISO) {
+        setSessionEnded(now >= new Date(extISO))
       } else {
-        setSessionEnded(false)
+        const cs = getCurrentSession()
+        if (!cs) {
+          setSessionEnded(true)
+        } else {
+          const [endHour, endMin] = cs.data.endTime.split(':').map(Number)
+          const endTime = new Date()
+          endTime.setHours(endHour, endMin, 0, 0)
+          if (endTime < now) endTime.setDate(endTime.getDate() + 1)
+          setSessionEnded(now >= endTime)
+        }
       }
-    }, 60000) // Update every minute
+    }, 1000) // Update every second for accurate enforcement
 
     return () => clearInterval(timeInterval)
   }, [buffetSettings])
@@ -415,6 +375,21 @@ export default function ItemsPage() {
   }, [timeRemaining])
 
   const addToCart = async (product: Product) => {
+    // Enforce session end immediately
+    const extISO = getExtendedUntilISO()
+    const now = new Date()
+    if (extISO ? now >= new Date(extISO) : (() => {
+      const cs = getCurrentSession()
+      if (!cs) return true
+      const [eh, em] = cs.data.endTime.split(':').map(Number)
+      const end = new Date(); end.setHours(eh, em, 0, 0); if (end < now) end.setDate(end.getDate() + 1)
+      return now >= end
+    })()) {
+      setSessionEnded(true)
+      alert('Your session has ended. Please proceed to checkout.')
+      return
+    }
+
     // Check items limit before adding to cart
     const currentSession = getCurrentSession()
     if (!currentSession || !buffetSettings) {
@@ -813,36 +788,6 @@ export default function ItemsPage() {
     return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`
   }
 
-  // Helper function to get current session from settings data (used during initial fetch)
-  const getCurrentSessionFromSettings = (settingsData: any) => {
-    if (!settingsData?.sessions) return null
-
-    const now = new Date()
-    const currentHour = now.getHours()
-    const currentMinute = now.getMinutes()
-    const currentTimeInMinutes = currentHour * 60 + currentMinute
-
-    const sessions = [
-      { key: 'breakfast', data: settingsData.sessions.breakfast },
-      { key: 'lunch', data: settingsData.sessions.lunch },
-      { key: 'dinner', data: settingsData.sessions.dinner }
-    ]
-
-    for (const session of sessions) {
-      if (!session.data.isActive) continue
-
-      const [startHour, startMin] = session.data.startTime.split(':').map(Number)
-      const [endHour, endMin] = session.data.endTime.split(':').map(Number)
-      const startTime = startHour * 60 + startMin
-      const endTime = endHour * 60 + endMin
-
-      if (currentTimeInMinutes >= startTime && currentTimeInMinutes < endTime) {
-        return session
-      }
-    }
-
-    return null
-  }
 
   // Get current session based on time
   const getCurrentSession = () => {
@@ -881,12 +826,30 @@ export default function ItemsPage() {
     return special?.timeLimit || 0
   }
 
+  const getSessionSpecificTimeLimitMinutes = () => {
+    if (!buffetSettings || !currentSession) return 0
+    const key = currentSession.key as 'breakfast' | 'lunch' | 'dinner'
+    const sessionCfg = buffetSettings.sessions[key]
+    return (sessionCfg as any)?.sessionTimeLimitMinutes || 0
+  }
+
   const getExtendedUntilISO = () => {
-    const minutes = getSpecialTableTimeLimitMinutes()
-    if (!minutes || minutes <= 0 || !tableSession?.createdAt) return undefined
-    const start = new Date(tableSession.createdAt).getTime()
-    const until = new Date(start + minutes * 60 * 1000)
-    return until.toISOString()
+    const tableMin = getSpecialTableTimeLimitMinutes()
+    const sessionMin = getSessionSpecificTimeLimitMinutes()
+    const effectiveMin = (sessionMin > 0 ? sessionMin : 0) + (tableMin > 0 ? tableMin : 0)
+    if (!tableSession?.createdAt || !currentSession) return undefined
+    if (effectiveMin > 0) {
+      const startMs = new Date(tableSession.createdAt).getTime()
+      const final = new Date(startMs + effectiveMin * 60 * 1000)
+      return final.toISOString()
+    }
+    // Fallback: no session/table specific limits, use official session end
+    const [endHour, endMin] = currentSession.data.endTime.split(':').map(Number)
+    const endTime = new Date()
+    endTime.setHours(endHour, endMin, 0, 0)
+    const now = new Date()
+    if (endTime < now) endTime.setDate(endTime.getDate() + 1)
+    return endTime.toISOString()
   }
 
   const handleEndSession = () => {

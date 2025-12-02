@@ -24,6 +24,7 @@ export default function SettingsPage() {
         infantPrice: 0,
         isActive: true,
         nextOrderAvailableInMinutes: 30
+        , sessionTimeLimitMinutes: 0
       },
       lunch: {
         name: 'Lunch',
@@ -34,6 +35,7 @@ export default function SettingsPage() {
         infantPrice: 0,
         isActive: true,
         nextOrderAvailableInMinutes: 30
+        , sessionTimeLimitMinutes: 0
       },
       dinner: {
         name: 'Dinner',
@@ -44,6 +46,7 @@ export default function SettingsPage() {
         infantPrice: 0,
         isActive: true,
         nextOrderAvailableInMinutes: 30
+        , sessionTimeLimitMinutes: 0
       }
     },
     extraDrinksPrice: 5, // Keep for backward compatibility
@@ -128,6 +131,7 @@ export default function SettingsPage() {
               infantPrice: 0,
               isActive: true,
               nextOrderAvailableInMinutes: 30,
+              sessionTimeLimitMinutes: (response.data.sessions?.breakfast as any)?.sessionTimeLimitMinutes ?? 0,
               ...response.data.sessions?.breakfast
             },
             lunch: {
@@ -139,6 +143,7 @@ export default function SettingsPage() {
               infantPrice: 0,
               isActive: true,
               nextOrderAvailableInMinutes: 30,
+              sessionTimeLimitMinutes: (response.data.sessions?.lunch as any)?.sessionTimeLimitMinutes ?? 0,
               ...response.data.sessions?.lunch
             },
             dinner: {
@@ -150,6 +155,7 @@ export default function SettingsPage() {
               infantPrice: 0,
               isActive: true,
               nextOrderAvailableInMinutes: 30,
+              sessionTimeLimitMinutes: (response.data.sessions?.dinner as any)?.sessionTimeLimitMinutes ?? 0,
               ...response.data.sessions?.dinner
             }
           },
@@ -311,9 +317,11 @@ export default function SettingsPage() {
         ...prev.sessions,
         [sessionType]: {
           ...prev.sessions[sessionType],
-          [field]: field.includes('Price') || field === 'nextOrderAvailableInMinutes' 
+          [field]: field.includes('Price') || field === 'nextOrderAvailableInMinutes'
             ? (typeof value === 'string' ? parseFloat(value) || 0 : value)
-            : value
+            : (field === 'sessionTimeLimitMinutes'
+                ? (typeof value === 'string' ? parseInt(value) || 0 : value)
+                : value)
         }
       }
     }))
@@ -434,7 +442,7 @@ export default function SettingsPage() {
                <Label htmlFor="session-active">Session Active</Label>
              </div>
              
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                <div className="grid gap-2">
                  <Label htmlFor="startTime">Start Time</Label>
                  <Input
@@ -455,17 +463,29 @@ export default function SettingsPage() {
                  />
                </div>
                
-               <div className="grid gap-2">
-                 <Label htmlFor="nextOrder">Next Order Available (minutes)</Label>
-                 <Input
-                   id="nextOrder"
-                   type="number"
-                   min="1"
-                   value={settings.sessions[selectedSession]?.nextOrderAvailableInMinutes}
-                   onChange={(e) => handleSessionChange(selectedSession, 'nextOrderAvailableInMinutes', e.target.value)}
-                   placeholder="30"
-                 />
-               </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="nextOrder">Next Order Available (minutes)</Label>
+                  <Input
+                    id="nextOrder"
+                    type="number"
+                    min="1"
+                    value={settings.sessions[selectedSession]?.nextOrderAvailableInMinutes}
+                    onChange={(e) => handleSessionChange(selectedSession, 'nextOrderAvailableInMinutes', e.target.value)}
+                    placeholder="30"
+                  />
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="sessionTimeLimitMinutes">Session Time Limit (minutes)</Label>
+                  <Input
+                    id="sessionTimeLimitMinutes"
+                    type="number"
+                    min="0"
+                    value={settings.sessions[selectedSession]?.sessionTimeLimitMinutes || 0}
+                    onChange={(e) => handleSessionChange(selectedSession, 'sessionTimeLimitMinutes', e.target.value)}
+                    placeholder="0"
+                  />
+                </div>
                
                <div className="grid gap-2">
                  <Label htmlFor="adultPrice">Adult Price ($)</Label>

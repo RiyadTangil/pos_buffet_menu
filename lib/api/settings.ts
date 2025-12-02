@@ -8,6 +8,7 @@ export interface SessionConfig {
   infantPrice: number
   isActive: boolean
   nextOrderAvailableInMinutes: number
+  sessionTimeLimitMinutes?: number
 }
 
 export interface ExtraDrinksPricing {

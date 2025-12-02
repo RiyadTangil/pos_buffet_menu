@@ -367,5 +367,75 @@
         "sessionEnded": true
       }
     ]
+  },
+  {
+    "backupDate": "2025-12-01T12:38:06.994Z",
+    "paymentId": "PAY-1764592686994-j2hvgmr9q",
+    "tableId": "68c190da3b67d81cc1cc2e7f",
+    "tableNumber": 4,
+    "groupType": "same",
+    "sessions": [
+      {
+        "_id": "692d64d8ff03a5814776fc5f",
+        "tableId": "68c190da3b67d81cc1cc2e7f",
+        "deviceId": "device_bhy8hsupe_1764581686205",
+        "guestCounts": {
+          "adults": 3,
+          "children": 1,
+          "infants": 1,
+          "includeDrinks": true
+        },
+        "cartItems": [
+          {
+            "menuItemId": "68c17c673b67d81cc1cc2e7d",
+            "name": "Pizzs",
+            "price": 0,
+            "quantity": 3,
+            "categoryId": "68c167dbc85542d7fb04fe23"
+          }
+        ],
+        "status": "active",
+        "createdAt": "2025-12-01T09:50:16.024Z",
+        "updatedAt": "2025-12-01T12:38:06.994Z",
+        "isSecondaryDevice": false,
+        "groupType": "same",
+        "sessionEnded": true
+      }
+    ]
+  },
+  {
+    "backupDate": "2025-12-02T05:17:45.304Z",
+    "paymentId": "PAY-1764652665304-n0fkrn7mz",
+    "tableId": "68c190da3b67d81cc1cc2e7f",
+    "tableNumber": 4,
+    "groupType": "same",
+    "sessions": [
+      {
+        "_id": "692d8c40ff03a5814776fc61",
+        "tableId": "68c190da3b67d81cc1cc2e7f",
+        "deviceId": "device_0zrd42x0z_1764592690915",
+        "guestCounts": {
+          "adults": 2,
+          "children": 1,
+          "infants": 1,
+          "includeDrinks": true
+        },
+        "cartItems": [
+          {
+            "menuItemId": "68c19c383b67d81cc1cc2e80",
+            "name": "Toast bread",
+            "price": 0,
+            "quantity": 1,
+            "categoryId": "68c167dbc85542d7fb04fe23"
+          }
+        ],
+        "status": "active",
+        "createdAt": "2025-12-01T12:38:24.437Z",
+        "updatedAt": "2025-12-02T05:17:45.304Z",
+        "isSecondaryDevice": false,
+        "groupType": "same",
+        "sessionEnded": true
+      }
+    ]
   }
 ]

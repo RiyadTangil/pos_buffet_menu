@@ -12,6 +12,7 @@ interface SessionConfig {
   infantPrice: number
   isActive: boolean
   nextOrderAvailableInMinutes: number
+  sessionTimeLimitMinutes?: number
 }
 
 // Interface for extra drinks pricing
@@ -86,7 +87,8 @@ export async function GET() {
             childPrice: 12,
             infantPrice: 0,
             isActive: true,
-            nextOrderAvailableInMinutes: 30
+            nextOrderAvailableInMinutes: 30,
+            sessionTimeLimitMinutes: 0
           },
           lunch: {
             name: 'Lunch',
@@ -96,7 +98,8 @@ export async function GET() {
             childPrice: 15,
             infantPrice: 0,
             isActive: true,
-            nextOrderAvailableInMinutes: 30
+            nextOrderAvailableInMinutes: 30,
+            sessionTimeLimitMinutes: 0
           },
           dinner: {
             name: 'Dinner',
@@ -106,7 +109,8 @@ export async function GET() {
             childPrice: 18,
             infantPrice: 0,
             isActive: true,
-            nextOrderAvailableInMinutes: 30
+            nextOrderAvailableInMinutes: 30,
+            sessionTimeLimitMinutes: 0
           }
         },
         extraDrinksPrice: 5, // Keep for backward compatibility
@@ -152,7 +156,8 @@ export async function GET() {
           childPrice: 12,
           infantPrice: 0,
           isActive: true,
-          nextOrderAvailableInMinutes: 30
+          nextOrderAvailableInMinutes: 30,
+          sessionTimeLimitMinutes: 0
         },
         lunch: {
           name: 'Lunch',
@@ -162,7 +167,8 @@ export async function GET() {
           childPrice: 15,
           infantPrice: 0,
           isActive: true,
-          nextOrderAvailableInMinutes: 30
+          nextOrderAvailableInMinutes: 30,
+          sessionTimeLimitMinutes: 0
         },
         dinner: {
           name: 'Dinner',
@@ -172,7 +178,8 @@ export async function GET() {
           childPrice: 18,
           infantPrice: 0,
           isActive: true,
-          nextOrderAvailableInMinutes: 30
+          nextOrderAvailableInMinutes: 30,
+          sessionTimeLimitMinutes: 0
         }
       },
       extraDrinksPrice: settings.extraDrinksPrice || 5, // Keep for backward compatibility
@@ -258,7 +265,7 @@ export async function POST(request: NextRequest) {
         }
         
         // Validate numeric fields
-        const numericFields = ['adultPrice', 'childPrice', 'infantPrice', 'nextOrderAvailableInMinutes']
+        const numericFields = ['adultPrice', 'childPrice', 'infantPrice', 'nextOrderAvailableInMinutes', 'sessionTimeLimitMinutes']
         for (const field of numericFields) {
           const value = sessionData[field as keyof SessionConfig]
           if (typeof value !== 'number' || value < 0) {
@@ -468,7 +475,8 @@ export async function POST(request: NextRequest) {
           childPrice: 12,
           infantPrice: 0,
           isActive: true,
-          nextOrderAvailableInMinutes: 30
+          nextOrderAvailableInMinutes: 30,
+          sessionTimeLimitMinutes: 0
         },
         lunch: {
           name: 'Lunch',
@@ -478,7 +486,8 @@ export async function POST(request: NextRequest) {
           childPrice: 15,
           infantPrice: 0,
           isActive: true,
-          nextOrderAvailableInMinutes: 30
+          nextOrderAvailableInMinutes: 30,
+          sessionTimeLimitMinutes: 0
         },
         dinner: {
           name: 'Dinner',
@@ -488,7 +497,8 @@ export async function POST(request: NextRequest) {
           childPrice: 18,
           infantPrice: 0,
           isActive: true,
-          nextOrderAvailableInMinutes: 30
+          nextOrderAvailableInMinutes: 30,
+          sessionTimeLimitMinutes: 0
         }
       },
       extraDrinksPrice: extraDrinksPrice ?? 5, // Keep for backward compatibility
