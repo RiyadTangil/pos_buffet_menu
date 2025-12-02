@@ -34,6 +34,16 @@ app.prepare().then(() => {
   // Store io instance globally for API routes to access
   global.io = io
 
+  if (global.pendingSocketBroadcasts && Array.isArray(global.pendingSocketBroadcasts)) {
+    try {
+      for (const item of global.pendingSocketBroadcasts) {
+        io.to(item.room).emit(item.event, item.data)
+      }
+    } finally {
+      global.pendingSocketBroadcasts = []
+    }
+  }
+
   io.on('connection', (socket) => {
     console.log('🔌 Client connected:', socket.id)
     //console.log('📊 Total connected clients:', io.engine.clientsCount)

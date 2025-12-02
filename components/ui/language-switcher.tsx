@@ -8,14 +8,15 @@ import { Button } from "@/components/ui/button" // optional — can replace with
 
 export default function LanguageSwitcher() {
   const { t } = useTranslation()
-  const [lang, setLang] = useState<"en" | "de">("en")
+  const [lang, setLang] = useState<"en" | "de">("de")
   const [open, setOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
-    const stored =
-      typeof window !== "undefined" ? localStorage.getItem("lang") : null
-    setLang((i18n.language as "en" | "de") || (stored as "en" | "de") || "en")
+    const stored = typeof window !== "undefined" ? localStorage.getItem("lang") : null
+    const target = (stored as "en" | "de") || "de"
+    i18n.changeLanguage(target)
+    setLang(target)
   }, [])
 
   const changeLanguage = (lng: "en" | "de") => {

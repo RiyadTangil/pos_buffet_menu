@@ -437,5 +437,98 @@
         "sessionEnded": true
       }
     ]
+  },
+  {
+    "backupDate": "2025-12-02T06:54:22.458Z",
+    "paymentId": "PAY-1764658462458-paclbky0g",
+    "tableId": "68c152a9c85542d7fb04fe1f",
+    "tableNumber": 2,
+    "groupType": "same",
+    "sessions": [
+      {
+        "_id": "691f9e27da63ed536c3da9f4",
+        "tableId": "68c152a9c85542d7fb04fe1f",
+        "deviceId": "device_mbkfah2lx_1763679771724",
+        "guestCounts": {
+          "adults": 4,
+          "children": 2,
+          "infants": 2,
+          "includeDrinks": true
+        },
+        "cartItems": [
+          {
+            "menuItemId": "68c19c383b67d81cc1cc2e80",
+            "name": "Toast bread",
+            "price": 0,
+            "quantity": 1,
+            "categoryId": "68c167dbc85542d7fb04fe23"
+          },
+          {
+            "menuItemId": "68c17c673b67d81cc1cc2e7d",
+            "name": "Pizzs",
+            "price": 0,
+            "quantity": 1,
+            "categoryId": "68c167dbc85542d7fb04fe23"
+          }
+        ],
+        "status": "active",
+        "createdAt": "2025-11-20T23:03:03.820Z",
+        "updatedAt": "2025-12-02T06:54:22.458Z",
+        "isSecondaryDevice": true,
+        "groupType": "same",
+        "secondaryDeviceId": "device_vcmolmqzx_1763679788608",
+        "nextOrderAvailableUntil": "2025-11-20T23:15:03.592Z",
+        "sessionEnded": true
+      }
+    ]
+  },
+  {
+    "backupDate": "2025-12-02T06:56:39.940Z",
+    "paymentId": "PAY-1764658599940-p6llk5smq",
+    "tableId": "68c15318c85542d7fb04fe20",
+    "tableNumber": 8,
+    "groupType": "same",
+    "sessions": [
+      {
+        "_id": "692e76a0ff03a5814776fc63",
+        "tableId": "68c15318c85542d7fb04fe20",
+        "deviceId": "device_fikkohu44_1764652669022",
+        "guestCounts": {
+          "adults": 2,
+          "children": 1,
+          "infants": 1,
+          "includeDrinks": true
+        },
+        "cartItems": [
+          {
+            "menuItemId": "68c19d3a3b67d81cc1cc2e82",
+            "name": "Normal Vagitable",
+            "price": 0,
+            "quantity": 2,
+            "categoryId": "68c167dbc85542d7fb04fe23"
+          },
+          {
+            "menuItemId": "68c17c673b67d81cc1cc2e7d",
+            "name": "Pizzs",
+            "price": 0,
+            "quantity": 1,
+            "categoryId": "68c167dbc85542d7fb04fe23"
+          },
+          {
+            "menuItemId": "68c19c383b67d81cc1cc2e80",
+            "name": "Toast bread",
+            "price": 0,
+            "quantity": 1,
+            "categoryId": "68c167dbc85542d7fb04fe23"
+          }
+        ],
+        "status": "active",
+        "createdAt": "2025-12-02T05:18:24.932Z",
+        "updatedAt": "2025-12-02T06:56:39.940Z",
+        "isSecondaryDevice": false,
+        "groupType": "same",
+        "sessionEnded": true
+      }
+    ]
   }
 ]

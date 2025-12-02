@@ -1,5 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+declare global {
+  var io: any
+  var pendingSocketBroadcasts: Array<{ room: string; event: string; data: any }>
+}
+
+function queueBroadcast(room: string, event: string, data: any) {
+  if (!global.pendingSocketBroadcasts) global.pendingSocketBroadcasts = []
+  global.pendingSocketBroadcasts.push({ room, event, data })
+}
+
 // Broadcast table session updates to all devices on the same table
 export function broadcastTableSessionUpdate(tableId: string, sessionData: any, groupType?: string) {
   if (global.io) {
@@ -9,7 +19,8 @@ export function broadcastTableSessionUpdate(tableId: string, sessionData: any, g
     console.log(`👥 API Broadcasting to ${global.io.sockets.adapter.rooms.get(roomName)?.size || 0} clients`)
     global.io.to(roomName).emit('tableSessionUpdate', sessionData)
   } else {
-    console.warn('Socket.IO server not initialized')
+    const roomName = groupType ? `table-${tableId}-${groupType}` : `table-${tableId}`
+    queueBroadcast(roomName, 'tableSessionUpdate', sessionData)
   }
 }
 
@@ -19,7 +30,7 @@ export function broadcastTablesUpdate(update: any) {
 
     global.io.to('tables').emit('tablesUpdate', update)
   } else {
-    console.warn('Socket.IO server not initialized')
+    queueBroadcast('tables', 'tablesUpdate', update)
   }
 }
 
@@ -28,7 +39,8 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     success: true,
     message: 'Socket.IO server is ready',
-    connected: global.io ? true : false
+    connected: global.io ? true : false,
+    pendingCount: global.pendingSocketBroadcasts ? global.pendingSocketBroadcasts.length : 0
   })
 }
 
@@ -50,11 +62,11 @@ export async function POST(request: NextRequest) {
           message: 'Broadcast sent successfully'
         })
       } else {
-        console.warn('Socket.IO server not initialized')
-        return NextResponse.json(
-          { success: false, error: 'Socket.IO server not initialized' },
-          { status: 500 }
-        )
+        queueBroadcast(room, event, data)
+        return NextResponse.json({
+          success: true,
+          message: 'Broadcast queued until Socket.IO initializes'
+        })
       }
     }
 

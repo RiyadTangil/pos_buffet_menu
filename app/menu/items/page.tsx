@@ -632,10 +632,6 @@ export default function ItemsPage() {
         return
       }
 
-
-
-
-
       // Prepare order data for new API
       const orderData = {
         tableId: selectedTableId,
@@ -676,61 +672,7 @@ export default function ItemsPage() {
         // Trigger automatic printing with OrderPrinter component
         setShouldPrintOrder(true)
 
-        // Remove old printing code - now handled by OrderPrinter component
-        /*
-        // Print the order - IP-based printer (commented out for now)
-        try {
-          const orderItems = cart.map(item => ({
-            id: item.menuItem?.id,
-            name: item.menuItem.name,
-            quantity: item.quantity,
-            price: item.menuItem.price || 0,
-            categoryId: item.menuItem.categoryId,
-            category: {
-              id: item.menuItem.categoryId,
-              name: categories.find(cat => cat.id === item.menuItem.categoryId)?.name || 'Unknown'
-            }
-          }))
 
-          await printOrder({
-            orderId: result.orderId,
-            orderItems,
-            tableNumber: selectedTableId,
-            guestCount: (guestCounts.adults || 0) + (guestCounts.children || 0) + (guestCounts.infants || 0),
-            orderTime: new Date().toISOString()
-          })
-        } catch (printError) {
-          console.error('Print error:', printError)
-          // Don't block the order flow if printing fails
-        }
-
-        // Print to local printer
-        try {
-          const orderItems = cart.map(item => ({
-            id: item.menuItem?.id,
-            name: item.menuItem.name,
-            quantity: item.quantity,
-            price: item.menuItem.price || 0,
-            categoryId: item.menuItem.categoryId,
-            category: {
-              id: item.menuItem.categoryId,
-              name: categories.find(cat => cat.id === item.menuItem.categoryId)?.name || 'Unknown'
-            }
-          }))
-
-          // Use browser's print functionality for local printer
-          printToLocalPrinter({
-            orderId: result.orderId,
-            orderItems,
-            tableNumber: selectedTableId,
-            guestCount: (storedGuestCounts.adults || 0) + (storedGuestCounts.children || 0) + (storedGuestCounts.infants || 0),
-            orderTime: new Date().toISOString()
-          })
-        } catch (printError) {
-          console.error('Local print error:', printError)
-          // Don't block the order flow if printing fails
-        }
-        */
 
         setShowConfetti(true)
         setOrderPlaced(true)
