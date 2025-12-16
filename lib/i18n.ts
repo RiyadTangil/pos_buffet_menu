@@ -16,9 +16,9 @@ if (!i18n.isInitialized) {
     .use(initReactI18next)
     .init({
       resources,
-      // Initialize with a stable default to avoid SSR/client mismatch
-      lng: 'en',
-      fallbackLng: 'en',
+      // Initialize with German as default language
+      lng: 'de',
+      fallbackLng: 'de',
       ns: ['common'],
       defaultNS: 'common',
       interpolation: { escapeValue: false }

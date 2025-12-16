@@ -9,7 +9,7 @@ export default function I18nProvider({ children }: { children: ReactNode }) {
   // Ensure client-side language selection occurs after mount to avoid hydration mismatch
   useEffect(() => {
     try {
-      const lang = localStorage.getItem('lang') || 'en'
+      const lang = localStorage.getItem('lang') || 'de'
       if (i18n.language !== lang) {
         i18n.changeLanguage(lang)
       }
