@@ -28,6 +28,7 @@ export interface MenuCategory {
   name: string
   description?: string
   sessions?: string[] // Array of session keys: 'breakfast', 'lunch', 'dinner'
+  orderIndex?: number
 }
 
 export interface MenuItem {

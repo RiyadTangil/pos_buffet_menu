@@ -19,7 +19,10 @@ export async function GET(request: NextRequest) {
       }
     }
     
-    const categories = await db.collection(COLLECTIONS.CATEGORIES).find(query).toArray()
+    const categories = await db.collection(COLLECTIONS.CATEGORIES)
+      .find(query)
+      .sort({ orderIndex: 1, createdAt: 1 })
+      .toArray()
     
     // Convert MongoDB _id to id and format response
     const formattedCategories = categories.map(category => ({
@@ -27,6 +30,7 @@ export async function GET(request: NextRequest) {
       name: category.name,
       description: category.description || '',
       sessions: category.sessions || [],
+      orderIndex: typeof category.orderIndex === 'number' ? category.orderIndex : undefined,
       createdAt: category.createdAt,
       updatedAt: category.updatedAt
     }))
@@ -90,11 +94,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Compute default orderIndex as last position
+    const total = await db.collection(COLLECTIONS.CATEGORIES).countDocuments({})
+
     // Create new category
     const newCategory = {
       name: name.trim(),
       description: description.trim(),
       sessions: sessions,
+      orderIndex: total + 1,
       createdAt: new Date(),
       updatedAt: new Date()
     }

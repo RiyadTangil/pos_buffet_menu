@@ -36,6 +36,7 @@ export async function GET(
       name: category.name,
       description: category.description || '',
       sessions: category.sessions || [],
+      orderIndex: typeof category.orderIndex === 'number' ? category.orderIndex : undefined,
       createdAt: category.createdAt,
       updatedAt: category.updatedAt
     }
@@ -61,7 +62,7 @@ export async function PUT(
   try {
     const { id } = params
     const body = await request.json()
-    const { name, description = '', sessions = [] } = body
+    const { name, description = '', sessions = [], orderIndex } = body
 
     // Validation
     if (!name || typeof name !== 'string' || name.trim().length === 0) {
@@ -125,11 +126,14 @@ export async function PUT(
     }
 
     // Update category
-    const updateData = {
+    const updateData: any = {
       name: name.trim(),
       description: description.trim(),
       sessions: sessions,
       updatedAt: new Date()
+    }
+    if (typeof orderIndex === 'number') {
+      updateData.orderIndex = orderIndex
     }
 
     await categoriesCollection.updateOne(
@@ -148,6 +152,7 @@ export async function PUT(
       name: updatedCategory!.name,
       description: updatedCategory!.description || '',
       sessions: updatedCategory!.sessions || [],
+      orderIndex: typeof updatedCategory!.orderIndex === 'number' ? updatedCategory!.orderIndex : undefined,
       createdAt: updatedCategory!.createdAt,
       updatedAt: updatedCategory!.updatedAt
     }

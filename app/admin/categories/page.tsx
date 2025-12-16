@@ -27,7 +27,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { Plus, Edit, Trash2, Package } from "lucide-react"
+import { Plus, Edit, Trash2, Package, ArrowUp, ArrowDown } from "lucide-react"
 import { toast } from "sonner"
 import { fetchCategories, createCategory, updateCategory, deleteCategory } from "@/lib/api/categories"
 import { menuItems, type MenuCategory } from "@/lib/mockData"
@@ -156,6 +156,45 @@ function CategoriesPage() {
     return menuItems.filter(item => item.categoryId === categoryId).length
   }
 
+  const moveCategory = async (index: number, direction: 'up' | 'down') => {
+    const targetIndex = direction === 'up' ? index - 1 : index + 1
+    if (targetIndex < 0 || targetIndex >= categories.length) return
+    const current = categories[index]
+    const target = categories[targetIndex]
+    const currentOrder = typeof current.orderIndex === 'number' ? current.orderIndex : index + 1
+    const targetOrder = typeof target.orderIndex === 'number' ? target.orderIndex : targetIndex + 1
+    try {
+      setIsSubmitting(true)
+      const updatedCurrent = await updateCategory(current.id, {
+        name: current.name,
+        description: current.description || '',
+        sessions: current.sessions || [],
+        orderIndex: targetOrder
+      })
+      const updatedTarget = await updateCategory(target.id, {
+        name: target.name,
+        description: target.description || '',
+        sessions: target.sessions || [],
+        orderIndex: currentOrder
+      })
+      const newCats = [...categories]
+      newCats[index] = { ...updatedCurrent }
+      newCats[targetIndex] = { ...updatedTarget }
+      // Also swap positions in the array for immediate UI feedback
+      const swapped = [...newCats]
+      const temp = swapped[index]
+      swapped[index] = swapped[targetIndex]
+      swapped[targetIndex] = temp
+      setCategories(swapped)
+      toast.success('Category order updated')
+    } catch (error: any) {
+      console.error('Error updating category order:', error)
+      toast.error(error.message || 'Failed to update category order')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   return (
     <div className="container mx-auto p-6">
       <Card>
@@ -224,6 +263,24 @@ function CategoriesPage() {
                       )}
                     </div>
                     <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap sm:shrink-0">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => moveCategory(categories.findIndex(c => c.id === category.id), 'up')}
+                        disabled={isSubmitting || categories.findIndex(c => c.id === category.id) === 0}
+                        className="hover:bg-gray-50"
+                      >
+                        <ArrowUp className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => moveCategory(categories.findIndex(c => c.id === category.id), 'down')}
+                        disabled={isSubmitting || categories.findIndex(c => c.id === category.id) === categories.length - 1}
+                        className="hover:bg-gray-50"
+                      >
+                        <ArrowDown className="w-4 h-4" />
+                      </Button>
                       <Button
                         variant="outline"
                         size="sm"

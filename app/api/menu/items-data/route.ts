@@ -98,12 +98,14 @@ export async function GET(request: NextRequest) {
     try {
       categories = await db.collection(COLLECTIONS.CATEGORIES)
         .find({ sessions: { $in: [sessionKey] } })
+        .sort({ orderIndex: 1, createdAt: 1 })
         .toArray()
       categories = categories.map(c => ({
         id: c._id.toString(),
         name: c.name,
         description: c.description || '',
         sessions: c.sessions || [],
+        orderIndex: typeof c.orderIndex === 'number' ? c.orderIndex : undefined,
         createdAt: c.createdAt,
         updatedAt: c.updatedAt
       }))
