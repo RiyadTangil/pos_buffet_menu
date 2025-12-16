@@ -6817,5 +6817,404 @@
       "orderTime": "2025-11-20T23:14:03.594Z",
       "totalAmount": 70
     }
+  },
+  {
+    "id": "order-1765894654061-n5x4u6",
+    "type": "order",
+    "printerName": "Microsoft Print to PDF",
+    "status": "completed",
+    "items": [
+      {
+        "id": "wr_1765894653156",
+        "name": "REQUEST WAITER",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-12-16T14:17:34.063Z",
+    "updatedAt": "2025-12-16T14:17:41.363Z",
+    "meta": {
+      "orderId": "waiter_request_1765894653156",
+      "tableNumber": 68,
+      "guestCount": 1,
+      "orderTime": "2025-12-16T14:17:33.156Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "order-1765894751282-3xesbw",
+    "type": "order",
+    "printerName": "Microsoft Print to PDF",
+    "status": "completed",
+    "items": [
+      {
+        "id": "wr_1765894751025",
+        "name": "REQUEST WAITER",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-12-16T14:19:11.284Z",
+    "updatedAt": "2025-12-16T14:19:16.682Z",
+    "meta": {
+      "orderId": "waiter_request_1765894751025",
+      "tableNumber": 68,
+      "guestCount": 1,
+      "orderTime": "2025-12-16T14:19:11.025Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "order-1765895637071-80mzmh",
+    "type": "order",
+    "printerName": "Microsoft Print to PDF",
+    "status": "failed",
+    "items": [
+      {
+        "id": "wr_1765895635916",
+        "name": "REQUEST WAITER",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-12-16T14:33:57.075Z",
+    "updatedAt": "2025-12-16T14:34:03.764Z",
+    "meta": {
+      "orderId": "waiter_request_1765895635916",
+      "tableNumber": 68,
+      "guestCount": 1,
+      "orderTime": "2025-12-16T14:33:55.916Z",
+      "totalAmount": 0
+    },
+    "error": "SumatraPDF not found. Install SumatraPDF or set SUMATRA_PDF env var."
+  },
+  {
+    "id": "order-1765895670528-ekxavd",
+    "type": "order",
+    "printerName": "Microsoft Print to PDF",
+    "status": "failed",
+    "items": [
+      {
+        "id": "wr_1765895670380",
+        "name": "REQUEST WAITER",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-12-16T14:34:30.530Z",
+    "updatedAt": "2025-12-16T14:34:36.749Z",
+    "meta": {
+      "orderId": "waiter_request_1765895670380",
+      "tableNumber": 8,
+      "guestCount": 1,
+      "orderTime": "2025-12-16T14:34:30.380Z",
+      "totalAmount": 0
+    },
+    "error": "SumatraPDF not found. Install SumatraPDF or set SUMATRA_PDF env var."
+  },
+  {
+    "id": "order-1765902407193-kyr8eo",
+    "type": "order",
+    "printerName": "Microsoft Print to PDF",
+    "status": "failed",
+    "items": [
+      {
+        "id": "wr_1765902407026",
+        "name": "REQUEST WAITER",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-12-16T16:26:47.197Z",
+    "updatedAt": "2025-12-16T16:26:53.433Z",
+    "meta": {
+      "orderId": "waiter_request_1765902407026",
+      "tableNumber": 8,
+      "guestCount": 1,
+      "orderTime": "2025-12-16T16:26:47.026Z",
+      "totalAmount": 0
+    },
+    "error": "SumatraPDF not found. Install SumatraPDF or set SUMATRA_PDF env var."
+  },
+  {
+    "id": "order-1765902462873-5ihnwm",
+    "type": "order",
+    "printerName": "Microsoft Print to PDF",
+    "status": "failed",
+    "items": [
+      {
+        "id": "wr_1765902462720",
+        "name": "REQUEST WAITER",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-12-16T16:27:42.875Z",
+    "updatedAt": "2025-12-16T16:27:51.884Z",
+    "meta": {
+      "orderId": "waiter_request_1765902462720",
+      "tableNumber": 68,
+      "guestCount": 1,
+      "orderTime": "2025-12-16T16:27:42.720Z",
+      "totalAmount": 0
+    },
+    "error": "SumatraPDF not found. Install SumatraPDF or set SUMATRA_PDF env var."
+  },
+  {
+    "id": "order-1765902496803-4nrgid",
+    "type": "order",
+    "printerName": "Microsoft Print to PDF",
+    "status": "failed",
+    "items": [
+      {
+        "id": "wr_1765902496243",
+        "name": "REQUEST WAITER",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-12-16T16:28:16.804Z",
+    "updatedAt": "2025-12-16T16:28:24.687Z",
+    "meta": {
+      "orderId": "waiter_request_1765902496243",
+      "tableNumber": 68,
+      "guestCount": 1,
+      "orderTime": "2025-12-16T16:28:16.243Z",
+      "totalAmount": 0
+    },
+    "error": "SumatraPDF not found. Install SumatraPDF or set SUMATRA_PDF env var."
+  },
+  {
+    "id": "order-1765902540713-je645k",
+    "type": "order",
+    "printerName": "Microsoft Print to PDF",
+    "status": "failed",
+    "items": [
+      {
+        "id": "wr_1765902540666",
+        "name": "REQUEST WAITER",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-12-16T16:29:00.715Z",
+    "updatedAt": "2025-12-16T16:29:06.394Z",
+    "meta": {
+      "orderId": "waiter_request_1765902540666",
+      "tableNumber": 68,
+      "guestCount": 1,
+      "orderTime": "2025-12-16T16:29:00.666Z",
+      "totalAmount": 0
+    },
+    "error": "SumatraPDF not found. Install SumatraPDF or set SUMATRA_PDF env var."
+  },
+  {
+    "id": "order-1765902688159-t998j0",
+    "type": "order",
+    "printerName": "Microsoft Print to PDF",
+    "status": "failed",
+    "items": [
+      {
+        "id": "wr_1765902687545",
+        "name": "REQUEST WAITER",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-12-16T16:31:28.160Z",
+    "updatedAt": "2025-12-16T16:31:33.702Z",
+    "meta": {
+      "orderId": "waiter_request_1765902687545",
+      "tableNumber": 68,
+      "guestCount": 1,
+      "orderTime": "2025-12-16T16:31:27.545Z",
+      "totalAmount": 0
+    },
+    "error": "SumatraPDF not found. Install SumatraPDF or set SUMATRA_PDF env var."
+  },
+  {
+    "id": "order-1765902807378-7f3awo",
+    "type": "order",
+    "printerName": "Microsoft Print to PDF",
+    "status": "failed",
+    "items": [
+      {
+        "id": "wr_1765902807119",
+        "name": "REQUEST WAITER",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-12-16T16:33:27.380Z",
+    "updatedAt": "2025-12-16T16:33:33.002Z",
+    "meta": {
+      "orderId": "waiter_request_1765902807119",
+      "tableNumber": 68,
+      "guestCount": 1,
+      "orderTime": "2025-12-16T16:33:27.119Z",
+      "totalAmount": 0
+    },
+    "error": "SumatraPDF not found. Install SumatraPDF or set SUMATRA_PDF env var."
+  },
+  {
+    "id": "order-1765903176998-fcof5p",
+    "type": "order",
+    "printerName": "OneNote (Desktop)",
+    "status": "completed",
+    "items": [
+      {
+        "id": "wr_1765903176847",
+        "name": "REQUEST WAITER",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-12-16T16:39:37.000Z",
+    "updatedAt": "2025-12-16T16:39:38.083Z",
+    "meta": {
+      "orderId": "waiter_request_1765903176847",
+      "tableNumber": 68,
+      "guestCount": 1,
+      "orderTime": "2025-12-16T16:39:36.847Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "order-1765903607428-6uxt6q",
+    "type": "order",
+    "printerName": "OneNote (Desktop)",
+    "status": "completed",
+    "items": [
+      {
+        "id": "wr_1765903607002",
+        "name": "REQUEST WAITER",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-12-16T16:46:47.430Z",
+    "updatedAt": "2025-12-16T16:46:48.236Z",
+    "meta": {
+      "orderId": "waiter_request_1765903607002",
+      "tableNumber": 8,
+      "guestCount": 1,
+      "orderTime": "2025-12-16T16:46:47.002Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "order-1765903692616-1rxsg4",
+    "type": "order",
+    "printerName": "OneNote (Desktop)",
+    "status": "completed",
+    "items": [
+      {
+        "id": "wr_1765903692434",
+        "name": "REQUEST WAITER",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-12-16T16:48:12.619Z",
+    "updatedAt": "2025-12-16T16:48:13.322Z",
+    "meta": {
+      "orderId": "waiter_request_1765903692434",
+      "tableNumber": 8,
+      "guestCount": 1,
+      "orderTime": "2025-12-16T16:48:12.434Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "order-1765903723275-g0s8ny",
+    "type": "order",
+    "printerName": "OneNote (Desktop)",
+    "status": "completed",
+    "items": [
+      {
+        "id": "wr_1765903722650",
+        "name": "REQUEST WAITER",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-12-16T16:48:43.277Z",
+    "updatedAt": "2025-12-16T16:48:44.654Z",
+    "meta": {
+      "orderId": "waiter_request_1765903722650",
+      "tableNumber": 8,
+      "guestCount": 1,
+      "orderTime": "2025-12-16T16:48:42.650Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "order-1765903753330-7k0qv4",
+    "type": "order",
+    "printerName": "Microsoft Print to PDF",
+    "status": "completed",
+    "items": [
+      {
+        "id": "wr_1765903752749",
+        "name": "REQUEST CLEANING",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-12-16T16:49:13.332Z",
+    "updatedAt": "2025-12-16T16:49:19.403Z",
+    "meta": {
+      "orderId": "waiter_request_1765903752749",
+      "tableNumber": 8,
+      "guestCount": 1,
+      "orderTime": "2025-12-16T16:49:12.749Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "order-1765903874111-vrurcc",
+    "type": "order",
+    "printerName": "Microsoft Print to PDF",
+    "status": "completed",
+    "items": [
+      {
+        "id": "68c19d3a3b67d81cc1cc2e82",
+        "name": "Normal Vagitable",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-12-16T16:51:14.113Z",
+    "updatedAt": "2025-12-16T16:51:20.380Z",
+    "meta": {
+      "orderId": "order-1765903871179-v5eh9psct",
+      "tableNumber": 8,
+      "guestCount": 5,
+      "orderTime": "2025-12-16T16:51:11.526Z",
+      "totalAmount": 0
+    }
+  },
+  {
+    "id": "order-1765903970797-ylebre",
+    "type": "order",
+    "printerName": "Microsoft Print to PDF",
+    "status": "completed",
+    "items": [
+      {
+        "id": "68c19d3a3b67d81cc1cc2e82",
+        "name": "Normal Vagitable",
+        "quantity": 1,
+        "price": 0
+      }
+    ],
+    "createdAt": "2025-12-16T16:52:50.799Z",
+    "updatedAt": "2025-12-16T16:52:56.371Z",
+    "meta": {
+      "orderId": "order-1765903968868-vnlebwqr6",
+      "tableNumber": 8,
+      "guestCount": 5,
+      "orderTime": "2025-12-16T16:52:49.213Z",
+      "totalAmount": 0
+    }
   }
 ]

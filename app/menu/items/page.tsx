@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { ItemsLimitProgress } from '@/components/ui/items-limit-progress'
 import { SessionCountdown } from '@/components/ui/session-countdown'
-import { ShoppingCart, Plus, Minus, Leaf, Flame, X, Clock, Users, Utensils, ChefHat, Coffee, Cake, DollarSign, Loader2, Star, AlertTriangle } from "lucide-react"
+import { ShoppingCart, Plus, Minus, Leaf, Flame, X, Clock, Users, Utensils, ChefHat, Coffee, Cake, DollarSign, Euro, Loader2, Star, AlertTriangle } from "lucide-react"
 import { type Product } from "@/lib/api/products"
 import { setNextOrderAvailable, type TableSession } from "@/lib/api/table-sessions"
 
@@ -452,7 +452,7 @@ export default function ItemsPage() {
       // Check if adding this item would exceed the limit
       // Premium items are exempt from the buffet round limit
       if (!product.isPremium && currentTotalItems >= maxAllowedItems) {
-        alert(`You have reached the maximum limit of ${maxAllowedItems} items per round. Please complete your current order before adding more items.`)
+        // alert(`You have reached the maximum limit of ${maxAllowedItems} items per round. Please complete your current order before adding more items.`)
         return
       }
     }
@@ -861,8 +861,8 @@ export default function ItemsPage() {
 
               {/* Waiter Request Button */}
               <WaiterRequest
-                tableNumber={parseInt(tableSession?.tableId || (typeof window !== 'undefined' ? localStorage.getItem('selectedTableId') : null) || '0')}
-                disabled={sessionEnded}
+                tableNumber={tableData?.number || 0}
+                disabled={sessionEnded || !tableData}
               />
 
               {orderPlaced ? (
@@ -1149,9 +1149,9 @@ export default function ItemsPage() {
                             )}
                             {item.price && item.price > 0 && (
                               <div className="flex items-center gap-1 mt-2">
-                                <DollarSign className="w-4 h-4 text-green-600" />
+                                <Euro className="w-4 h-4 text-green-600" />
                                 <span className="text-lg font-bold text-green-600">
-                                  ${item.price.toFixed(2)}
+                                  {item.price.toFixed(2)}
                                 </span>
                               </div>
                             )}

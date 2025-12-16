@@ -398,5 +398,133 @@
     "message": "Table needs cleaning service",
     "status": "pending",
     "createdAt": "2025-11-11T23:12:19.594Z"
+  },
+  {
+    "id": "wr_1765894599870_oq4bmcxds",
+    "tableNumber": 68,
+    "requestType": "waiter",
+    "message": "Customer is requesting waiter assistance",
+    "status": "pending",
+    "createdAt": "2025-12-16T14:16:39.870Z"
+  },
+  {
+    "id": "wr_1765894652443_neugc0n7u",
+    "tableNumber": 68,
+    "requestType": "waiter",
+    "message": "Customer is requesting waiter assistance",
+    "status": "pending",
+    "createdAt": "2025-12-16T14:17:32.443Z"
+  },
+  {
+    "id": "wr_1765894749773_gp5wxxqpf",
+    "tableNumber": 68,
+    "requestType": "waiter",
+    "message": "Customer is requesting waiter assistance",
+    "status": "pending",
+    "createdAt": "2025-12-16T14:19:09.774Z"
+  },
+  {
+    "id": "wr_1765895634711_4jzyysqh3",
+    "tableNumber": 68,
+    "requestType": "waiter",
+    "message": "Customer is requesting waiter assistance",
+    "status": "pending",
+    "createdAt": "2025-12-16T14:33:54.711Z"
+  },
+  {
+    "id": "wr_1765895669832_d6ev2mpiv",
+    "tableNumber": 8,
+    "requestType": "waiter",
+    "message": "Customer is requesting waiter assistance",
+    "status": "pending",
+    "createdAt": "2025-12-16T14:34:29.832Z"
+  },
+  {
+    "id": "wr_1765902406318_zma4m1f08",
+    "tableNumber": 8,
+    "requestType": "waiter",
+    "message": "Customer is requesting waiter assistance",
+    "status": "pending",
+    "createdAt": "2025-12-16T16:26:46.318Z"
+  },
+  {
+    "id": "wr_1765902461462_13p18qnj7",
+    "tableNumber": 68,
+    "requestType": "waiter",
+    "message": "Customer is requesting waiter assistance",
+    "status": "pending",
+    "createdAt": "2025-12-16T16:27:41.462Z"
+  },
+  {
+    "id": "wr_1765902495541_787uy07jn",
+    "tableNumber": 68,
+    "requestType": "waiter",
+    "message": "Customer is requesting waiter assistance",
+    "status": "pending",
+    "createdAt": "2025-12-16T16:28:15.541Z"
+  },
+  {
+    "id": "wr_1765902539863_wsmyww63g",
+    "tableNumber": 68,
+    "requestType": "waiter",
+    "message": "Customer is requesting waiter assistance",
+    "status": "pending",
+    "createdAt": "2025-12-16T16:28:59.863Z"
+  },
+  {
+    "id": "wr_1765902687067_3zucuaqv6",
+    "tableNumber": 68,
+    "requestType": "waiter",
+    "message": "Customer is requesting waiter assistance",
+    "status": "pending",
+    "createdAt": "2025-12-16T16:31:27.067Z"
+  },
+  {
+    "id": "wr_1765902806007_vqk71gcuo",
+    "tableNumber": 68,
+    "requestType": "waiter",
+    "message": "Customer is requesting waiter assistance",
+    "status": "pending",
+    "createdAt": "2025-12-16T16:33:26.008Z"
+  },
+  {
+    "id": "wr_1765903175967_hdd4lr1hp",
+    "tableNumber": 68,
+    "requestType": "waiter",
+    "message": "Customer is requesting waiter assistance",
+    "status": "pending",
+    "createdAt": "2025-12-16T16:39:35.968Z"
+  },
+  {
+    "id": "wr_1765903604055_3i5qn2fsf",
+    "tableNumber": 8,
+    "requestType": "waiter",
+    "message": "Customer is requesting waiter assistance",
+    "status": "pending",
+    "createdAt": "2025-12-16T16:46:44.055Z"
+  },
+  {
+    "id": "wr_1765903691775_8jkwy7s5a",
+    "tableNumber": 8,
+    "requestType": "waiter",
+    "message": "Customer is requesting waiter assistance",
+    "status": "pending",
+    "createdAt": "2025-12-16T16:48:11.775Z"
+  },
+  {
+    "id": "wr_1765903721698_hllia85cq",
+    "tableNumber": 8,
+    "requestType": "waiter",
+    "message": "Customer is requesting waiter assistance",
+    "status": "pending",
+    "createdAt": "2025-12-16T16:48:41.698Z"
+  },
+  {
+    "id": "wr_1765903751721_hsooajth8",
+    "tableNumber": 8,
+    "requestType": "cleaning",
+    "message": "Table needs cleaning service",
+    "status": "pending",
+    "createdAt": "2025-12-16T16:49:11.721Z"
   }
 ]

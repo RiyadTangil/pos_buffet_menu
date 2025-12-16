@@ -139,7 +139,7 @@ export default function OrderPrinter({
           if (printJobs && printJobs.length > 0) {
             printSuccess = true
             //console.log('🖨️ [OrderPrinter] ✅ IP printer category-based printing successful!')
-            toast.success(`Order sent to ${printJobs.length} IP printer(s)`)
+            // toast.success(`Order sent to ${printJobs.length} IP printer(s)`)
           } else {
             console.log('🖨️ [OrderPrinter] ❌ IP printer category-based printing returned no jobs')
           }
@@ -173,7 +173,7 @@ export default function OrderPrinter({
           if (usbPrintJobs && usbPrintJobs.length > 0) {
             printSuccess = true
             //console.log('🖨️ [OrderPrinter] ✅ USB printer category-based printing successful!')
-            toast.success(`Order sent to ${usbPrintJobs.length} USB printer(s)`)
+            // toast.success(`Order sent to ${usbPrintJobs.length} USB printer(s)`)
           } else {
             console.log('🖨️ [OrderPrinter] ❌ USB printer category-based printing returned no jobs')
           }
@@ -197,7 +197,7 @@ export default function OrderPrinter({
             printerName: state.defaultUSBPrinter.localPrinterName
           })
           printSuccess = true
-          toast.success('Order sent to default USB printer')
+          // toast.success('Order sent to default USB printer')
         } catch (error) {
           console.error('Default USB printing failed:', error)
           errors.push('Default USB printer failed')
@@ -215,7 +215,7 @@ export default function OrderPrinter({
             orderTime
           })
           printSuccess = true
-          toast.success('Order sent to legacy USB printer')
+          // toast.success('Order sent to legacy USB printer')
         } catch (error) {
           console.error('Legacy USB printing failed:', error)
           errors.push('Legacy USB printer failed')
