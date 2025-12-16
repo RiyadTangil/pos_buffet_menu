@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { ItemsLimitProgress } from '@/components/ui/items-limit-progress'
 import { SessionCountdown } from '@/components/ui/session-countdown'
+import { getExtendedUntilISO } from "@/lib/utils/session-time"
 import { ShoppingCart, Plus, Minus, Leaf, Flame, X, Clock, Users, Utensils, ChefHat, Coffee, Cake, DollarSign, Euro, Loader2, Star, AlertTriangle } from "lucide-react"
 import { type Product } from "@/lib/api/products"
 import { setNextOrderAvailable, type TableSession } from "@/lib/api/table-sessions"
@@ -335,7 +336,7 @@ export default function ItemsPage() {
     const timeInterval = setInterval(() => {
       setCurrentTime(new Date())
 
-      const extISO = getExtendedUntilISO()
+      const extISO = getExtendedUntilISO(buffetSettings, tableSession, getCurrentSession())
       const now = new Date()
       if (extISO) {
         setSessionEnded(now >= new Date(extISO))
@@ -833,7 +834,7 @@ export default function ItemsPage() {
 
               {/* Current Session Display / Countdown */}
               {currentSession ? (
-                <SessionCountdown currentSession={currentSession} extendedUntil={getExtendedUntilISO()} />
+                <SessionCountdown currentSession={currentSession} extendedUntil={getExtendedUntilISO(buffetSettings, tableSession, currentSession)} />
               ) : buffetSettings && (
                 <div className="flex items-center gap-4 bg-gray-50 rounded-lg px-4 py-2 border border-gray-200">
                   <Clock className="h-5 w-5 text-gray-600" />

@@ -29,6 +29,8 @@ import { Shield } from "lucide-react";
 import I18nProvider from "@/components/providers/i18n-provider";
 import LanguageSwitcher from "@/components/ui/language-switcher";
 import { useTranslation } from "react-i18next";
+import { SessionCountdown } from "@/components/ui/session-countdown";
+import { getExtendedUntilISO } from "@/lib/utils/session-time";
 
 interface GuestCounts {
   adults: number;
@@ -320,7 +322,7 @@ export default function TablesPage() {
         <div className="flex flex-col items-center justify-center   px-4">
           <div className="w-full ">
             {/* Table Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 mb-16">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-2 mb-16">
               {isLoading ? (
                 // Loading skeleton
                 Array.from({ length: 12 }).map((_, index) => (
@@ -364,8 +366,19 @@ export default function TablesPage() {
                       `}
                       >
                         <div className="flex items-center justify-between">
-                          <div className="text-base sm:text-lg font-bold">Table {table.number}</div>
+                          <div className="text-base sm:text-lg font-bold">
+                            Table {table.number}
 
+                          </div>
+                          {table.session && currentSession && (
+                            <div className="mt-1">
+                              <SessionCountdown
+                                currentSession={currentSession}
+                                extendedUntil={getExtendedUntilISO(buffetSettings, table.session, currentSession)}
+                                compact={true}
+                              />
+                            </div>
+                          )}
                           {table.session && (
                             <div className="flex items-center text-xs text-blue-600 gap-2">
                               <span title="Adults">👨 {table.session.guestCounts.adults}</span>
@@ -421,27 +434,27 @@ export default function TablesPage() {
             { available: 0, partial: 0, full: 0, cleaning: 0 }
           )
           return (
-          <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-md p-4 border">
-            <h3 className="text-sm font-semibold text-gray-700 mb-2 text-center">Table Status Colors</h3>
-            <div className="flex flex-wrap justify-center gap-4 text-xs">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-green-100 border-2 border-green-300 rounded"></div>
-              <span className="text-green-800 font-medium">Available ({counts.available})</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-amber-100 border-2 border-amber-300 rounded"></div>
-              <span className="text-amber-800 font-medium">Partially Full ({counts.partial})</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-red-100 border-2 border-red-300 rounded"></div>
-              <span className="text-red-800 font-medium">Full ({counts.full})</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-yellow-100 border-2 border-yellow-300 rounded"></div>
-              <span className="text-yellow-800 font-medium">Cleaning ({counts.cleaning})</span>
+            <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-md p-4 border">
+              <h3 className="text-sm font-semibold text-gray-700 mb-2 text-center">Table Status Colors</h3>
+              <div className="flex flex-wrap justify-center gap-4 text-xs">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-green-100 border-2 border-green-300 rounded"></div>
+                  <span className="text-green-800 font-medium">Available ({counts.available})</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-amber-100 border-2 border-amber-300 rounded"></div>
+                  <span className="text-amber-800 font-medium">Partially Full ({counts.partial})</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-red-100 border-2 border-red-300 rounded"></div>
+                  <span className="text-red-800 font-medium">Full ({counts.full})</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 bg-yellow-100 border-2 border-yellow-300 rounded"></div>
+                  <span className="text-yellow-800 font-medium">Cleaning ({counts.cleaning})</span>
+                </div>
               </div>
             </div>
-          </div>
           )
         })()}
 
@@ -480,73 +493,6 @@ export default function TablesPage() {
               </DialogDescription>
             </DialogHeader>
 
-            {/* Session Pricing */}
-            {/* {buffetSettings && buffetSettings.sessions && (
-              <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                {currentSession ? (
-                  <>
-                    <h3 className="font-semibold text-blue-900 capitalize mb-2">
-                      Current: {currentSession.key} Session ({currentSession.data.startTime} - {currentSession.data.endTime})
-                    </h3>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div className="text-center">
-                        <div className="font-medium text-blue-900">Adult</div>
-                        <div className="text-blue-700">£{currentSession.data.adultPrice.toFixed(2)}</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="font-medium text-blue-900">Child</div>
-                        <div className="text-blue-700">£{currentSession.data.childPrice.toFixed(2)}</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="font-medium text-blue-900">Infant</div>
-                        <div className="text-blue-700">£{currentSession.data.infantPrice.toFixed(2)}</div>
-                      </div>
-                      <div className="text-center">
-                        <div className="font-medium text-blue-900">Extra Drinks</div>
-                        <div className="text-blue-700 text-xs space-y-1">
-                          <div>Adult: £{(buffetSettings.sessionSpecificExtraDrinksPricing?.[currentSession?.type]?.adultPrice || buffetSettings.extraDrinksPricing?.adultPrice || buffetSettings.extraDrinksPrice)?.toFixed(2)}</div>
-                          <div>Child: £{(buffetSettings.sessionSpecificExtraDrinksPricing?.[currentSession?.type]?.childPrice || buffetSettings.extraDrinksPricing?.childPrice || (buffetSettings.extraDrinksPrice * 0.6))?.toFixed(2)}</div>
-                          <div>Infant: £{(buffetSettings.sessionSpecificExtraDrinksPricing?.[currentSession?.type]?.infantPrice || buffetSettings.extraDrinksPricing?.infantPrice || 0)?.toFixed(2)}</div>
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <h3 className="font-semibold text-blue-900 mb-3">Session Pricing</h3>
-                    <div className="space-y-3">
-                      {Object.entries(buffetSettings.sessions).map(([sessionKey, sessionData]) => (
-                        sessionData.isActive && (
-                          <div key={sessionKey} className="border-b border-blue-200 pb-2 last:border-b-0">
-                            <div className="font-medium text-blue-800 capitalize mb-1">
-                              {sessionKey} ({sessionData.startTime} - {sessionData.endTime})
-                            </div>
-                            <div className="grid grid-cols-4 gap-2 text-xs">
-                              <div className="text-center">
-                                <div className="text-blue-700">Adult</div>
-                                <div className="font-medium">£{sessionData.adultPrice.toFixed(2)}</div>
-                              </div>
-                              <div className="text-center">
-                                <div className="text-blue-700">Child</div>
-                                <div className="font-medium">£{sessionData.childPrice.toFixed(2)}</div>
-                              </div>
-                              <div className="text-center">
-                                <div className="text-blue-700">Infant</div>
-                                <div className="font-medium">£{sessionData.infantPrice.toFixed(2)}</div>
-                              </div>
-                              <div className="text-center">
-                                <div className="text-blue-700">Drinks</div>
-                                <div className="font-medium">£{(buffetSettings.sessionSpecificExtraDrinksPricing?.[currentSession?.type]?.adultPrice || buffetSettings.extraDrinksPricing?.adultPrice || buffetSettings.extraDrinksPrice)?.toFixed(2)}</div>
-                              </div>
-                            </div>
-                          </div>
-                        )
-                      ))}
-                    </div>
-                  </>
-                )}
-              </div>
-            )} */}
 
             <div className="space-y-4 py-4">
               <div className="space-y-2">

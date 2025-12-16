@@ -13,9 +13,10 @@ interface SessionCountdownProps {
     }
   }
   extendedUntil?: string
+  compact?: boolean
 }
 
-export function SessionCountdown({ currentSession, extendedUntil }: SessionCountdownProps) {
+export function SessionCountdown({ currentSession, extendedUntil, compact = false }: SessionCountdownProps) {
   const [timeRemaining, setTimeRemaining] = useState<number>(0)
   const [showCountdown, setShowCountdown] = useState<boolean>(false)
 
@@ -39,14 +40,15 @@ export function SessionCountdown({ currentSession, extendedUntil }: SessionCount
       const diffMinutes = Math.floor(diffSeconds / 60)
       
       setTimeRemaining(diffSeconds)
-      setShowCountdown(diffMinutes <= 15 && diffSeconds > 0)
+      // Always show countdown if compact mode (for table cards), otherwise stick to 15m rule
+      setShowCountdown(compact ? diffSeconds > 0 : (diffMinutes <= 15 && diffSeconds > 0))
     }
 
     calculateTimeRemaining()
     const interval = setInterval(calculateTimeRemaining, 1000)
 
     return () => clearInterval(interval)
-  }, [currentSession, extendedUntil])
+  }, [currentSession, extendedUntil, compact])
 
   const formatTime = (totalSeconds: number) => {
     const hours = Math.floor(totalSeconds / 3600)
@@ -61,6 +63,15 @@ export function SessionCountdown({ currentSession, extendedUntil }: SessionCount
 
   // If countdown should show, return the countdown display
   if (showCountdown) {
+    if (compact) {
+       return (
+        <div className="flex items-center text-xs text-orange-600 gap-1 font-medium bg-orange-50 px-2 py-1 rounded">
+          <Clock className="h-3 w-3" />
+          <span>{formatTime(timeRemaining)}</span>
+        </div>
+      )
+    }
+
     return (
       <Alert className="border-orange-200 bg-orange-50">
         <Clock className="h-4 w-4 text-orange-600" />
@@ -70,6 +81,8 @@ export function SessionCountdown({ currentSession, extendedUntil }: SessionCount
       </Alert>
     )
   }
+
+  if (compact) return null
 
   // If countdown shouldn't show, return the normal session display
   return (
