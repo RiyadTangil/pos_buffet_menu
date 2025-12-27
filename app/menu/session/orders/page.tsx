@@ -70,14 +70,15 @@ export default function SessionOrdersPage() {
   const [hasSplitChanges, setHasSplitChanges] = useState(false);
   const [splitMeta, setSplitMeta] = useState<{ totalSplits: number; splitMethod: 'equal' | 'items' }>({ totalSplits: 0, splitMethod: 'equal' });
 
-  // Get current session based on time
-  const getCurrentSession = () => {
+  const [tableSessionCreatedAt, setTableSessionCreatedAt] = useState<string | null>(null);
+
+  // Get session configuration based on a specific time (or current time if not provided)
+  const getSessionByTime = (time: Date) => {
     if (!buffetSettings?.sessions) return null;
 
-    const now = new Date();
-    const currentHour = now.getHours();
-    const currentMinute = now.getMinutes();
-    const currentTimeInMinutes = currentHour * 60 + currentMinute;
+    const currentHour = time.getHours();
+    const currentMinute = time.getMinutes();
+    const timeInMinutes = currentHour * 60 + currentMinute;
 
     const sessions = [
       { key: "breakfast", data: buffetSettings.sessions.breakfast },
@@ -95,7 +96,7 @@ export default function SessionOrdersPage() {
       const startTime = startHour * 60 + startMin;
       const endTime = endHour * 60 + endMin;
 
-      if (currentTimeInMinutes >= startTime && currentTimeInMinutes < endTime) {
+      if (timeInMinutes >= startTime && timeInMinutes < endTime) {
         return session;
       }
     }
@@ -103,8 +104,17 @@ export default function SessionOrdersPage() {
     return null;
   };
 
-  // Get current session and session data
-  const currentSession = getCurrentSession();
+  // Determine the correct session to use for pricing
+  // If table session has a creation time, use that to find the historical session
+  // Otherwise fall back to current time
+  const pricingSession = React.useMemo(() => {
+    if (tableSessionCreatedAt) {
+      return getSessionByTime(new Date(tableSessionCreatedAt));
+    }
+    return getSessionByTime(new Date());
+  }, [tableSessionCreatedAt, buffetSettings]);
+
+  const currentSession = getSessionByTime(new Date());
 
 
   const sessionData = {
@@ -112,12 +122,12 @@ export default function SessionOrdersPage() {
     children: guestCounts.children,
     infants: guestCounts.infants,
     extraDrinks: guestCounts.includeDrinks || false,
-    adultPrice: currentSession?.data?.adultPrice || 25,
-    childPrice: currentSession?.data?.childPrice || 15,
-    infantPrice: currentSession?.data?.infantPrice || 0,
+    adultPrice: pricingSession?.data?.adultPrice || 25,
+    childPrice: pricingSession?.data?.childPrice || 15,
+    infantPrice: pricingSession?.data?.infantPrice || 0,
     drinkPrice: buffetSettings?.extraDrinksPrice || 5, // Keep for backward compatibility
     extraDrinksPricing: buffetSettings?.sessionSpecificExtraDrinksPricing?.[
-      currentSession?.key
+      pricingSession?.key
     ] ||
       buffetSettings?.extraDrinksPricing || {
       adultPrice: 5,
@@ -162,6 +172,9 @@ export default function SessionOrdersPage() {
             setShowSessionEndedModal(true);
             setLoading(false);
             return;
+          }
+          if (session?.createdAt) {
+            setTableSessionCreatedAt(session.createdAt);
           }
           setIsSecondaryDevice(!!session?.isSecondaryDevice);
           if (session?.guestCounts) {

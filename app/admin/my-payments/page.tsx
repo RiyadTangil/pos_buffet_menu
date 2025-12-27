@@ -30,6 +30,7 @@ import {
   Filter,
   Search,
   DollarSign,
+  Banknote,
 } from "lucide-react";
 import { Payment } from "@/lib/models/payment";
 import { canUserAccess } from "@/lib/userTypes";
@@ -162,11 +163,31 @@ export default function MyPaymentsPage() {
     session,
   ]);
 
-  // Calculate total amount for current view
-  const totalAmount = payments.reduce(
-    (sum, payment) => sum + payment.totalAmount,
-    0
-  );
+  const cashTotal = payments
+    .reduce((sum, p) => {
+      // Handle split payments
+      if (p.isSplit && p.splitPayments && Array.isArray(p.splitPayments)) {
+        const splitCash = p.splitPayments
+          .filter(sp => sp.paymentMethod === 'cash')
+          .reduce((s, sp) => s + (sp.total || 0), 0);
+        return sum + splitCash;
+      }
+      // Standard payment
+      return p.paymentMethod === "cash" ? sum + p.totalAmount : sum;
+    }, 0);
+
+  const cardTotal = payments
+    .reduce((sum, p) => {
+      // Handle split payments
+      if (p.isSplit && p.splitPayments && Array.isArray(p.splitPayments)) {
+        const splitCard = p.splitPayments
+          .filter(sp => sp.paymentMethod === 'card')
+          .reduce((s, sp) => s + (sp.total || 0), 0);
+        return sum + splitCard;
+      }
+      // Standard payment
+      return p.paymentMethod === "card" ? sum + p.totalAmount : sum;
+    }, 0);
 
   // Format currency
   const formatCurrency = (amount: number) => `£${amount.toFixed(2)}`;
@@ -246,11 +267,21 @@ export default function MyPaymentsPage() {
             View and track your payment history
           </p>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-6">
           <div className="text-right">
-            <p className="text-sm text-muted-foreground">Total Amount</p>
+            <p className="text-sm text-muted-foreground flex items-center justify-end gap-1">
+              <DollarSign className="w-3 h-3" /> Cash Total
+            </p>
             <p className="text-2xl font-bold text-green-600">
-              {formatCurrency(totalAmount)}
+              {formatCurrency(cashTotal)}
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="text-sm text-muted-foreground flex items-center justify-end gap-1">
+              <CreditCard className="w-3 h-3" /> Card Total
+            </p>
+            <p className="text-2xl font-bold text-blue-600">
+              {formatCurrency(cardTotal)}
             </p>
           </div>
         </div>
@@ -426,15 +457,45 @@ export default function MyPaymentsPage() {
                         <span className="text-2xl font-bold text-green-600">
                           {formatCurrency(payment.totalAmount)}
                         </span>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          {payment.paymentMethod === "card" ? (
+                        <div className="flex flex-col items-end gap-1 text-sm text-muted-foreground">
+                          {payment.isSplit && payment.splitPayments ? (
                             <>
-                              <CreditCard className="w-4 h-4" /> Card
+                              {/* Show split breakdown summary */}
+                              {(() => {
+                                const cashPart = payment.splitPayments
+                                  .filter(sp => sp.paymentMethod === 'cash')
+                                  .reduce((sum, sp) => sum + (sp.total || 0), 0);
+                                const cardPart = payment.splitPayments
+                                  .filter(sp => sp.paymentMethod === 'card')
+                                  .reduce((sum, sp) => sum + (sp.total || 0), 0);
+                                
+                                return (
+                                  <>
+                                    {cashPart > 0 && (
+                                      <div className="flex items-center gap-2 text-green-700 font-medium">
+                                        <Banknote className="w-3 h-3" /> {formatCurrency(cashPart)}
+                                      </div>
+                                    )}
+                                    {cardPart > 0 && (
+                                      <div className="flex items-center gap-2 text-blue-700 font-medium">
+                                        <CreditCard className="w-3 h-3" /> {formatCurrency(cardPart)}
+                                      </div>
+                                    )}
+                                  </>
+                                )
+                              })()}
                             </>
                           ) : (
-                            <>
-                              <DollarSign className="w-4 h-4" /> Cash
-                            </>
+                            /* Standard single payment display */
+                            payment.paymentMethod === "card" ? (
+                              <div className="flex items-center gap-2">
+                                <CreditCard className="w-4 h-4" /> Card
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                <Banknote className="w-4 h-4" /> Cash
+                              </div>
+                            )
                           )}
                         </div>
                       </div>

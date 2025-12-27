@@ -99,7 +99,7 @@ export default function ItemsPage() {
 
         try {
           await joinTableRoom(storedTableId, storedGroupType)
-      
+
         } catch (error) {
           console.error('❌ Failed to join table room:', error)
           // Continue with the rest of the initialization even if socket fails
@@ -107,7 +107,7 @@ export default function ItemsPage() {
 
         // Set up real-time table session updates
         onTableSessionUpdate((updatedSessionData) => {
-         
+
           // Check if session has ended (either sessionEnded flag or null session)
           if (updatedSessionData?.sessionEnded || updatedSessionData === null) {
             setShowSessionEndedModal(true)
@@ -135,7 +135,7 @@ export default function ItemsPage() {
 
         // Set up real-time cart synchronization
         onCartUpdate((cartData) => {
-       
+
           if (cartData.tableId === storedTableId) {
             // Convert database cart items to UI cart items
             if (cartData.cartItems && productsData.length > 0) {
@@ -159,7 +159,7 @@ export default function ItemsPage() {
 
         // Set up real-time order confirmation synchronization
         onOrderConfirmation((orderData) => {
-      
+
           if (orderData.tableId === storedTableId) {
             // Sync order confirmation state with other devices in same group
             setShowConfetti(true)
@@ -256,7 +256,7 @@ export default function ItemsPage() {
           try {
             const parsed = JSON.parse(storedSession)
             setTableSession(parsed)
-          } catch {}
+          } catch { }
         }
 
         // Convert database cart items to UI cart items after products are loaded
@@ -1148,7 +1148,7 @@ export default function ItemsPage() {
                                 {item.description}
                               </CardDescription>
                             )}
-                            {item.price && item.price > 0 && (
+                            {item.price && Number(item.price) > 0 && (
                               <div className="flex items-center gap-1 mt-2">
                                 <Euro className="w-4 h-4 text-green-600" />
                                 <span className="text-lg font-bold text-green-600">
@@ -1188,33 +1188,33 @@ export default function ItemsPage() {
                               ) : quantity > 0 ? (
                                 <>
                                   <div className="flex items-center gap-2 bg-orange-100 rounded-full p-1">
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => removeFromCart(item.id)}
-                                    className="w-8 h-8 p-0 rounded-full hover:bg-orange-200 text-orange-700"
-                                    disabled={sessionEnded || isUpdating}
-                                  >
-                                    {updatingItemId === item.id && updatingAction === 'remove' ? (
-                                      <Loader2 className="w-4 h-4 animate-spin" />
-                                    ) : (
-                                      <Minus className="w-4 h-4" />
-                                    )}
-                                  </Button>
-                                  <span className="w-8 text-center font-bold text-orange-900 text-lg">{quantity}</span>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => addToCart(item)}
-                                    className="w-8 h-8 p-0 rounded-full hover:bg-orange-200 text-orange-700"
-                                    disabled={sessionEnded || isUpdating || (typeof item.limitPerOrder === 'number' && item.limitPerOrder > 0 && quantity >= item.limitPerOrder)}
-                                  >
-                                    {updatingItemId === item.id && updatingAction === 'add' ? (
-                                      <Loader2 className="w-4 h-4 animate-spin" />
-                                    ) : (
-                                      <Plus className="w-4 h-4" />
-                                    )}
-                                  </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => removeFromCart(item.id)}
+                                      className="w-8 h-8 p-0 rounded-full hover:bg-orange-200 text-orange-700"
+                                      disabled={sessionEnded || isUpdating}
+                                    >
+                                      {updatingItemId === item.id && updatingAction === 'remove' ? (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                      ) : (
+                                        <Minus className="w-4 h-4" />
+                                      )}
+                                    </Button>
+                                    <span className="w-8 text-center font-bold text-orange-900 text-lg">{quantity}</span>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => addToCart(item)}
+                                      className="w-8 h-8 p-0 rounded-full hover:bg-orange-200 text-orange-700"
+                                      disabled={sessionEnded || isUpdating || (typeof item.limitPerOrder === 'number' && item.limitPerOrder > 0 && quantity >= item.limitPerOrder)}
+                                    >
+                                      {updatingItemId === item.id && updatingAction === 'add' ? (
+                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                      ) : (
+                                        <Plus className="w-4 h-4" />
+                                      )}
+                                    </Button>
                                   </div>
                                   {typeof item.limitPerOrder === 'number' && item.limitPerOrder > 0 && quantity >= item.limitPerOrder && (
                                     <div className="mt-2 text-xs text-orange-700 flex items-center gap-2">

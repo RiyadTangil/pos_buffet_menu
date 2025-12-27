@@ -101,6 +101,10 @@ export async function GET(request: NextRequest) {
       paymentTime: payment.paymentTime,
       status: payment.status,
       paymentMethod: payment.paymentMethod,
+      // Include split metadata for frontend
+      isSplit: payment.isSplit ?? false,
+      splitInfo: payment.splitInfo ?? undefined,
+      splitPayments: payment.splitPayments ?? undefined,
       createdAt: payment.createdAt,
       updatedAt: payment.updatedAt
     }))

@@ -530,5 +530,111 @@
         "sessionEnded": true
       }
     ]
+  },
+  {
+    "backupDate": "2025-12-22T03:43:57.708Z",
+    "paymentId": "PAY-1766375037708-dtdnbcyz5",
+    "tableId": "68c15318c85542d7fb04fe20",
+    "tableNumber": 8,
+    "groupType": "same",
+    "sessions": [
+      {
+        "_id": "692e8dc0ff03a5814776fc66",
+        "tableId": "68c15318c85542d7fb04fe20",
+        "deviceId": "device_x5nv1z1pa_1764658608810",
+        "guestCounts": {
+          "adults": 4,
+          "children": 2,
+          "infants": 1,
+          "includeDrinks": true
+        },
+        "cartItems": [
+          {
+            "menuItemId": "68cad4b09af39ae52f9b96d4",
+            "name": "Riyad Hasan",
+            "price": 70,
+            "quantity": 2,
+            "categoryId": "68c167f8c85542d7fb04fe24"
+          },
+          {
+            "menuItemId": "692e917fff03a5814776fc67",
+            "name": "test prod",
+            "price": 0,
+            "quantity": 1,
+            "categoryId": "68c167f8c85542d7fb04fe24"
+          },
+          {
+            "menuItemId": "68c19d173b67d81cc1cc2e81",
+            "name": "Vagitable",
+            "price": 0,
+            "quantity": 1,
+            "categoryId": "68c167f8c85542d7fb04fe24"
+          }
+        ],
+        "status": "active",
+        "createdAt": "2025-12-02T06:57:04.015Z",
+        "updatedAt": "2025-12-22T03:43:57.708Z",
+        "isSecondaryDevice": true,
+        "groupType": "same",
+        "nextOrderAvailableUntil": "2025-12-16T16:53:49.210Z",
+        "secondaryDeviceId": "device_z0qiwitok_1766374984339",
+        "sessionEnded": true
+      }
+    ]
+  },
+  {
+    "backupDate": "2025-12-27T16:41:58.490Z",
+    "paymentId": "PAY-1766853718490-4b73mh8fm",
+    "tableId": "68c190da3b67d81cc1cc2e7f",
+    "tableNumber": 4,
+    "groupType": "same",
+    "sessions": [
+      {
+        "_id": "694197c375a8450820c0e86e",
+        "tableId": "68c190da3b67d81cc1cc2e7f",
+        "deviceId": "device_7y3qvx37d_1765906355738",
+        "guestCounts": {
+          "adults": 2,
+          "children": 0,
+          "infants": 0,
+          "includeDrinks": false
+        },
+        "cartItems": [],
+        "status": "active",
+        "createdAt": "2025-12-16T17:32:51.277Z",
+        "updatedAt": "2025-12-27T16:41:58.490Z",
+        "isSecondaryDevice": true,
+        "groupType": "same",
+        "secondaryDeviceId": "device_f7jilf2e5_1766375347274",
+        "sessionEnded": true
+      }
+    ]
+  },
+  {
+    "backupDate": "2025-12-27T17:37:55.154Z",
+    "paymentId": "PAY-1766857075154-ys6rf08pi",
+    "tableId": "68c152a9c85542d7fb04fe1f",
+    "tableNumber": 2,
+    "groupType": "same",
+    "sessions": [
+      {
+        "_id": "695019599e1c6678acdd898b",
+        "tableId": "68c152a9c85542d7fb04fe1f",
+        "deviceId": "device_9exvkh2bo_1766856874576",
+        "guestCounts": {
+          "adults": 2,
+          "children": 1,
+          "infants": 1,
+          "includeDrinks": true
+        },
+        "cartItems": [],
+        "status": "active",
+        "createdAt": "2025-12-27T17:37:29.393Z",
+        "updatedAt": "2025-12-27T17:37:55.154Z",
+        "isSecondaryDevice": false,
+        "groupType": "same",
+        "sessionEnded": true
+      }
+    ]
   }
 ]
