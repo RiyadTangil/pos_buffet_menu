@@ -1148,7 +1148,7 @@ export default function ItemsPage() {
                                 {item.description}
                               </CardDescription>
                             )}
-                            {item.price && Number(item.price) > 0 && (
+                            { Number(item.price) > 0 && (
                               <div className="flex items-center gap-1 mt-2">
                                 <Euro className="w-4 h-4 text-green-600" />
                                 <span className="text-lg font-bold text-green-600">
