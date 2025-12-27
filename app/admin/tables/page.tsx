@@ -427,8 +427,9 @@ export default function TablesPage() {
     // Determine current session dynamically from settings.sessions by time
     const getCurrentSession = () => {
       const sessions = settings?.sessions || {}
-      const now = new Date()
-      const currentMinutes = now.getHours() * 60 + now.getMinutes()
+      // Use session creation time to determine historical pricing
+      const targetDate = session?.createdAt ? new Date(session.createdAt) : new Date()
+      const currentMinutes = targetDate.getHours() * 60 + targetDate.getMinutes()
       for (const key of Object.keys(sessions)) {
         const cfg = sessions[key]
         if (!cfg?.startTime || !cfg?.endTime) continue

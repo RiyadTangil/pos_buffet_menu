@@ -3,10 +3,9 @@ import { getDatabase, COLLECTIONS } from '@/lib/mongodb'
 import { ObjectId } from 'mongodb'
 
 // Utility to resolve current session type from settings by time of day
-function resolveCurrentSession(settings: any): { key: 'breakfast'|'lunch'|'dinner', data: any } | null {
+function resolveSessionByTime(settings: any, time: Date): { key: 'breakfast'|'lunch'|'dinner', data: any } | null {
   if (!settings?.sessions) return null
-  const now = new Date()
-  const currentMinute = now.getHours() * 60 + now.getMinutes()
+  const currentMinute = time.getHours() * 60 + time.getMinutes()
   const sessions = [
     { key: 'breakfast' as const, data: settings.sessions.breakfast },
     { key: 'lunch' as const, data: settings.sessions.lunch },
@@ -21,6 +20,10 @@ function resolveCurrentSession(settings: any): { key: 'breakfast'|'lunch'|'dinne
     if (currentMinute >= start && currentMinute < end) return s
   }
   return null
+}
+
+function resolveCurrentSession(settings: any): { key: 'breakfast'|'lunch'|'dinner', data: any } | null {
+  return resolveSessionByTime(settings, new Date())
 }
 
 export async function POST(
@@ -89,6 +92,33 @@ export async function POST(
 
     // For each group, aggregate guests, sum orders, create payment, end+clear sessions
     for (const [gKey, groupSessions] of Object.entries(groups)) {
+      
+      // Determine pricing based on earliest session start time in the group
+      let pricingSessionKey = sessionKey
+      let pricingBase = basePricing
+      let pricingExtraDrinks = extraDrinksPricing
+
+      // Find earliest session in group
+      if (groupSessions.length > 0) {
+        const earliestSession = groupSessions.reduce((prev, curr) => 
+            new Date(prev.createdAt).getTime() < new Date(curr.createdAt).getTime() ? prev : curr
+        );
+        
+        if (earliestSession && earliestSession.createdAt) {
+             const sessionTime = new Date(earliestSession.createdAt)
+             const historicSession = resolveSessionByTime(settingsDoc, sessionTime)
+             if (historicSession) {
+                pricingSessionKey = historicSession.key as 'breakfast'|'lunch'|'dinner'
+                pricingBase = historicSession.data
+                pricingExtraDrinks = (settingsDoc?.sessionSpecificExtraDrinksPricing?.[pricingSessionKey]) || settingsDoc?.extraDrinksPricing || {
+                  adultPrice: settingsDoc?.extraDrinksPrice ?? 5,
+                  childPrice: Math.round(((settingsDoc?.extraDrinksPrice ?? 5) * 0.6)),
+                  infantPrice: 0,
+                }
+             }
+        }
+      }
+
       const aggregatedGuests = groupSessions.reduce((acc, s: any) => {
         const gc = s.guestCounts || { adults: 0, children: 0, infants: 0, includeDrinks: false }
         acc.adults += gc.adults || 0
@@ -105,13 +135,13 @@ export async function POST(
 
       // Calculate total as per /menu/session/orders
       let total = 0
-      total += (aggregatedGuests.adults * (basePricing.adultPrice || 0))
-      total += (aggregatedGuests.children * (basePricing.childPrice || 0))
-      total += (aggregatedGuests.infants * (basePricing.infantPrice || 0))
+      total += (aggregatedGuests.adults * (pricingBase.adultPrice || 0))
+      total += (aggregatedGuests.children * (pricingBase.childPrice || 0))
+      total += (aggregatedGuests.infants * (pricingBase.infantPrice || 0))
       if (aggregatedGuests.includeDrinks) {
-        total += (aggregatedGuests.adults * (extraDrinksPricing.adultPrice || 0))
-        total += (aggregatedGuests.children * (extraDrinksPricing.childPrice || 0))
-        total += (aggregatedGuests.infants * (extraDrinksPricing.infantPrice || 0))
+        total += (aggregatedGuests.adults * (pricingExtraDrinks.adultPrice || 0))
+        total += (aggregatedGuests.children * (pricingExtraDrinks.childPrice || 0))
+        total += (aggregatedGuests.infants * (pricingExtraDrinks.infantPrice || 0))
       }
       for (const order of orders) {
         const items = Array.isArray(order.items) ? order.items : []
@@ -133,18 +163,18 @@ export async function POST(
         waiterName: waiterNameOverride || 'Admin Reset',
         totalAmount: total,
         tipAmount: 0,
-        sessionType: sessionKey,
+        sessionType: pricingSessionKey,
         groupType: gKey,
         sessionData: {
           adults: aggregatedGuests.adults,
           children: aggregatedGuests.children,
           infants: aggregatedGuests.infants,
           extraDrinks: aggregatedGuests.includeDrinks,
-          adultPrice: basePricing.adultPrice || 25,
-          childPrice: basePricing.childPrice || 15,
-          infantPrice: basePricing.infantPrice || 0,
+          adultPrice: pricingBase.adultPrice || 25,
+          childPrice: pricingBase.childPrice || 15,
+          infantPrice: pricingBase.infantPrice || 0,
           drinkPrice: settingsDoc?.extraDrinksPrice ?? 5,
-          extraDrinksPricing,
+          extraDrinksPricing: pricingExtraDrinks,
         },
         paymentDate: now.toISOString().split('T')[0],
         paymentTime: now.toTimeString().split(' ')[0],

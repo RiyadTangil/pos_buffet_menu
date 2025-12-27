@@ -2,10 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getDatabase, COLLECTIONS } from '@/lib/mongodb'
 import { ObjectId } from 'mongodb'
 
-function resolveCurrentSession(settings: any): { key: 'breakfast'|'lunch'|'dinner', data: any } | null {
+function resolveSessionByTime(settings: any, time: Date): { key: 'breakfast'|'lunch'|'dinner', data: any } | null {
   if (!settings?.sessions) return null
-  const now = new Date()
-  const currentMinute = now.getHours() * 60 + now.getMinutes()
+  const currentMinute = time.getHours() * 60 + time.getMinutes()
   const sessions = [
     { key: 'breakfast' as const, data: settings.sessions.breakfast },
     { key: 'lunch' as const, data: settings.sessions.lunch },
@@ -20,6 +19,10 @@ function resolveCurrentSession(settings: any): { key: 'breakfast'|'lunch'|'dinne
     if (currentMinute >= start && currentMinute < end) return s
   }
   return null
+}
+
+function resolveCurrentSession(settings: any): { key: 'breakfast'|'lunch'|'dinner', data: any } | null {
+  return resolveSessionByTime(settings, new Date())
 }
 
 function buildSettingsFallback(settingsDoc: any) {
@@ -129,6 +132,25 @@ export async function GET(request: NextRequest) {
       const sorted = tableSessions.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
       const primarySession = sorted[0] || null
 
+      // Determine pricing based on session start time
+      let pricingSessionKey = sessionKey
+      let pricingBase = basePricing
+      let pricingExtraDrinks = extraDrinksPricing
+
+      if (primarySession && primarySession.createdAt) {
+        const sessionTime = new Date(primarySession.createdAt)
+        const historicSession = resolveSessionByTime(settings, sessionTime)
+        if (historicSession) {
+           pricingSessionKey = historicSession.key as 'breakfast'|'lunch'|'dinner'
+           pricingBase = historicSession.data
+           pricingExtraDrinks = (settings.sessionSpecificExtraDrinksPricing?.[pricingSessionKey]) || settings.extraDrinksPricing || {
+              adultPrice: settings.extraDrinksPrice ?? 5,
+              childPrice: Math.round(((settings.extraDrinksPrice ?? 5) * 0.6)),
+              infantPrice: 0,
+            }
+        }
+      }
+
       const adultGuests = primarySession ? (primarySession.guestCounts?.adults || 0) : 0
       const availableAdultCapacity = Math.max(0, (table.capacity || 0) - adultGuests)
 
@@ -142,13 +164,13 @@ export async function GET(request: NextRequest) {
       }, { adults: 0, children: 0, infants: 0, includeDrinks: false })
 
       let total = 0
-      total += (aggregatedGuests.adults * (basePricing.adultPrice || 0))
-      total += (aggregatedGuests.children * (basePricing.childPrice || 0))
-      total += (aggregatedGuests.infants * (basePricing.infantPrice || 0))
+      total += (aggregatedGuests.adults * (pricingBase.adultPrice || 0))
+      total += (aggregatedGuests.children * (pricingBase.childPrice || 0))
+      total += (aggregatedGuests.infants * (pricingBase.infantPrice || 0))
       if (aggregatedGuests.includeDrinks) {
-        total += (aggregatedGuests.adults * (extraDrinksPricing.adultPrice || 0))
-        total += (aggregatedGuests.children * (extraDrinksPricing.childPrice || 0))
-        total += (aggregatedGuests.infants * (extraDrinksPricing.infantPrice || 0))
+        total += (aggregatedGuests.adults * (pricingExtraDrinks.adultPrice || 0))
+        total += (aggregatedGuests.children * (pricingExtraDrinks.childPrice || 0))
+        total += (aggregatedGuests.infants * (pricingExtraDrinks.infantPrice || 0))
       }
       for (const s of tableSessions) {
         const sid = s._id?.toString()
