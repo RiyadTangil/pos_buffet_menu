@@ -2,10 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getDatabase, COLLECTIONS } from '@/lib/mongodb'
 import { ObjectId } from 'mongodb'
 
-function resolveCurrentSession(settings: any): { key: 'breakfast'|'lunch'|'dinner', data: any } | null {
+function resolveSessionByTime(settings: any, time: Date): { key: 'breakfast'|'lunch'|'dinner', data: any } | null {
   if (!settings?.sessions) return null
-  const now = new Date()
-  const currentMinute = now.getHours() * 60 + now.getMinutes()
+  const currentMinute = time.getHours() * 60 + time.getMinutes()
   const sessions = [
     { key: 'breakfast' as const, data: settings.sessions.breakfast },
     { key: 'lunch' as const, data: settings.sessions.lunch },
@@ -20,6 +19,10 @@ function resolveCurrentSession(settings: any): { key: 'breakfast'|'lunch'|'dinne
     if (currentMinute >= start && currentMinute < end) return s
   }
   return null
+}
+
+function resolveCurrentSession(settings: any): { key: 'breakfast'|'lunch'|'dinner', data: any } | null {
+  return resolveSessionByTime(settings, new Date())
 }
 
 function buildSettingsFallback(settingsDoc: any) {
@@ -72,12 +75,24 @@ export async function GET(request: NextRequest) {
     ])
 
     const settings = buildSettingsFallback(settingsDoc || {})
-    const currentSession = resolveCurrentSession(settings)
-    const sessionKey = (currentSession?.key || 'lunch') as 'breakfast'|'lunch'|'dinner'
+    
+    // Initial resolution based on current time
+    let currentSession = resolveCurrentSession(settings)
+    let sessionKey = (currentSession?.key || 'lunch') as 'breakfast'|'lunch'|'dinner'
 
     const sessionQuery: any = { tableId, status: 'active' }
     if (groupType) sessionQuery.groupType = groupType
     const session = await db.collection('table_sessions').findOne(sessionQuery)
+
+    // If an active session exists, use its creation time to determine the session context (historical pricing/menu)
+    if (session && session.createdAt) {
+      const historicSession = resolveSessionByTime(settings, new Date(session.createdAt))
+      if (historicSession) {
+        currentSession = historicSession
+        sessionKey = historicSession.key as 'breakfast'|'lunch'|'dinner'
+      }
+    }
+
     const formattedSession = session ? {
       id: session._id.toString(),
       tableId: session.tableId,
